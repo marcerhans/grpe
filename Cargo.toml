@@ -1,0 +1,26 @@
+[workspace]
+members = [
+    "packages/*"
+]
+
+[workspace.package]
+authors = ["Marcus Hanson"]
+categories = ["grpe"]
+description = "Grpe"
+edition = "2021"
+homepage = "https://github.com/marcerhans"
+keywords = ["foo"]
+# license = "Proprietary"
+# license-file = "LICENCE.md"
+publish = false
+readme = "README.md"
+# repository = ""
+# rust-version = "1.69.0"
+version = "0.1.0"
+
+[package]
+name = "grpe"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
