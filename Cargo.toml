@@ -3,6 +3,9 @@ members = [
     "packages/*"
 ]
 
+[workspace.dependencies]
+linear_algebra = { version =  "*" }
+
 [workspace.package]
 authors = ["Marcus Hanson"]
 categories = ["grpe"]

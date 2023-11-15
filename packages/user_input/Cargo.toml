@@ -1,5 +1,5 @@
 [package]
-name = "linear_algebra"
+name = "user_input"
 authors.workspace = true
 categories.workspace = true
 description.workspace = true
