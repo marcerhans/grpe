@@ -3,23 +3,27 @@ use matrix::*;
 // use vector::*;
 
 mod matrix {
-
-    use std::cell::RefCell;
-
     use super::*;
+    use std::cell::RefCell;
 
     struct Matrix<T> {
         matrix: RefCell<Vec<T>>,
         dimensions: Vec<usize>,
+
+        /// Simply an optimization.
+        dimensions_index_max: Vec<usize>,
     }
 
     impl Matrix<usize> {
         /// TODO: Better docs.
         /// Example: Vec = {max elements in x, max elements in y, max elements in z}.
         pub fn new(dimensions: Vec<usize>) -> Self {
+            let as_index = dimensions.iter().map(|x| x - 1).collect();
+
             Self {
-                matrix: RefCell::new(vec![0_usize, dimensions.iter().product()]),
+                matrix: RefCell::new(vec![0_usize; dimensions.iter().product()]),
                 dimensions,
+                dimensions_index_max: as_index,
             }
         }
 
@@ -45,23 +49,19 @@ mod matrix {
         /// Error when coordinates are outside valid range.
         fn coordinates_to_index(&self, coordinates: &[usize]) -> Result<usize, &'static str> {
             let mut index = 0;
+            let mut dimensional_step_length = 1;
 
             if coordinates.len() != self.dimensions.len() {
                 return Err("Given coordinates cannot be mapped to a valid location in the matrix (out of bounds). I.e. coordinates has too few or too many dimensions.");
             }
 
-            if coordinates[0] > self.dimensions[0] {
-                return Err("Given coodinate(s) are out of maximum bounds for current matrix.");
-            }
-
-            index += coordinates[0];
-
-            for (coordinate, dimension) in coordinates.iter().skip(1).zip(&self.dimensions) {
-                if *coordinate > *dimension {
+            for i in 0..self.dimensions.len() {
+                if coordinates[i] > self.dimensions_index_max[i] {
                     return Err("Given coodinate(s) are out of maximum bounds for current matrix.");
                 }
 
-                index += coordinate * dimension;
+                index += coordinates[i] * dimensional_step_length;
+                dimensional_step_length *= self.dimensions[i];
             }
 
             Ok(index)
@@ -74,42 +74,48 @@ mod matrix {
 
         #[test]
         fn test_coordinates_to_index() {
-            // let matrix = Matrix::new(vec![1, 2, 3]);
-            // let coordinates = [1, 2, 3];
-            // let index = matrix.coordinates_to_index(&coordinates);
-            // assert!(index.is_ok_and(|x| x == 321));
+            let matrix = Matrix::new(vec![1, 2, 3]);
+            let index = matrix.coordinates_to_index(&[0, 1, 2]);
+            assert!(index.is_ok_and(|x| x == 5));
 
-            // let matrix = Matrix::new(vec![1, 2, 3]);
-            // let coordinates = [321, 0, 0];
-            // let index = matrix.coordinates_to_index(&coordinates);
-            // assert!(index.is_err());
+            let matrix = Matrix::new(vec![1, 2, 3]);
+            let index = matrix.coordinates_to_index(&[0, 1, 1]);
+            assert!(index.is_ok_and(|x| x == 3));
+        }
 
-            // let matrix = Matrix::new(vec![1, 2, 3]);
-            // let coordinates = [2, 2, 3];
-            // let index = matrix.coordinates_to_index(&coordinates);
-            // assert!(index.is_err());
-
-            // let matrix = Matrix::new(vec![1, 2, 3]);
-            // let coordinates = [1, 3, 3];
-            // let index = matrix.coordinates_to_index(&coordinates);
-            // assert!(index.is_err());
-
-            // let matrix = Matrix::new(vec![1, 2, 3]);
-            // let coordinates = [1, 2, 4];
-            // let index = matrix.coordinates_to_index(&coordinates);
-            // assert!(index.is_err());
-
-            // let matrix = Matrix::new(vec![1, 2, 3]);
-            // let coordinates = [1, 2, 3, 4];
-            // let index = matrix.coordinates_to_index(&coordinates);
-            // assert!(index.is_err());
+        #[test]
+        fn test_coordinates_to_index_bounds() {
+            let matrix = Matrix::new(vec![3, 7, 6]);
+            assert!(matrix.coordinates_to_index(&[3, 7, 6]).is_err());
+            assert!(matrix.coordinates_to_index(&[3, 6, 5]).is_err());
+            assert!(matrix.coordinates_to_index(&[2, 7, 5]).is_err());
+            assert!(matrix.coordinates_to_index(&[2, 6, 6]).is_err());
+            assert!(matrix.coordinates_to_index(&[2, 6, 5]).is_ok());
         }
 
         #[test]
         fn test_set_and_get() {
             let matrix = Matrix::new(vec![3, 7, 6]);
 
-            assert!(matrix.set(&[1, 3, 2], 0).is_ok());
+            let mut id = 0;
+            for i in 0..6 {
+                for j in 0..7 {
+                    for k in 0..3 {
+                        assert!(matrix.set(&[k, j, i], id).is_ok());
+                        id += 1;
+                    }
+                }
+            }
+
+            let mut id = 0;
+            for i in 0..6 {
+                for j in 0..7 {
+                    for k in 0..3 {
+                        assert!(matrix.get(&[k, j, i]).is_ok_and(|x| x == id));
+                        id += 1;
+                    }
+                }
+            }
         }
     }
 }
