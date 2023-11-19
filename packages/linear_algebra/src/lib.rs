@@ -5,7 +5,8 @@ use matrix::*;
 mod matrix {
     use super::*;
     use std::{
-        cell::{Ref, RefCell},
+        borrow::BorrowMut,
+        cell::{Ref, RefCell, RefMut},
         fmt,
         ops::Add,
     };
@@ -83,20 +84,6 @@ mod matrix {
         }
     }
 
-    impl<'a, T> IntoIterator for &'a Matrix<T> {
-        type Item = Ref<'a, T>;
-
-        type IntoIter = MatrixIter<'a, T>;
-
-        fn into_iter(self) -> Self::IntoIter {
-            let borrow = self.matrix.borrow();
-
-            Self::IntoIter {
-                item: Some(Ref::map(borrow, |t| t.as_slice())),
-            }
-        }
-    }
-
     struct MatrixIter<'a, T> {
         item: Option<Ref<'a, [T]>>,
     }
@@ -116,6 +103,56 @@ mod matrix {
                     [] => None,
                 },
                 None => None,
+            }
+        }
+    }
+
+    impl<'a, T> IntoIterator for &'a Matrix<T> {
+        type Item = Ref<'a, T>;
+        type IntoIter = MatrixIter<'a, T>;
+
+        fn into_iter(self) -> Self::IntoIter {
+            let borrow = self.matrix.borrow();
+
+            Self::IntoIter {
+                item: Some(Ref::map(borrow, |t| t.as_slice())),
+            }
+        }
+    }
+
+    struct MatrixIterMut<'a, T> {
+        item: Option<RefMut<'a, [T]>>,
+    }
+
+    impl<'a, T> Iterator for MatrixIterMut<'a, T> {
+        type Item = RefMut<'a, T>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            match self.item.take() {
+                Some(borrow) => match *borrow {
+                    [_, ..] => {
+                        let (head, tail) = RefMut::map_split(borrow, |slice| slice.split_at_mut(1));
+                        let head_what = RefMut::map(head, |reff| &mut reff.as_mut()[0]);
+                        // Replace the item with the "rest" (tail) of the slice.
+                        self.item.replace(tail);
+                        Some(head_what)
+                    }
+                    [] => None,
+                },
+                None => None,
+            }
+        }
+    }
+
+    impl<'a, T> IntoIterator for &'a mut Matrix<T> {
+        type Item = RefMut<'a, T>;
+        type IntoIter = MatrixIterMut<'a, T>;
+
+        fn into_iter(self) -> Self::IntoIter {
+            let borrow = self.matrix.borrow_mut();
+
+            Self::IntoIter {
+                item: Some(RefMut::map(borrow, |t| t.as_mut_slice())),
             }
         }
     }
@@ -178,10 +215,10 @@ mod matrix {
 
         #[test]
         fn test_matrix_iter() {
-            let matrix = Matrix::new(vec![3, 7, 6]);
+            let mut matrix = Matrix::new(vec![3, 7, 6]);
 
+            // Set and check with regular iteration first.
             let mut id = 1;
-
             for i in 0..6 {
                 for j in 0..7 {
                     for k in 0..3 {
@@ -191,10 +228,30 @@ mod matrix {
                 }
             }
 
+            let mut id = 1;
+            for i in 0..6 {
+                for j in 0..7 {
+                    for k in 0..3 {
+                        assert!(matrix.get(&[k, j, i]).is_ok_and(|x| x == id));
+                        id += 1;
+                    }
+                }
+            }
+
+            // Check with iterators
             for element in &matrix {
                 assert!(*element != 0);
             }
+            println!("{matrix:?}");
 
+            // Mutate with iterators
+            for mut element in &mut matrix {
+                *element = 1;
+            }
+
+            for element in &matrix {
+                assert!(*element == 1);
+            }
             println!("{matrix:?}");
         }
     }
