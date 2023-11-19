@@ -135,19 +135,22 @@ mod tensor {
         }
     }
 
-    impl Mul for Tensor<usize> {
-        type Output = Result<Tensor<usize>, &'static str>;
+    impl<T: TensorTraits + Mul<Output = T>> Mul for Tensor<T> {
+        type Output = Result<Tensor<T>, &'static str>;
 
-        fn mul(mut self, rhs: Self) -> Self::Output {
-            if self.dimensions != rhs.dimensions {
-                return Err("Right hand side of multiplication does not have the same amount of dimensions.");
-            }
+        fn mul(self, rhs: Self) -> Self::Output {
+            // if self.dimensions != rhs.dimensions {
+            //     return Err("Right hand side of multiplication does not have the same amount of dimensions.");
+            // }
 
-            for (mut left, right) in (&mut self).into_iter().zip(rhs.into_iter()) {
-                *left += *right;
-            }
+            // let lhs = self.clone();
 
-            Ok(self)
+            // for (mut lhs, rhs) in (&mut self).into_iter().zip(&rhs) {
+            //     *lhs = (*lhs).clone() * (*rhs).clone();
+            // }
+
+            // Ok(lhs)
+            todo!("Has to do proper multiplication.")
         }
     }
 
@@ -173,6 +176,25 @@ mod tensor {
                 Some(borrow) => match *borrow {
                     [_, ..] => {
                         let (head, tail) = Ref::map_split(borrow, |slice| (&slice[0], &slice[1..]));
+                        // Replace the item with the "rest" (tail) of the slice.
+                        self.item.replace(tail);
+                        Some(head)
+                    }
+                    [] => None,
+                },
+                None => None,
+            }
+        }
+    }
+
+    impl<'a, T> DoubleEndedIterator for TensorIter<'a, T> {
+        fn next_back(&mut self) -> Option<Self::Item> {
+            match self.item.take() {
+                Some(borrow) => match *borrow {
+                    [_, ..] => {
+                        let (head, tail) = Ref::map_split(borrow, |slice| {
+                            (&slice[slice.len() - 1], &slice[..slice.len() - 1])
+                        });
                         // Replace the item with the "rest" (tail) of the slice.
                         self.item.replace(tail);
                         Some(head)
@@ -235,12 +257,6 @@ mod tensor {
     }
 
     #[cfg(test)]
-    mod foo {
-        #[test]
-        fn main() {}
-    }
-
-    #[cfg(test)]
     mod tests {
         use super::*;
 
@@ -291,7 +307,7 @@ mod tensor {
         }
 
         #[test]
-        fn test_tensor_iter() {
+        fn test_iter() {
             let mut tensor = Tensor::new(&[3, 7, 6]);
 
             // Set and check with regular iteration first.
@@ -319,7 +335,6 @@ mod tensor {
             for element in &tensor {
                 assert!(*element != 0);
             }
-            println!("{tensor:?}");
 
             // Mutate with iterators
             for mut element in &mut tensor {
@@ -329,19 +344,61 @@ mod tensor {
             for element in &tensor {
                 assert!(*element == 1);
             }
-            println!("{tensor:?}");
+        }
+
+        #[test]
+        fn test_iter_reverse() {
+            let mut tensor = Tensor::new(&[3, 7, 6]);
+            let mut id = 0;
+
+            for mut element in &mut tensor {
+                *element = id;
+                id += 1;
+            }
+
+            for element in (&tensor).into_iter().rev() {
+                id -= 1;
+                assert!(*element == id);
+            }
         }
 
         #[test]
         fn test_add() {
-            // let mut lhs = Tensor::new(&[3, 7, 6]);
-            // let mut rhs = Tensor::new(&[3, 7, 6]);
+            let mut lhs = Tensor::<isize>::new(&[3, 7, 6]);
+            let mut id = 0;
+
+            for mut x in &mut lhs {
+                *x = id;
+                id += 1;
+            }
+
+            let rhs = lhs.clone();
+
+            let sum = (lhs + rhs).expect("Failed to run addition on tensors.");
+            let mut id = 0;
+
+            for x in &sum {
+                assert!(*x == id * 2);
+                id += 1;
+            }
         }
 
         #[test]
         fn test_sub() {
-            // let mut lhs = Tensor::new(&[3, 7, 6]);
-            // let mut rhs = Tensor::new(&[3, 7, 6]);
+            let mut lhs = Tensor::<usize>::new(&[3, 7, 6]);
+            let mut id = 0;
+
+            for mut x in &mut lhs {
+                *x += id;
+                id += 1;
+            }
+
+            let rhs = lhs.clone();
+            let sum = (lhs - rhs).expect("Failed to run subtraction on tensors.");
+
+            for x in sum.into_iter().rev() {
+                assert!(*x == 0);
+            }
         }
     }
 }
