@@ -5,10 +5,8 @@ use matrix::*;
 mod matrix {
     use super::*;
     use std::{
-        borrow::BorrowMut,
         cell::{Ref, RefCell, RefMut},
         fmt,
-        ops::Add,
     };
 
     struct Matrix<T> {
