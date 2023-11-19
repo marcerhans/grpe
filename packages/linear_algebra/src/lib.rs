@@ -8,8 +8,11 @@ mod tensor {
     use std::{
         cell::{Ref, RefCell, RefMut},
         fmt,
-        ops::Mul,
+        ops::{Add, Mul, Sub},
     };
+
+    trait TensorTraits: Clone + Default {}
+    impl<T: Clone + Default> TensorTraits for T {}
 
     struct Tensor<T> {
         /// Elements in this vector are laid out sequentually, i.e. the higher the index, the higher the dimension. This makes it easier to iterate over.
@@ -20,27 +23,27 @@ mod tensor {
         dimensions_index_max: Vec<usize>,
     }
 
-    impl Tensor<usize> {
+    impl<T: TensorTraits> Tensor<T> {
         /// TODO: Better docs.
         /// Example: Vec = {max elements in x, max elements in y, max elements in z}.
         pub fn new(dimensions: &[usize]) -> Self {
             let as_index = dimensions.iter().map(|x| x - 1).collect();
 
             Self {
-                tensor: RefCell::new(vec![0_usize; dimensions.iter().product()]),
+                tensor: RefCell::new(vec![T::default(); dimensions.iter().product()]),
                 dimensions: dimensions.to_vec(),
                 dimensions_index_max: as_index,
             }
         }
 
         /// Get value at position [index].
-        pub fn get(&self, coordinates: &[usize]) -> Result<usize, &'static str> {
+        pub fn get(&self, coordinates: &[usize]) -> Result<T, &'static str> {
             let index = self.coordinates_to_index(coordinates)?;
-            Ok(self.tensor.borrow()[index])
+            Ok(self.tensor.borrow()[index].clone())
         }
 
         /// Set [value] at position [index].
-        pub fn set(&self, coordinates: &[usize], value: usize) -> Result<(), &'static str> {
+        pub fn set(&self, coordinates: &[usize], value: T) -> Result<(), &'static str> {
             let index = self.coordinates_to_index(coordinates)?;
             self.tensor.borrow_mut()[index] = value;
             Ok(())
@@ -71,6 +74,64 @@ mod tensor {
             }
 
             Ok(index)
+        }
+    }
+
+    impl<T: TensorTraits> Clone for Tensor<T> {
+        fn clone(&self) -> Self {
+            Self {
+                tensor: self.tensor.clone(),
+                dimensions: self.dimensions.clone(),
+                dimensions_index_max: self.dimensions_index_max.clone(),
+            }
+        }
+    }
+
+    impl<T: TensorTraits + Add<Output = T>> Add for Tensor<T> {
+        type Output = Result<Self, &'static str>;
+
+        fn add(self, rhs: Self) -> Self::Output {
+            if self.dimensions.len() != rhs.dimensions.len() {
+                return Err("Tensors are not defined in the same dimensions.");
+            }
+
+            for (&lhs, &rhs) in self.dimensions.iter().zip(&rhs.dimensions) {
+                if lhs != rhs {
+                    return Err("Tensors dimensions are not of the same size.");
+                }
+            }
+
+            let mut lhs = self.clone();
+
+            for (mut lhs, rhs) in (&mut lhs).into_iter().zip(&rhs) {
+                *lhs = (*lhs).clone() + (*rhs).clone();
+            }
+
+            Ok(lhs)
+        }
+    }
+
+    impl<T: TensorTraits + Sub<Output = T>> Sub for Tensor<T> {
+        type Output = Result<Self, &'static str>;
+
+        fn sub(self, rhs: Self) -> Self::Output {
+            if self.dimensions.len() != rhs.dimensions.len() {
+                return Err("Tensors are not defined in the same dimensions.");
+            }
+
+            for (&lhs, &rhs) in self.dimensions.iter().zip(&rhs.dimensions) {
+                if lhs != rhs {
+                    return Err("Tensors dimensions are not of the same size.");
+                }
+            }
+
+            let mut lhs = self.clone();
+
+            for (mut lhs, rhs) in (&mut lhs).into_iter().zip(&rhs) {
+                *lhs = (*lhs).clone() - (*rhs).clone();
+            }
+
+            Ok(lhs)
         }
     }
 
@@ -185,18 +246,18 @@ mod tensor {
 
         #[test]
         fn test_coordinates_to_index() {
-            let tensor = Tensor::new(&[1, 2, 3]);
+            let tensor = Tensor::<isize>::new(&[1, 2, 3]);
             let index = tensor.coordinates_to_index(&[0, 1, 2]);
             assert!(index.is_ok_and(|x| x == 5));
 
-            let tensor = Tensor::new(&[1, 2, 3]);
+            let tensor = Tensor::<isize>::new(&[1, 2, 3]);
             let index = tensor.coordinates_to_index(&[0, 1, 1]);
             assert!(index.is_ok_and(|x| x == 3));
         }
 
         #[test]
         fn test_coordinates_to_index_bounds() {
-            let tensor = Tensor::new(&[3, 7, 6]);
+            let tensor = Tensor::<isize>::new(&[3, 7, 6]);
             assert!(tensor.coordinates_to_index(&[3, 7, 6]).is_err());
             assert!(tensor.coordinates_to_index(&[3, 6, 5]).is_err());
             assert!(tensor.coordinates_to_index(&[2, 7, 5]).is_err());
@@ -272,9 +333,15 @@ mod tensor {
         }
 
         #[test]
-        fn test_mul() {
-            let mut lhs = Tensor::new(&[3, 7, 6]);
-            let mut rhs = Tensor::new(&[3, 7, 6]);
+        fn test_add() {
+            // let mut lhs = Tensor::new(&[3, 7, 6]);
+            // let mut rhs = Tensor::new(&[3, 7, 6]);
+        }
+
+        #[test]
+        fn test_sub() {
+            // let mut lhs = Tensor::new(&[3, 7, 6]);
+            // let mut rhs = Tensor::new(&[3, 7, 6]);
         }
     }
 }
