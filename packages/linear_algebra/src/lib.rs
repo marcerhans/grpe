@@ -1,32 +1,34 @@
-use matrix::*;
+use tensor::*;
 // use point::*;
 // use vector::*;
 
-mod matrix {
+/// Today I learned that tensors are the more general form of a matrix. I.e. tensors are matrices of higher dimension.
+mod tensor {
     use super::*;
     use std::{
         cell::{Ref, RefCell, RefMut},
         fmt,
+        ops::Mul,
     };
 
-    struct Matrix<T> {
+    struct Tensor<T> {
         /// Elements in this vector are laid out sequentually, i.e. the higher the index, the higher the dimension. This makes it easier to iterate over.
-        matrix: RefCell<Vec<T>>,
+        tensor: RefCell<Vec<T>>,
         dimensions: Vec<usize>,
 
         /// Simply an optimization.
         dimensions_index_max: Vec<usize>,
     }
 
-    impl Matrix<usize> {
+    impl Tensor<usize> {
         /// TODO: Better docs.
         /// Example: Vec = {max elements in x, max elements in y, max elements in z}.
-        pub fn new(dimensions: Vec<usize>) -> Self {
+        pub fn new(dimensions: &[usize]) -> Self {
             let as_index = dimensions.iter().map(|x| x - 1).collect();
 
             Self {
-                matrix: RefCell::new(vec![0_usize; dimensions.iter().product()]),
-                dimensions,
+                tensor: RefCell::new(vec![0_usize; dimensions.iter().product()]),
+                dimensions: dimensions.to_vec(),
                 dimensions_index_max: as_index,
             }
         }
@@ -34,19 +36,19 @@ mod matrix {
         /// Get value at position [index].
         pub fn get(&self, coordinates: &[usize]) -> Result<usize, &'static str> {
             let index = self.coordinates_to_index(coordinates)?;
-            Ok(self.matrix.borrow()[index])
+            Ok(self.tensor.borrow()[index])
         }
 
         /// Set [value] at position [index].
         pub fn set(&self, coordinates: &[usize], value: usize) -> Result<(), &'static str> {
             let index = self.coordinates_to_index(coordinates)?;
-            self.matrix.borrow_mut()[index] = value;
+            self.tensor.borrow_mut()[index] = value;
             Ok(())
         }
 
-        /// Returns the size of the matrix as a in terms of available spaces.
+        /// Returns the size of the tensor as a in terms of available spaces.
         pub fn size(&self) -> usize {
-            self.matrix.borrow().len()
+            self.tensor.borrow().len()
         }
 
         /// Flatten coordinates to a one-dimensional index value.
@@ -56,12 +58,12 @@ mod matrix {
             let mut dimensional_step_length = 1;
 
             if coordinates.len() != self.dimensions.len() {
-                return Err("Given coordinates cannot be mapped to a valid location in the matrix (out of bounds). I.e. coordinates has too few or too many dimensions.");
+                return Err("Given coordinates cannot be mapped to a valid location in the tensor (out of bounds). I.e. coordinates has too few or too many dimensions.");
             }
 
             for i in 0..self.dimensions.len() {
                 if coordinates[i] > self.dimensions_index_max[i] {
-                    return Err("Given coodinate(s) are out of maximum bounds for current matrix.");
+                    return Err("Given coodinate(s) are out of maximum bounds for current tensor.");
                 }
 
                 index += coordinates[i] * dimensional_step_length;
@@ -72,21 +74,37 @@ mod matrix {
         }
     }
 
-    impl<T: fmt::Debug> fmt::Debug for Matrix<T> {
+    impl Mul for Tensor<usize> {
+        type Output = Result<Tensor<usize>, &'static str>;
+
+        fn mul(mut self, rhs: Self) -> Self::Output {
+            if self.dimensions != rhs.dimensions {
+                return Err("Right hand side of multiplication does not have the same amount of dimensions.");
+            }
+
+            for (mut left, right) in (&mut self).into_iter().zip(rhs.into_iter()) {
+                *left += *right;
+            }
+
+            Ok(self)
+        }
+    }
+
+    impl<T: fmt::Debug> fmt::Debug for Tensor<T> {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.debug_struct("Matrix")
-                .field("matrix", &self.matrix)
+            f.debug_struct("Tensor")
+                .field("tensor", &self.tensor)
                 .field("dimensions", &self.dimensions)
                 .field("dimensions_index_max", &self.dimensions_index_max)
                 .finish()
         }
     }
 
-    struct MatrixIter<'a, T> {
+    struct TensorIter<'a, T> {
         item: Option<Ref<'a, [T]>>,
     }
 
-    impl<'a, T> Iterator for MatrixIter<'a, T> {
+    impl<'a, T> Iterator for TensorIter<'a, T> {
         type Item = Ref<'a, T>;
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -105,12 +123,12 @@ mod matrix {
         }
     }
 
-    impl<'a, T> IntoIterator for &'a Matrix<T> {
+    impl<'a, T> IntoIterator for &'a Tensor<T> {
         type Item = Ref<'a, T>;
-        type IntoIter = MatrixIter<'a, T>;
+        type IntoIter = TensorIter<'a, T>;
 
         fn into_iter(self) -> Self::IntoIter {
-            let borrow = self.matrix.borrow();
+            let borrow = self.tensor.borrow();
 
             Self::IntoIter {
                 item: Some(Ref::map(borrow, |t| t.as_slice())),
@@ -118,11 +136,11 @@ mod matrix {
         }
     }
 
-    struct MatrixIterMut<'a, T> {
+    struct TensorIterMut<'a, T> {
         item: Option<RefMut<'a, [T]>>,
     }
 
-    impl<'a, T> Iterator for MatrixIterMut<'a, T> {
+    impl<'a, T> Iterator for TensorIterMut<'a, T> {
         type Item = RefMut<'a, T>;
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -142,12 +160,12 @@ mod matrix {
         }
     }
 
-    impl<'a, T> IntoIterator for &'a mut Matrix<T> {
+    impl<'a, T> IntoIterator for &'a mut Tensor<T> {
         type Item = RefMut<'a, T>;
-        type IntoIter = MatrixIterMut<'a, T>;
+        type IntoIter = TensorIterMut<'a, T>;
 
         fn into_iter(self) -> Self::IntoIter {
-            let borrow = self.matrix.borrow_mut();
+            let borrow = self.tensor.borrow_mut();
 
             Self::IntoIter {
                 item: Some(RefMut::map(borrow, |t| t.as_mut_slice())),
@@ -167,34 +185,34 @@ mod matrix {
 
         #[test]
         fn test_coordinates_to_index() {
-            let matrix = Matrix::new(vec![1, 2, 3]);
-            let index = matrix.coordinates_to_index(&[0, 1, 2]);
+            let tensor = Tensor::new(&[1, 2, 3]);
+            let index = tensor.coordinates_to_index(&[0, 1, 2]);
             assert!(index.is_ok_and(|x| x == 5));
 
-            let matrix = Matrix::new(vec![1, 2, 3]);
-            let index = matrix.coordinates_to_index(&[0, 1, 1]);
+            let tensor = Tensor::new(&[1, 2, 3]);
+            let index = tensor.coordinates_to_index(&[0, 1, 1]);
             assert!(index.is_ok_and(|x| x == 3));
         }
 
         #[test]
         fn test_coordinates_to_index_bounds() {
-            let matrix = Matrix::new(vec![3, 7, 6]);
-            assert!(matrix.coordinates_to_index(&[3, 7, 6]).is_err());
-            assert!(matrix.coordinates_to_index(&[3, 6, 5]).is_err());
-            assert!(matrix.coordinates_to_index(&[2, 7, 5]).is_err());
-            assert!(matrix.coordinates_to_index(&[2, 6, 6]).is_err());
-            assert!(matrix.coordinates_to_index(&[2, 6, 5]).is_ok());
+            let tensor = Tensor::new(&[3, 7, 6]);
+            assert!(tensor.coordinates_to_index(&[3, 7, 6]).is_err());
+            assert!(tensor.coordinates_to_index(&[3, 6, 5]).is_err());
+            assert!(tensor.coordinates_to_index(&[2, 7, 5]).is_err());
+            assert!(tensor.coordinates_to_index(&[2, 6, 6]).is_err());
+            assert!(tensor.coordinates_to_index(&[2, 6, 5]).is_ok());
         }
 
         #[test]
         fn test_set_and_get() {
-            let matrix = Matrix::new(vec![3, 7, 6]);
+            let tensor = Tensor::new(&[3, 7, 6]);
 
             let mut id = 0;
             for i in 0..6 {
                 for j in 0..7 {
                     for k in 0..3 {
-                        assert!(matrix.set(&[k, j, i], id).is_ok());
+                        assert!(tensor.set(&[k, j, i], id).is_ok());
                         id += 1;
                     }
                 }
@@ -204,7 +222,7 @@ mod matrix {
             for i in 0..6 {
                 for j in 0..7 {
                     for k in 0..3 {
-                        assert!(matrix.get(&[k, j, i]).is_ok_and(|x| x == id));
+                        assert!(tensor.get(&[k, j, i]).is_ok_and(|x| x == id));
                         id += 1;
                     }
                 }
@@ -212,15 +230,15 @@ mod matrix {
         }
 
         #[test]
-        fn test_matrix_iter() {
-            let mut matrix = Matrix::new(vec![3, 7, 6]);
+        fn test_tensor_iter() {
+            let mut tensor = Tensor::new(&[3, 7, 6]);
 
             // Set and check with regular iteration first.
             let mut id = 1;
             for i in 0..6 {
                 for j in 0..7 {
                     for k in 0..3 {
-                        assert!(matrix.set(&[k, j, i], id).is_ok());
+                        assert!(tensor.set(&[k, j, i], id).is_ok());
                         id += 1;
                     }
                 }
@@ -230,27 +248,33 @@ mod matrix {
             for i in 0..6 {
                 for j in 0..7 {
                     for k in 0..3 {
-                        assert!(matrix.get(&[k, j, i]).is_ok_and(|x| x == id));
+                        assert!(tensor.get(&[k, j, i]).is_ok_and(|x| x == id));
                         id += 1;
                     }
                 }
             }
 
             // Check with iterators
-            for element in &matrix {
+            for element in &tensor {
                 assert!(*element != 0);
             }
-            println!("{matrix:?}");
+            println!("{tensor:?}");
 
             // Mutate with iterators
-            for mut element in &mut matrix {
+            for mut element in &mut tensor {
                 *element = 1;
             }
 
-            for element in &matrix {
+            for element in &tensor {
                 assert!(*element == 1);
             }
-            println!("{matrix:?}");
+            println!("{tensor:?}");
+        }
+
+        #[test]
+        fn test_mul() {
+            let mut lhs = Tensor::new(&[3, 7, 6]);
+            let mut rhs = Tensor::new(&[3, 7, 6]);
         }
     }
 }
