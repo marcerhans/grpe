@@ -17,9 +17,11 @@ mod tensor {
     struct Tensor<T> {
         /// Elements in this vector are laid out sequentually, i.e. the higher the index, the higher the dimension. This makes it easier to iterate over.
         tensor: RefCell<Vec<T>>,
+
+        /// Length of each dimension.
         dimensions: Vec<usize>,
 
-        /// Simply an optimization.
+        /// Memoized max indexing values.
         dimensions_index_max: Vec<usize>,
     }
 
