@@ -6,10 +6,12 @@ mod matrix {
     use super::*;
     use std::{
         cell::{Ref, RefCell},
+        fmt,
         ops::Add,
     };
 
     struct Matrix<T> {
+        /// Elements in this vector are laid out sequentually, i.e. the higher the index, the higher the dimension. This makes it easier to iterate over.
         matrix: RefCell<Vec<T>>,
         dimensions: Vec<usize>,
 
@@ -68,6 +70,16 @@ mod matrix {
             }
 
             Ok(index)
+        }
+    }
+
+    impl<T: fmt::Debug> fmt::Debug for Matrix<T> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.debug_struct("Matrix")
+                .field("matrix", &self.matrix)
+                .field("dimensions", &self.dimensions)
+                .field("dimensions_index_max", &self.dimensions_index_max)
+                .finish()
         }
     }
 
@@ -182,6 +194,8 @@ mod matrix {
             for element in &matrix {
                 assert!(*element != 0);
             }
+
+            println!("{matrix:?}");
         }
     }
 }
