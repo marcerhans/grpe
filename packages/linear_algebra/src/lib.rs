@@ -4,7 +4,10 @@ use matrix::*;
 
 mod matrix {
     use super::*;
-    use std::cell::RefCell;
+    use std::{
+        cell::{Ref, RefCell},
+        ops::Add,
+    };
 
     struct Matrix<T> {
         matrix: RefCell<Vec<T>>,
@@ -68,6 +71,49 @@ mod matrix {
         }
     }
 
+    impl<'a, T> IntoIterator for &'a Matrix<T> {
+        type Item = Ref<'a, T>;
+
+        type IntoIter = MatrixIter<'a, T>;
+
+        fn into_iter(self) -> Self::IntoIter {
+            let borrow = self.matrix.borrow();
+
+            Self::IntoIter {
+                item: Some(Ref::map(borrow, |t| t.as_slice())),
+            }
+        }
+    }
+
+    struct MatrixIter<'a, T> {
+        item: Option<Ref<'a, [T]>>,
+    }
+
+    impl<'a, T> Iterator for MatrixIter<'a, T> {
+        type Item = Ref<'a, T>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            match self.item.take() {
+                Some(borrow) => match *borrow {
+                    [_, ..] => {
+                        let (head, tail) = Ref::map_split(borrow, |slice| (&slice[0], &slice[1..]));
+                        // Replace the item with the "rest" (tail) of the slice.
+                        self.item.replace(tail);
+                        Some(head)
+                    }
+                    [] => None,
+                },
+                None => None,
+            }
+        }
+    }
+
+    #[cfg(test)]
+    mod foo {
+        #[test]
+        fn main() {}
+    }
+
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -115,6 +161,26 @@ mod matrix {
                         id += 1;
                     }
                 }
+            }
+        }
+
+        #[test]
+        fn test_matrix_iter() {
+            let matrix = Matrix::new(vec![3, 7, 6]);
+
+            let mut id = 1;
+
+            for i in 0..6 {
+                for j in 0..7 {
+                    for k in 0..3 {
+                        assert!(matrix.set(&[k, j, i], id).is_ok());
+                        id += 1;
+                    }
+                }
+            }
+
+            for element in &matrix {
+                assert!(*element != 0);
             }
         }
     }
