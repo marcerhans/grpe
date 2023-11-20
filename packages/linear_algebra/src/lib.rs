@@ -153,9 +153,10 @@ mod tensor {
         }
     }
 
-    /// TODO: This currently is just matrix multiplication, and not tensor "whatever the operation should be called".
-    ///       General tensor multiplication was hard, and since I don't need it currently,
-    ///       I just skipped it, and let it be at most "2 by 2" only.
+    /// # Note:
+    /// This currently is just matrix multiplication, and not tensor "whatever the operation should be called".
+    /// General tensor multiplication was hard, and since I don't need it currently,
+    /// I just skipped it, and let it be at most "2 by 2" only.
     impl<T: TensorTraits + Mul<Output = T> + Add<Output = T>> Mul for Tensor<T> {
         type Output = Result<Tensor<T>, &'static str>;
 
