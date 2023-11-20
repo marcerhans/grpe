@@ -11,10 +11,10 @@ mod tensor {
         ops::{Add, Mul, Sub},
     };
 
-    trait TensorTraits: Clone + Default {}
+    pub trait TensorTraits: Clone + Default {}
     impl<T: Clone + Default> TensorTraits for T {}
 
-    struct Tensor<T> {
+    pub struct Tensor<T> {
         /// Elements in this vector are laid out sequentually, i.e. the higher the index, the higher the dimension. This makes it easier to iterate over.
         tensor: RefCell<Vec<T>>,
 
@@ -29,10 +29,16 @@ mod tensor {
         /// TODO: Better docs.
         /// Example: Vec = {max elements in x, max elements in y, max elements in z}.
         pub fn new(dimensions: &[usize]) -> Self {
+            let total_size = dimensions.iter().product();
+
+            if total_size < 1 {
+                panic!("Illegal to have a tensor where a dimension is less than 1!");
+            }
+
             let as_index = dimensions.iter().map(|x| x - 1).collect();
 
             Self {
-                tensor: RefCell::new(vec![T::default(); dimensions.iter().product()]),
+                tensor: RefCell::new(vec![T::default(); total_size]),
                 dimensions: dimensions.to_vec(),
                 dimensions_index_max: as_index,
             }
@@ -89,6 +95,16 @@ mod tensor {
         }
     }
 
+    impl<T: TensorTraits + PartialEq + Eq> PartialEq for Tensor<T> {
+        fn eq(&self, other: &Self) -> bool {
+            self.tensor == other.tensor
+                && self.dimensions == other.dimensions
+                && self.dimensions_index_max == other.dimensions_index_max
+        }
+    }
+
+    impl<T: TensorTraits + PartialEq + Eq> Eq for Tensor<T> {}
+
     impl<T: TensorTraits + Add<Output = T>> Add for Tensor<T> {
         type Output = Result<Self, &'static str>;
 
@@ -137,22 +153,41 @@ mod tensor {
         }
     }
 
-    impl<T: TensorTraits + Mul<Output = T>> Mul for Tensor<T> {
+    /// TODO: This currently is just matrix multiplication, and not tensor "whatever the operation should be called".
+    ///       General tensor multiplication was hard, and since I don't need it currently,
+    ///       I just skipped it, and let it be at most "2 by 2" only.
+    impl<T: TensorTraits + Mul<Output = T> + Add<Output = T>> Mul for Tensor<T> {
         type Output = Result<Tensor<T>, &'static str>;
 
         fn mul(self, rhs: Self) -> Self::Output {
-            // if self.dimensions != rhs.dimensions {
-            //     return Err("Right hand side of multiplication does not have the same amount of dimensions.");
-            // }
+            if self.dimensions.len() != 2 || rhs.dimensions.len() != 2 {
+                return Err("Tensor dimensions do not allow for matrix multiplication.!");
+            }
 
-            // let lhs = self.clone();
+            if self.dimensions[1] != rhs.dimensions[0] {
+                return Err("Tensor dimensions do not allow for matrix multiplication. I.e Row size != Column size.");
+            }
 
-            // for (mut lhs, rhs) in (&mut self).into_iter().zip(&rhs) {
-            //     *lhs = (*lhs).clone() * (*rhs).clone();
-            // }
+            let rows = self.dimensions[0];
+            let columns = rhs.dimensions[1];
+            let product = Tensor::<T>::new(&[columns, rows]);
 
-            // Ok(lhs)
-            todo!("Has to do proper multiplication.")
+            for row in 0..rows {
+                for column in 0..columns {
+                    let mut column_by_row_product_sum = T::default();
+
+                    for i in 0..self.dimensions[1] {
+                        column_by_row_product_sum = column_by_row_product_sum
+                            + self.get(&[row, i]).unwrap() * rhs.get(&[i, column]).unwrap();
+                    }
+
+                    product
+                        .set(&[column, row], column_by_row_product_sum)
+                        .unwrap();
+                }
+            }
+
+            Ok(product)
         }
     }
 
@@ -166,7 +201,7 @@ mod tensor {
         }
     }
 
-    struct TensorIter<'a, T> {
+    pub struct TensorIter<'a, T> {
         item: Option<Ref<'a, [T]>>,
     }
 
@@ -221,7 +256,7 @@ mod tensor {
         }
     }
 
-    struct TensorIterMut<'a, T> {
+    pub struct TensorIterMut<'a, T> {
         item: Option<RefMut<'a, [T]>>,
     }
 
@@ -365,6 +400,20 @@ mod tensor {
         }
 
         #[test]
+        fn test_equal() {
+            let mut tensor = Tensor::new(&[3, 7, 6]);
+
+            let mut id = 0;
+
+            for mut element in &mut tensor {
+                *element = id;
+                id += 1;
+            }
+
+            assert!(tensor == tensor.clone());
+        }
+
+        #[test]
         fn test_add() {
             let mut lhs = Tensor::<isize>::new(&[3, 7, 6]);
             let mut id = 0;
@@ -401,6 +450,52 @@ mod tensor {
             for x in sum.into_iter().rev() {
                 assert!(*x == 0);
             }
+        }
+
+        #[test]
+        fn test_mul() {
+            let lhs = Tensor::<usize>::new(&[3, 7, 6]);
+            let rhs = Tensor::<usize>::new(&[3, 7, 6]);
+            assert!((lhs * rhs).is_err());
+
+            let lhs = Tensor::<usize>::new(&[1]);
+            let rhs = Tensor::<usize>::new(&[1]);
+            assert!((lhs * rhs).is_err());
+
+            let lhs = Tensor::<usize>::new(&[1, 1, 1]);
+            let rhs = Tensor::<usize>::new(&[1, 1, 1]);
+            assert!((lhs * rhs).is_err());
+
+            let lhs = Tensor::<usize>::new(&[3, 7]);
+            let rhs = Tensor::<usize>::new(&[3, 6]);
+            assert!((lhs * rhs).is_err());
+
+            let lhs = Tensor::<usize>::new(&[3, 6]);
+            let rhs = Tensor::<usize>::new(&[3, 7]);
+            assert!((lhs * rhs).is_err());
+
+            let lhs = Tensor::<usize>::new(&[3, 7]);
+            let rhs = Tensor::<usize>::new(&[3, 7]);
+            assert!((lhs * rhs).is_err());
+
+            let mut lhs = Tensor::<usize>::new(&[2, 3]);
+            let mut rhs = Tensor::<usize>::new(&[3, 2]);
+            let mut id = 1;
+
+            for (mut element_lhs, mut element_rhs) in (&mut lhs).into_iter().zip(&mut rhs) {
+                *element_lhs = id;
+                *element_rhs = id;
+                id += 1;
+            }
+
+            let new = lhs * rhs;
+            assert!(new.is_ok_and(|matrix| {
+                assert!(matrix.get(&[0, 0]).unwrap() == 22);
+                assert!(matrix.get(&[0, 1]).unwrap() == 28);
+                assert!(matrix.get(&[1, 0]).unwrap() == 49);
+                assert!(matrix.get(&[1, 1]).unwrap() == 64);
+                true
+            }));
         }
     }
 }
