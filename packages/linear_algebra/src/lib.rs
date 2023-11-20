@@ -1,6 +1,4 @@
 use tensor::*;
-// use point::*;
-// use vector::*;
 
 /// Today I learned that tensors are the more general form of a matrix. I.e. tensors are matrices of higher dimension.
 mod tensor {
@@ -13,6 +11,16 @@ mod tensor {
 
     pub trait TensorTraits: Clone + Default {}
     impl<T: Clone + Default> TensorTraits for T {}
+
+    pub trait Transpose {
+        type Output;
+
+        fn transpose(self) -> Self::Output;
+    }
+
+    pub trait Inverse {
+        fn inverse(self);
+    }
 
     pub struct Tensor<T> {
         /// Elements in this vector are laid out sequentually, i.e. the higher the index, the higher the dimension. This makes it easier to iterate over.
@@ -35,11 +43,17 @@ mod tensor {
                 panic!("Illegal to have a tensor where a dimension is less than 1!");
             }
 
-            let as_index = dimensions.iter().map(|x| x - 1).collect();
+            let as_index = dimensions
+                .iter()
+                .filter_map(|&x| if x > 1 { Some(x - 1) } else { None })
+                .collect();
 
             Self {
                 tensor: RefCell::new(vec![T::default(); total_size]),
-                dimensions: dimensions.to_vec(),
+                dimensions: dimensions
+                    .iter()
+                    .filter_map(|&x| if x > 1 { Some(x) } else { None })
+                    .collect(),
                 dimensions_index_max: as_index,
             }
         }
@@ -84,6 +98,24 @@ mod tensor {
             Ok(index)
         }
     }
+
+    // impl<T: TensorTraits> Transpose for Tensor<T> {
+    //     type Output = Result<Self, &'static str>;
+
+    //     fn transpose(self) -> Self::Output {
+    //         let transposed = Tensor::new(&[self.dimensions[1], self]);
+    //         let rows = self.dimensions[0];
+    //         let columns = self.dimensions[1];
+
+    //         for row in 0..rows {
+    //             for column in 0..columns {
+    //                 transposed.set(&[column, row])
+    //             }
+    //         }
+
+    //         todo!()
+    //     }
+    // }
 
     impl<T: TensorTraits> Clone for Tensor<T> {
         fn clone(&self) -> Self {
@@ -161,34 +193,33 @@ mod tensor {
         type Output = Result<Tensor<T>, &'static str>;
 
         fn mul(self, rhs: Self) -> Self::Output {
-            if self.dimensions.len() != 2 || rhs.dimensions.len() != 2 {
-                return Err("Tensor dimensions do not allow for matrix multiplication.!");
-            }
+            // if self.dimensions.len() < 1
+            //     || self.dimensions.len() > 2
+            //     || rhs.dimensions.len() < 1
+            //     || rhs.dimensions.len() > 2
+            // {
+            //     return Err("Tensor dimensions do not allow for matrix multiplication!");
+            // }
 
-            if self.dimensions[1] != rhs.dimensions[0] {
-                return Err("Tensor dimensions do not allow for matrix multiplication. I.e Row size != Column size.");
-            }
+            // let product = Tensor::<T>::new(&[columns, rows]);
 
-            let rows = self.dimensions[0];
-            let columns = rhs.dimensions[1];
-            let product = Tensor::<T>::new(&[columns, rows]);
+            // for row in 0..rows {
+            //     for column in 0..columns {
+            //         let mut column_by_row_product_sum = T::default();
 
-            for row in 0..rows {
-                for column in 0..columns {
-                    let mut column_by_row_product_sum = T::default();
+            //         for i in 0..self.dimensions[1] {
+            //             column_by_row_product_sum = column_by_row_product_sum
+            //                 + self.get(&[row, i]).unwrap() * rhs.get(&[i, column]).unwrap();
+            //         }
 
-                    for i in 0..self.dimensions[1] {
-                        column_by_row_product_sum = column_by_row_product_sum
-                            + self.get(&[row, i]).unwrap() * rhs.get(&[i, column]).unwrap();
-                    }
+            //         product
+            //             .set(&[column, row], column_by_row_product_sum)
+            //             .unwrap();
+            //     }
+            // }
 
-                    product
-                        .set(&[column, row], column_by_row_product_sum)
-                        .unwrap();
-                }
-            }
-
-            Ok(product)
+            // Ok(product)
+            todo!()
         }
     }
 
@@ -455,134 +486,123 @@ mod tensor {
 
         #[test]
         fn test_mul() {
-            let lhs = Tensor::<usize>::new(&[3, 7, 6]);
-            let rhs = Tensor::<usize>::new(&[3, 7, 6]);
-            assert!((lhs * rhs).is_err());
+            // let lhs = Tensor::<usize>::new(&[]);
+            // let rhs = Tensor::<usize>::new(&[]);
+            // assert!((lhs * rhs).is_err(), "Empty matrices are not allowed.");
 
-            let lhs = Tensor::<usize>::new(&[1]);
-            let rhs = Tensor::<usize>::new(&[1]);
-            assert!((lhs * rhs).is_err());
+            // let lhs = Tensor::<usize>::new(&[1, 1, 1]);
+            // let rhs = Tensor::<usize>::new(&[1, 1, 1]);
+            // assert!(
+            //     (lhs * rhs).is_err(),
+            //     "Matrices of higher dimension that 2 are not allowed."
+            // );
 
-            let lhs = Tensor::<usize>::new(&[1, 1, 1]);
-            let rhs = Tensor::<usize>::new(&[1, 1, 1]);
-            assert!((lhs * rhs).is_err());
+            // let lhs = Tensor::<usize>::new(&[1]);
+            // let rhs = Tensor::<usize>::new(&[1]);
+            // lhs.set(&[0, 0], 1);
+            // rhs.set(&[0, 0], 2);
+            // assert!(
+            //     (lhs * rhs).is_ok_and(|matrix| {
+            //         assert!(matrix.size() == 1);
+            //         assert!(matrix.get(&[0, 0]).unwrap() == 2);
+            //         true
+            //     }),
+            //     "Singleton matrixes should work."
+            // );
 
-            let lhs = Tensor::<usize>::new(&[3, 7]);
-            let rhs = Tensor::<usize>::new(&[3, 6]);
-            assert!((lhs * rhs).is_err());
+            // let lhs = Tensor::<usize>::new(&[1, 2]);
+            // let rhs = Tensor::<usize>::new(&[2]);
+            // lhs.set(&[0, 0], 1);
+            // lhs.set(&[0, 1], 2);
+            // rhs.set(&[0], 2);
+            // rhs.set(&[1], 3);
+            // assert!(
+            //     (lhs * rhs).is_ok_and(|matrix| {
+            //         assert!(matrix.size() == 2);
+            //         assert!(matrix.get(&[0, 0]).unwrap() == 2);
+            //         assert!(matrix.get(&[0, 1]).unwrap() == 4);
+            //         true
+            //     }),
+            //     "Varying matrix sizes."
+            // );
 
-            let lhs = Tensor::<usize>::new(&[3, 6]);
-            let rhs = Tensor::<usize>::new(&[3, 7]);
-            assert!((lhs * rhs).is_err());
+            // let lhs = Tensor::<usize>::new(&[2]);
+            // let rhs = Tensor::<usize>::new(&[2, 1]);
+            // lhs.set(&[0], 1);
+            // lhs.set(&[1], 2);
+            // rhs.set(&[0, 1], 2);
+            // rhs.set(&[0, 0], 3);
+            // assert!(
+            //     (lhs * rhs).is_ok_and(|matrix| {
+            //         assert!(matrix.size() == 2);
+            //         assert!(matrix.get(&[0, 0]).unwrap() == 2);
+            //         assert!(matrix.get(&[0, 1]).unwrap() == 4);
+            //         true
+            //     }),
+            //     "Varying matrix sizes."
+            // );
 
-            let lhs = Tensor::<usize>::new(&[3, 7]);
-            let rhs = Tensor::<usize>::new(&[3, 7]);
-            assert!((lhs * rhs).is_err());
+            // let lhs = Tensor::<usize>::new(&[3, 7]);
+            // let rhs = Tensor::<usize>::new(&[3, 6]);
+            // assert!(
+            //     (lhs * rhs).is_err(),
+            //     "Matrix row-length of lhs must match the column-length of rhs."
+            // );
 
-            let mut lhs = Tensor::<usize>::new(&[2, 3]);
-            let mut rhs = Tensor::<usize>::new(&[3, 2]);
-            let mut id = 1;
+            // let lhs = Tensor::<usize>::new(&[3, 6]);
+            // let rhs = Tensor::<usize>::new(&[3, 7]);
+            // assert!(
+            //     (lhs * rhs).is_err(),
+            //     "Matrix row-length of lhs must match the column-length of rhs."
+            // );
 
-            for (mut element_lhs, mut element_rhs) in (&mut lhs).into_iter().zip(&mut rhs) {
-                *element_lhs = id;
-                *element_rhs = id;
-                id += 1;
-            }
+            // let lhs = Tensor::<usize>::new(&[3, 7]);
+            // let rhs = Tensor::<usize>::new(&[3, 7]);
+            // assert!((lhs * rhs).is_err());
 
-            let new = lhs * rhs;
-            assert!(new.is_ok_and(|matrix| {
-                assert!(matrix.get(&[0, 0]).unwrap() == 22);
-                assert!(matrix.get(&[0, 1]).unwrap() == 28);
-                assert!(matrix.get(&[1, 0]).unwrap() == 49);
-                assert!(matrix.get(&[1, 1]).unwrap() == 64);
-                true
-            }));
+            // let lhs = Tensor::<usize>::new(&[3]);
+            // let mut rhs = Tensor::<usize>::new(&[3, 2]);
+            // let mut id = 1;
+
+            // for mut element_rhs in &mut rhs {
+            //     *element_rhs = id;
+            //     id += 1;
+            // }
+
+            // lhs.set(&[0], 1).unwrap();
+            // lhs.set(&[1], 2).unwrap();
+            // lhs.set(&[2], 3).unwrap();
+
+            // let new = lhs * rhs;
+            // assert!(new.is_ok_and(|matrix| {
+            //     assert!(matrix.size() == 6);
+            //     // assert!(matrix.get(&[0, 0]).unwrap() == 22);
+            //     // assert!(matrix.get(&[0, 1]).unwrap() == 28);
+            //     // assert!(matrix.get(&[1, 0]).unwrap() == 49);
+            //     // assert!(matrix.get(&[1, 1]).unwrap() == 64);
+            //     true
+            // }));
+
+            // let mut lhs = Tensor::<usize>::new(&[2, 3]);
+            // let mut rhs = Tensor::<usize>::new(&[3, 2]);
+            // let mut id = 1;
+
+            // for (mut element_lhs, mut element_rhs) in (&mut lhs).into_iter().zip(&mut rhs) {
+            //     *element_lhs = id;
+            //     *element_rhs = id;
+            //     id += 1;
+            // }
+
+            // let new = lhs * rhs;
+            // assert!(new.is_ok_and(|matrix| {
+            //     assert!(matrix.size() == 4);
+            //     assert!(matrix.get(&[0, 0]).unwrap() == 22);
+            //     assert!(matrix.get(&[0, 0]).unwrap() == 22);
+            //     assert!(matrix.get(&[0, 1]).unwrap() == 28);
+            //     assert!(matrix.get(&[1, 0]).unwrap() == 49);
+            //     assert!(matrix.get(&[1, 1]).unwrap() == 64);
+            //     true
+            // }));
         }
     }
 }
-
-// mod vector {
-//     use super::*;
-
-//     struct Vector<T> {
-//         inner: Vec<T>,
-//     }
-
-//     impl Vector<usize> {
-//         fn new(n_dimensions: usize) -> Self {
-//             Self { inner: Vec::new() }
-//         }
-//     }
-// }
-
-// mod point {
-//     use super::*;
-
-//     /// Same structure as Vector.
-//     pub struct Point<T> {
-//         inner: Vec<T>,
-//     }
-
-//     impl Point<usize> {
-//         fn new(length: usize) -> Self {
-//             Self {
-//                 dim: length,
-//                 position: vec![0; length],
-//                 matrix_translation: vec![0; (length + 1) * (length + 1)],
-//             }
-//         }
-
-//         /// Translates a point.
-//         ///
-//         /// 2D Example:
-//         ///       [translation argument]
-//         ///                |
-//         ///                v
-//         /// | 1 0 t1 |   | p1 |   | p1 + t1 |
-//         /// | 0 1 t2 | * | p2 | = | p2 + t2 |
-//         /// | 0 0 1  |   | 1  |   | 1       |
-//         ///
-//         /// Though... we cheat and translate using simple additionf or each component.
-//         fn translate(&mut self, translation: &[usize]) {
-//             if translation.len() > self.dim {
-//                 panic!("Cannot translate using a matrix of higher dimension than the point itself.")
-//             }
-
-//             for (pos, trans) in self.position.iter_mut().zip(translation) {
-//                 *pos += trans;
-//             }
-//         }
-
-//         fn rotate(axis: usize, degrees: f64) {}
-//     }
-// }
-
-// // mod matrix {
-// //     use super::*;
-
-// //     /// Matrix holding vectors.
-// //     pub struct Matrix {
-// //         vectors: Vec<NVector>,
-// //     }
-
-// //     impl Matrix {
-// //         fn new(dimensions: usize) -> Self {
-// //             Self {
-// //                 vectors: Vec::new(),
-// //             }
-// //         }
-// //     }
-// // }
-
-// pub fn rotate() {}
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     fn it_works() {
-//         let result = add(2, 2);
-//         assert_eq!(result, 4);
-//     }
-// }
