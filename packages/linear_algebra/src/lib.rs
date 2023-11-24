@@ -289,6 +289,14 @@ mod tensor {
         type Matrix = Tensor<usize>;
 
         impl Matrix {
+            pub fn is_matrix(&self) -> bool {
+                if self.dimensions.len() == 2 {
+                    true
+                } else {
+                    false
+                }
+            }
+
             pub fn zeros(self) -> Self {
                 {
                     let mut tensor = self.tensor.borrow_mut();
@@ -323,23 +331,15 @@ mod tensor {
             }
         }
 
-        /// # Note:
-        /// This currently is just matrix multiplication, and not tensor "whatever the operation should be called".
-        /// General tensor multiplication was hard, and since I don't need it currently,
-        /// I just skipped it, and let it be at most "2 by 2" only.
-        impl<T: TensorTraits + Mul<Output = T> + Add<Output = T>> Mul for Tensor<T> {
-            type Output = Result<Tensor<T>, &'static str>;
+        impl Mul for Matrix {
+            type Output = Result<Matrix, &'static str>;
 
             fn mul(self, rhs: Self) -> Self::Output {
-                // if self.dimensions.len() < 1
-                //     || self.dimensions.len() > 2
-                //     || rhs.dimensions.len() < 1
-                //     || rhs.dimensions.len() > 2
-                // {
-                //     return Err("Tensor dimensions do not allow for matrix multiplication!");
-                // }
+                if !self.is_matrix() || !rhs.is_matrix() {
+                    return Err("Given tensors are not valid matrices.");
+                }
 
-                // let product = Tensor::<T>::new(&[columns, rows]);
+                // let product = Matrix::new(&[columns, rows]);
 
                 // for row in 0..rows {
                 //     for column in 0..columns {
@@ -362,23 +362,29 @@ mod tensor {
         }
 
         // TODO
-        // impl<T: TensorTraits> Transpose for Tensor<T> {
-        //     type Output = Result<Self, &'static str>;
+        impl Transpose for Matrix {
+            type Output = Self;
 
-        //     fn transpose(self) -> Self::Output {
-        //         let transposed = Tensor::new(&[self.dimensions[1], self]);
-        //         let rows = self.dimensions[0];
-        //         let columns = self.dimensions[1];
+            fn transpose(self) -> Self::Output {
+                todo!()
+            }
+            //     type Output = Result<Self, &'static str>;
 
-        //         for row in 0..rows {
-        //             for column in 0..columns {
-        //                 transposed.set(&[column, row])
-        //             }
-        //         }
+            //     fn transpose(self) -> Self::Output {
+            //         let transposed = Tensor::new(&[self.dimensions[1], self]);
+            //         let rows = self.dimensions[0];
+            //         let columns = self.dimensions[1];
 
-        //         todo!()
-        //     }
-        // }
+            //         for row in 0..rows {
+            //             for column in 0..columns {
+            //                 transposed.set(&[column, row])
+            //             }
+            //         }
+
+            //         todo!()
+            //     }
+            // }
+        }
 
         #[cfg(test)]
         mod tests {
