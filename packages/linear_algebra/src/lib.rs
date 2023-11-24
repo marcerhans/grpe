@@ -43,18 +43,24 @@ mod tensor {
                 panic!("Illegal to have a tensor where a dimension is less than 1!");
             }
 
-            let as_index = dimensions
-                .iter()
-                .filter_map(|&x| if x > 1 { Some(x - 1) } else { None })
-                .collect();
+            // Truncate any unnecessary "1-sized" dimensions.
+            let mut truncation_point = dimensions.len();
+
+            for i in (0..dimensions.len()).rev() {
+                if dimensions[i] == 1 && i != 0 {
+                    truncation_point = i;
+                } else {
+                    break;
+                }
+            }
+
+            let dimensions = &dimensions[0..truncation_point];
+            let dimensions_index_max = dimensions.iter().map(|&x| x - 1).collect::<Vec<usize>>();
 
             Self {
                 tensor: RefCell::new(vec![T::default(); total_size]),
-                dimensions: dimensions
-                    .iter()
-                    .filter_map(|&x| if x > 1 { Some(x) } else { None })
-                    .collect(),
-                dimensions_index_max: as_index,
+                dimensions: dimensions.to_vec(),
+                dimensions_index_max,
             }
         }
 
@@ -71,9 +77,14 @@ mod tensor {
             Ok(())
         }
 
-        /// Returns the size of the tensor as a in terms of available spaces.
+        /// Returns the size of the [Tensor] in terms of available spaces.
         pub fn size(&self) -> usize {
             self.tensor.borrow().len()
+        }
+
+        /// Returns dimensions of the [Tensor].
+        pub fn dimensions<'a>(&'a self) -> &'a [usize] {
+            self.dimensions.as_slice()
         }
 
         /// Flatten coordinates to a one-dimensional index value.
@@ -99,6 +110,7 @@ mod tensor {
         }
     }
 
+    /// TODO
     // impl<T: TensorTraits> Transpose for Tensor<T> {
     //     type Output = Result<Self, &'static str>;
 
@@ -328,6 +340,18 @@ mod tensor {
     #[cfg(test)]
     mod tests {
         use super::*;
+
+        #[test]
+        fn test_new() {
+            let tensor = Tensor::<isize>::new(&[1, 1, 1]);
+            assert!(tensor.dimensions.len() == 1);
+
+            let tensor = Tensor::<isize>::new(&[1, 2, 3]);
+            assert!(tensor.dimensions.len() == 3);
+
+            let tensor = Tensor::<isize>::new(&[1, 2, 3, 1, 1]);
+            assert!(tensor.dimensions.len() == 3);
+        }
 
         #[test]
         fn test_coordinates_to_index() {
