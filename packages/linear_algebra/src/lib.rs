@@ -1,10 +1,10 @@
-mod matrix {
-    use std::ops::{Add, Mul, Sub};
+pub mod matrix {
+    pub use std::ops::{Add, Mul, Sub};
 
-    pub trait TensorTraits: Clone + Default {}
-    impl<T: Clone + Default> TensorTraits for T {}
+    pub trait MatrixTraits: Clone + Default {}
+    impl<T: Clone + Default> MatrixTraits for T {}
 
-    pub struct Matrix<T: TensorTraits> {
+    pub struct Matrix<T: MatrixTraits> {
         inner: Vec<Vec<T>>,
         rows: usize,
         columns: usize,
