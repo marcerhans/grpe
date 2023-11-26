@@ -117,7 +117,11 @@ mod matrix {
             for row in 0..product.rows {
                 for column in 0..product.columns {
                     for i in 0..self.columns {
-                        product.set(row, column, self.get(row, i) * rhs.get(i, column));
+                        product.set(
+                            row,
+                            column,
+                            product.get(row, column) + self.get(row, i) * rhs.get(i, column),
+                        );
                     }
                 }
             }
@@ -209,8 +213,8 @@ mod matrix {
 
         #[test]
         fn test_mul() {
-            let matrix_1 = Matrix::identity(2, 3);
-            let matrix_2 = Matrix::identity(3, 2);
+            let matrix_1 = Matrix::identity(2, 2);
+            let matrix_2 = Matrix::identity(2, 2);
             let matrix_3 = &matrix_1 * &matrix_2;
             println!("{:?}", matrix_3.inner);
         }
