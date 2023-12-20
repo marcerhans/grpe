@@ -3,9 +3,6 @@ members = [
     "packages/*"
 ]
 
-[workspace.dependencies]
-linear_algebra = { version =  "*" }
-
 [workspace.package]
 authors = ["Marcus Hanson"]
 categories = ["grpe"]
@@ -21,9 +18,15 @@ readme = "README.md"
 # rust-version = "1.69.0"
 version = "0.1.0"
 
+[workspace.dependencies]
+linear_algebra = { path = "packages/linear_algebra", version = "*" }
+terminal = { path = "packages/terminal", version = "*" }
+
 [package]
 name = "grpe"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
+linear_algebra.workspace = true
+terminal.workspace = true
