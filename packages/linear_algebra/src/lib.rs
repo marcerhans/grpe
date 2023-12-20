@@ -172,7 +172,7 @@ pub mod matrix {
 
         #[test]
         fn test_identity() {
-            let matrix = Matrix::identity(3, 5);
+            let matrix = Matrix::identity(3, 3);
             assert!(matrix.inner.len() == 3, "Dimensions are incorrect.");
 
             for (row_index, column) in matrix.inner.iter().enumerate() {
@@ -184,7 +184,7 @@ pub mod matrix {
                     column[row_index] == 1,
                     "Identity has a '1' at the wrong location."
                 );
-                assert!(column.len() == 5, "Dimensions are incorrect.");
+                assert!(column.len() == 3, "Dimensions are incorrect.");
             }
         }
 
