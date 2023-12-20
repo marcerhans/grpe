@@ -130,6 +130,7 @@ pub mod matrix {
         }
     }
 
+    /// Note: Many of these test have to be checked manually. I was lazy.
     #[cfg(test)]
     mod tests {
         use super::*;
