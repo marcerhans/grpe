@@ -54,6 +54,14 @@ pub mod matrix {
         pub fn set(&mut self, row: usize, column: usize, value: usize) {
             self.inner[row][column] = value
         }
+
+        pub fn dimensions(&self) -> (usize, usize) {
+            (self.rows, self.columns)
+        }
+
+        pub fn inner(&self) -> &Vec<Vec<usize>> {
+            &self.inner
+        }
     }
 
     impl Add for &Matrix<usize> {
