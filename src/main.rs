@@ -5,22 +5,29 @@ use terminal::*;
 
 trait Drawable {
     type Output;
-    fn draw(&self) -> Self::Output;
+    type Config;
+    fn draw(&self, config: &Self::Config) -> Self::Output;
 }
 
 impl Drawable for Matrix<usize> {
     type Output = ();
+    type Config = (usize, usize);
 
-    fn draw(&self) -> Self::Output {
-        let mut frame = Vec::<char>::with_capacity(self.);
-        // frame.chars()[100] = "a";
+    fn draw(&self, config: &Self::Config) -> Self::Output {
+        let dims = self.dimensions();
+        let mut frame: Vec<char> = vec![' '; config.0 * config.1];
 
-        // for row in self.inner().iter() {
-        //     frame
-        //     for column_item in row.iter() {
+        for row in self.inner() {
+            frame[row[0] + row[1] * config.0] = '#';
+        }
 
-        //     }
-        // }
+        for (index, c) in frame.iter().rev().enumerate() {
+            print!("{}", c);
+
+            if index % dims.0 == 0 {
+                println!();
+            }
+        }
     }
 }
 
@@ -29,10 +36,9 @@ fn main() {
     let cube = Matrix::new(vec![
         vec![0, 0],
         vec![4, 0],
-        vec![4, 4],
         vec![0, 4],
     ]);
 
     // Draw cube
-    cube.unwrap().draw();
+    cube.unwrap().draw(&(10, 10));
 }
