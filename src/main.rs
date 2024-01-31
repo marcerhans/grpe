@@ -182,8 +182,6 @@ fn main() {
 
     println!("{}", option.unwrap());
 
-    let matrix = linear_algebra::matrix2::macros::matrix!("hej");
-
     // Set up cube
     // let cube = Matrix::new(vec![
     //     vec![0, 0],

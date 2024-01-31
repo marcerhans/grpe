@@ -7,19 +7,19 @@ pub mod matrix2 {
     }
 
     impl Matrix {
-        pub fn from_arrays(columns: &[&[f64]]) -> Self {
-            let standard_rows_in_column = columns[0].len();
+        pub fn from_arrays(arrays: &[&[f64]]) -> Self {
+            let column_len = arrays[0].len();
 
-            for column in columns {
-                if standard_rows_in_column != column.len() {
+            for row in arrays {
+                if column_len != row.len() {
                     panic!("Matrix row/column lenghts are not homogenous.")
                 }
             }
 
             Self {
-                inner: columns.concat(),
-                rows: columns[0].len(),
-                columns: columns.len(),
+                inner: arrays.concat(),
+                rows: arrays.len(),
+                columns: arrays[0].len(),
             }
         }
 
@@ -35,8 +35,14 @@ pub mod matrix2 {
     pub mod macros {
         #[macro_export]
         macro_rules! matrix {
-            ($(matrix:expr)*) => {
-                crate::matrix2::Matrix::zeros()
+            [ $( [ $( $row:expr ),* ] $(,)* )* ] => {
+                crate::matrix2::Matrix::from_arrays(
+                    &[
+                        $(
+                            &[$($row),*]
+                        ),*
+                    ]
+                )
             };
         }
 
@@ -47,25 +53,48 @@ pub mod matrix2 {
     mod tests {
         use super::*;
 
-        #[test]
-        fn test_from_arrays() {
-            let matrix = Matrix::from_arrays(&[
-                &[1.0,  2.0,  3.0,  4.0],
-                &[5.0,  6.0,  7.0,  8.0],
-                &[9.0,  10.0, 11.0, 12.0],
-                &[13.0, 14.0, 15.0, 16.0],
-                &[17.0, 18.0, 19.0, 20.0],
-            ]);
+        mod test_from_arrays {
+            use super::*;
 
-            let epsilon = 1e-10;
-            let mut expected = 1.0;
+            #[test]
+            fn from_arrays() {
+                let matrix = Matrix::from_arrays(&[
+                    &[1.0, 2.0, 3.0, 4.0],
+                    &[5.0, 6.0, 7.0, 8.0],
+                    &[9.0, 10.0, 11.0, 12.0],
+                    &[13.0, 14.0, 15.0, 16.0],
+                    &[17.0, 18.0, 19.0, 20.0],
+                ]);
 
-            for val in matrix.inner {
-                if (val-expected).abs() > epsilon {
-                    panic!("Matrix not valid.")
-                }
-                expected += 1.0;
+                check(matrix);
             }
+
+            #[test]
+            fn from_arrays_with_macro() {
+                let matrix = macros::matrix![
+                    [1.0, 2.0],
+                    [3.0, 4.0],
+                ];
+
+                check(matrix);
+            }
+
+            fn check(matrix: Matrix) {
+                let epsilon = 1e-10;
+                let mut expected = 1.0;
+
+                for val in matrix.inner {
+                    if (val - expected).abs() > epsilon {
+                        panic!("Matrix not valid.")
+                    }
+                    expected += 1.0;
+                }
+            }
+        }
+
+        mod foo {
+            #[test]
+            fn main() {}
         }
     }
 }
