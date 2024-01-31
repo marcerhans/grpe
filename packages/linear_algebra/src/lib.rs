@@ -1,3 +1,65 @@
+pub mod matrix2 {
+    /// Dynamically sized n-dim matrices;
+    pub struct Matrix {
+        inner: Vec<f64>,
+        rows: usize,
+        columns: usize,
+    }
+
+    impl Matrix {
+        pub fn from_arrays(columns: &[&[f64]]) -> Self {
+            let standard_rows_in_column = columns[0].len();
+
+            for column in columns {
+                if standard_rows_in_column != column.len() {
+                    panic!("Matrix row/column lenghts are not homogenous.")
+                }
+            }
+
+            Self {
+                inner: columns.concat(),
+                rows: columns[0].len(),
+                columns: columns.len(),
+            }
+        }
+
+        pub fn zeros(rows: usize, columns: usize) -> Self {
+            Self {
+                inner: vec![0.0; rows * columns],
+                rows,
+                columns,
+            }
+        }
+    }
+
+    pub mod macros {
+        #[macro_export]
+        macro_rules! matrix {
+            ($(matrix:expr)*) => {
+                crate::matrix2::Matrix::zeros()
+            };
+        }
+
+        pub use matrix;
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn test_from_arrays() {
+            let matrix = Matrix::from_arrays(&[
+                &[1.0, 1.0, 1.0, 1.0],
+                &[1.0, 1.0, 1.0, 1.0],
+                &[1.0, 1.0, 1.0, 1.0],
+                &[1.0, 1.0, 1.0, 1.0],
+                &[1.0, 1.0, 1.0, 1.0],
+            ]);
+        }
+    }
+}
+
 pub mod matrix {
     pub use std::ops::{Add, Mul, Sub};
 
@@ -26,6 +88,10 @@ pub mod matrix {
                 rows,
                 columns,
             })
+        }
+
+        pub fn new_vector(vector: Vec<usize>) -> Result<Self, &'static str> {
+            Self::new(vec![vector; 1])
         }
 
         pub fn zeros(rows: usize, columns: usize) -> Self {
