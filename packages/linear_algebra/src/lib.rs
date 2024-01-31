@@ -50,12 +50,22 @@ pub mod matrix2 {
         #[test]
         fn test_from_arrays() {
             let matrix = Matrix::from_arrays(&[
-                &[1.0, 1.0, 1.0, 1.0],
-                &[1.0, 1.0, 1.0, 1.0],
-                &[1.0, 1.0, 1.0, 1.0],
-                &[1.0, 1.0, 1.0, 1.0],
-                &[1.0, 1.0, 1.0, 1.0],
+                &[1.0,  2.0,  3.0,  4.0],
+                &[5.0,  6.0,  7.0,  8.0],
+                &[9.0,  10.0, 11.0, 12.0],
+                &[13.0, 14.0, 15.0, 16.0],
+                &[17.0, 18.0, 19.0, 20.0],
             ]);
+
+            let epsilon = 1e-10;
+            let mut expected = 1.0;
+
+            for val in matrix.inner {
+                if (val-expected).abs() > epsilon {
+                    panic!("Matrix not valid.")
+                }
+                expected += 1.0;
+            }
         }
     }
 }
