@@ -30,6 +30,10 @@ pub mod matrix2 {
                 columns,
             }
         }
+
+        pub fn inner(&self) -> &[f64] {
+            return &self.inner;
+        }
     }
 
     pub mod macros {
@@ -86,7 +90,7 @@ pub mod matrix2 {
                 let epsilon = 1e-10;
                 let mut expected = 1.0;
 
-                for val in matrix.inner {
+                for val in matrix.inner() {
                     if (val - expected).abs() > epsilon {
                         panic!("Matrix not valid.")
                     }
