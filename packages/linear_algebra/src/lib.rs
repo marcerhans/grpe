@@ -91,9 +91,7 @@ pub mod matrix2 {
                 let mut expected = 1.0;
 
                 for val in matrix.inner() {
-                    if (val - expected).abs() > epsilon {
-                        panic!("Matrix not valid.")
-                    }
+                    assert!((val - expected).abs() < epsilon, "Matrix not valid");
                     expected += 1.0;
                 }
             }
