@@ -69,6 +69,14 @@ pub mod matrix {
         pub fn columns(&self) -> usize {
             self.columns
         }
+
+        pub fn swap_rows(&mut self, from: usize, to: usize) {
+            
+        }
+
+        pub fn swap_columns(&mut self, from: usize, to:usize) {
+
+        }
     }
 
     impl std::fmt::Debug for Matrix {
@@ -562,7 +570,29 @@ mod vector {
 pub mod utility {
     use super::*;
 
-    /// Returns a [vector::Vector] containing the solution.
-    /// Each column in the [matrix::Matrix] is treated as a vector.
-    fn gauss_elimination() {}
+    /// TODO:
+    /// Current solution is to treat the last column as regular values,
+    /// and columns before that as parameter values, for which we have to find the solution.
+    fn gauss_elimination(matrix: matrix::Matrix) -> Option<matrix::Matrix> {
+        for row in 0..(matrix.rows() - 1) {
+            for column in (row + 1)..matrix.columns() {
+
+            }
+        }
+
+        None
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn test_gauss_elimination() {
+            let matrix = matrix::macros::matrix![
+                [1.0, 1.0, 2.0],
+                [1.0, 1.0, 2.0],
+            ];
+        }
+    }
 }
