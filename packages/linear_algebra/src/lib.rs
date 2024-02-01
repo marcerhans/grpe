@@ -200,7 +200,7 @@ pub mod matrix2 {
             }
         }
 
-        mod test_index_and_index_mut {
+        mod test_trait_index_and_index_mut {
             use super::*;
 
             #[test]
