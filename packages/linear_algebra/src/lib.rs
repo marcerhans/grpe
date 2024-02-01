@@ -20,19 +20,19 @@ pub mod matrix {
     }
 
     impl Matrix {
-        pub fn from_slices(arrays: &[&[f64]]) -> Self {
-            let column_len = arrays[0].len();
+        pub fn from_slices(slices: &[&[f64]]) -> Self {
+            let column_len = slices[0].len();
 
-            for row in arrays {
+            for row in slices {
                 if column_len != row.len() {
                     panic!("Matrix row/column lenghts are not homogenous.")
                 }
             }
 
             Self {
-                inner: arrays.concat(),
-                rows: arrays.len(),
-                columns: arrays[0].len(),
+                inner: slices.concat(),
+                rows: slices.len(),
+                columns: slices[0].len(),
             }
         }
 
@@ -508,8 +508,61 @@ pub mod matrix {
     }
 }
 
+/// TODO:
+/// Implement a vector type.
+/// - Refactor and extract aspects from the matrix type as traits,
+/// and share between both vector and matrix.
+/// 
+/// There is currently no NEED for vector (though it would be nice/better).
+mod vector {
+    use super::*;
+
+    /// [Vector] which internally uses a nx1 [matrix::Matrix].
+    pub struct Vector {
+        inner: matrix::Matrix,
+        len: usize,
+    }
+
+    impl Vector {
+        fn from_slice(slice: &[f64]) -> Self {
+            Self {
+                inner: matrix::Matrix::from_slices(&[slice]),
+                len: slice.len(),
+            }
+        }
+    }
+
+    pub mod macros {
+        #[macro_export]
+        macro_rules! vector {
+            [ $( $row:expr ),* ] => {
+                crate::vector::Vector::from_slice(
+                    &[$($row),*]
+                )
+            };
+
+            ( $len:expr ) => {
+                crate::vector::Vector::from_slice(($len))
+            };
+        }
+        pub use vector;
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn main() {
+            let vector = macros::vector![1.0,2.0,3.0];
+        }
+    }
+}
+
 pub mod utility {
     use super::*;
 
+    /// Returns a [vector::Vector] containing the solution.
+    /// Each column in the [matrix::Matrix] is treated as a vector.
     fn gauss_elimination() {}
 }
