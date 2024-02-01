@@ -1,5 +1,4 @@
 /// TODO:
-/// - Change mul  to be dot product. Update what dimensions are compatible.
 /// - To_column_vector()
 /// - To_row_vector()
 /// - gauss_elim()
@@ -8,9 +7,8 @@
 /// - (determinant())
 /// - Crossproduct()
 ///
-/// Vector(?)
-/// Length
-///
+/// - Add Vector(?)
+
 pub mod matrix {
     use std::ops::{Add, Index, IndexMut, Mul, Sub};
 
