@@ -31,6 +31,20 @@ pub mod matrix2 {
             }
         }
 
+        pub fn identity(rows_cols: usize) -> Self {
+            let mut identity = Self {
+                inner: vec![0.0; rows_cols.pow(2)],
+                rows: rows_cols,
+                columns: rows_cols,
+            };
+
+            for element in identity.inner.iter_mut().step_by(identity.columns) {
+                *element = 1.0;
+            }
+
+            identity
+        }
+
         pub fn inner(&self) -> &[f64] {
             return &self.inner;
         }
@@ -53,8 +67,15 @@ pub mod matrix2 {
                 crate::matrix2::Matrix::zeros(($rows), ($columns))
             };
         }
-
         pub use matrix;
+
+        #[macro_export]
+        macro_rules! identity {
+            ( $rows_cols:expr ) => {
+                crate::matrix2::Matrix::identity(($rows_cols))
+            };
+        }
+        pub use identity;
     }
 
     #[cfg(test)]
@@ -126,6 +147,33 @@ pub mod matrix2 {
 
                 assert!(matrix.rows == 3);
                 assert!(matrix.columns == 4);
+                assert!(matrix.inner().len() == matrix.rows * matrix.columns);
+            }
+        }
+
+        mod test_identity {
+            use super::*;
+
+            #[test]
+            fn identity() {
+                let matrix = Matrix::identity(4);
+                check(matrix);
+            }
+
+            #[test]
+            fn identity_with_macro() {
+                let matrix = macros::identity!(4);
+                check(matrix);
+            }
+
+            fn check(matrix: Matrix) {
+                for (index, element) in matrix.inner().iter().enumerate() {
+                    if index % matrix.columns == 0 {
+                        assert!((*element - 1.0).abs() < EPSILON);
+                    } else {
+                        assert!(*element == 0.0);
+                    }
+                }
             }
         }
     }
