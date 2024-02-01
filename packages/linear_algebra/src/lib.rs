@@ -61,6 +61,14 @@ pub mod matrix {
         pub fn inner(&self) -> &[f64] {
             return &self.inner;
         }
+
+        pub fn rows(&self) -> usize {
+            self.rows
+        }
+
+        pub fn columns(&self) -> usize {
+            self.columns
+        }
     }
 
     impl std::fmt::Debug for Matrix {
@@ -498,4 +506,10 @@ pub mod matrix {
             }
         }
     }
+}
+
+pub mod utility {
+    use super::*;
+
+    fn gauss_elimination() {}
 }
