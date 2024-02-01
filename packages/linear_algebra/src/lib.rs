@@ -1,4 +1,6 @@
 pub mod matrix2 {
+    use std::ops::{Index, IndexMut};
+
     /// Dynamically sized n-dim matrices;
     pub struct Matrix {
         inner: Vec<f64>,
@@ -50,6 +52,20 @@ pub mod matrix2 {
         }
     }
 
+    impl Index<(usize, usize)> for Matrix {
+        type Output = f64;
+
+        fn index(&self, index: (usize, usize)) -> &Self::Output {
+            &self.inner()[index.0 * self.columns + index.1]
+        }
+    }
+
+    impl IndexMut<(usize, usize)> for Matrix {
+        fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+            &mut self.inner[index.0 * self.columns + index.1]
+        }
+    }
+
     pub mod macros {
         #[macro_export]
         macro_rules! matrix {
@@ -65,6 +81,10 @@ pub mod matrix2 {
 
             ( $rows:expr, $columns:expr ) => {
                 crate::matrix2::Matrix::zeros(($rows), ($columns))
+            };
+
+            ( $rows_cols:expr ) => {
+                crate::matrix2::Matrix::zeros(($rows_cols), ($rows_cols))
             };
         }
         pub use matrix;
@@ -129,24 +149,27 @@ pub mod matrix2 {
             #[test]
             fn zeros() {
                 let matrix = Matrix::zeros(3, 4);
-                check(matrix);
+                check(matrix,3 ,4);
             }
 
             #[test]
             fn zeros_with_macro() {
                 let matrix = macros::matrix!(3,4);
-                check(matrix);
+                check(matrix, 3, 4);
+
+                let matrix = macros::matrix!(4);
+                check(matrix, 4, 4);
             }
 
-            fn check(matrix: Matrix) {
+            fn check(matrix: Matrix, rows: usize, columns: usize) {
                 let expected = 0.0;
 
                 for val in matrix.inner() {
                     assert!((val - expected).abs() < EPSILON, "Matrix not valid");
                 }
 
-                assert!(matrix.rows == 3);
-                assert!(matrix.columns == 4);
+                assert!(matrix.rows == rows);
+                assert!(matrix.columns == columns);
                 assert!(matrix.inner().len() == matrix.rows * matrix.columns);
             }
         }
@@ -174,6 +197,39 @@ pub mod matrix2 {
                         assert!(*element == 0.0);
                     }
                 }
+            }
+        }
+
+        mod test_index_and_index_mut {
+            use super::*;
+
+            #[test]
+            fn index() {
+                let mut matrix = macros::matrix!(4);
+
+                matrix[(0,0)] = 1.0;
+                matrix[(1,1)] = 1.0;
+                matrix[(2,2)] = 1.0;
+                matrix[(3,3)] = 1.0;
+
+                check(matrix);
+            }
+
+            #[test]
+            #[should_panic]
+            fn index_out_of_bounds() {
+                // Ignore stacktrace output
+                std::panic::set_hook(Box::new(|_| {}));
+
+                let mut matrix = macros::matrix!(4);
+                matrix[(4,4)] = 1.0;
+            }
+
+            fn check(matrix: Matrix) {
+                assert!((matrix[(0,0)] - 1.0).abs() < EPSILON);
+                assert!((matrix[(1,1)] - 1.0).abs() < EPSILON);
+                assert!((matrix[(2,2)] - 1.0).abs() < EPSILON);
+                assert!((matrix[(3,3)] - 1.0).abs() < EPSILON);
             }
         }
     }
