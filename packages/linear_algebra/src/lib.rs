@@ -104,9 +104,17 @@ pub mod matrix {
     impl Eq for Matrix {}
     impl PartialEq for Matrix {
         fn eq(&self, other: &Self) -> bool {
-            self.inner.iter().all(|item| other.inner.contains(item))
-                && self.rows == other.rows
-                && self.columns == other.columns
+            if self.rows != other.rows || self.columns != other.columns {
+                return false;
+            }
+
+            for (lhs, rhs) in self.inner.iter().zip(other.inner.iter()) {
+                if (lhs - rhs).abs() > f64::EPSILON {
+                    return false;
+                }
+            }
+
+            true
         }
     }
 
@@ -160,8 +168,9 @@ pub mod matrix {
             for product_index_row in 0..self.rows {
                 for product_index_column in 0..rhs.columns {
                     for index_column_row in 0..self.columns {
-                        product[(product_index_row, product_index_column)] +=
-                            self[(product_index_row, index_column_row)] * rhs[(index_column_row, product_index_column)];
+                        product[(product_index_row, product_index_column)] += self
+                            [(product_index_row, index_column_row)]
+                            * rhs[(index_column_row, product_index_column)];
                     }
                 }
             }
