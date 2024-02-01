@@ -48,6 +48,10 @@ pub mod matrix2 {
                     ]
                 )
             };
+
+            ( $rows:expr, $columns:expr ) => {
+                crate::matrix2::Matrix::zeros(($rows), ($columns))
+            };
         }
 
         pub use matrix;
@@ -56,6 +60,8 @@ pub mod matrix2 {
     #[cfg(test)]
     mod tests {
         use super::*;
+
+        static EPSILON: f64 = std::f64::EPSILON;
 
         mod test_from_arrays {
             use super::*;
@@ -87,19 +93,40 @@ pub mod matrix2 {
             }
 
             fn check(matrix: Matrix) {
-                let epsilon = 1e-10;
                 let mut expected = 1.0;
 
                 for val in matrix.inner() {
-                    assert!((val - expected).abs() < epsilon, "Matrix not valid");
+                    assert!((val - expected).abs() < EPSILON, "Matrix not valid");
                     expected += 1.0;
                 }
             }
         }
 
-        mod foo {
+        mod test_zeros {
+            use super::*;
+
             #[test]
-            fn main() {}
+            fn zeros() {
+                let matrix = Matrix::zeros(3, 4);
+                check(matrix);
+            }
+
+            #[test]
+            fn zeros_with_macro() {
+                let matrix = macros::matrix!(3,4);
+                check(matrix);
+            }
+
+            fn check(matrix: Matrix) {
+                let expected = 0.0;
+
+                for val in matrix.inner() {
+                    assert!((val - expected).abs() < EPSILON, "Matrix not valid");
+                }
+
+                assert!(matrix.rows == 3);
+                assert!(matrix.columns == 4);
+            }
         }
     }
 }
