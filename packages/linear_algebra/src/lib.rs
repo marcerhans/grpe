@@ -1,5 +1,5 @@
 pub mod matrix2 {
-    use std::ops::{Index, IndexMut};
+    use std::ops::{Add, Index, IndexMut, Mul, Sub};
 
     /// Dynamically sized n-dim matrices;
     pub struct Matrix {
@@ -65,6 +65,32 @@ pub mod matrix2 {
             &mut self.inner[index.0 * self.columns + index.1]
         }
     }
+
+    
+    impl Add for &Matrix {
+        type Output = Matrix;
+
+        fn add(self, rhs: Self) -> Self::Output {
+            todo!()
+        }
+    }
+
+    impl Sub for &Matrix {
+        type Output = Matrix;
+
+        fn sub(self, rhs: Self) -> Self::Output {
+            todo!()
+        }
+    }
+
+    impl Mul for &Matrix {
+        type Output = Matrix;
+
+        fn mul(self, rhs: Self) -> Self::Output {
+            todo!()
+        }
+    }
+
 
     pub mod macros {
         #[macro_export]
