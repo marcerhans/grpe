@@ -40,7 +40,7 @@ pub mod matrix2 {
                 columns: rows_cols,
             };
 
-            for element in identity.inner.iter_mut().step_by(identity.columns) {
+            for element in identity.inner.iter_mut().step_by(identity.columns + 1) {
                 *element = 1.0;
             }
 
@@ -52,6 +52,14 @@ pub mod matrix2 {
         }
     }
 
+    impl Index<usize> for Matrix {
+        type Output = f64;
+
+        fn index(&self, index: usize) -> &Self::Output {
+            &self.inner()[index]
+        }
+    }
+
     impl Index<(usize, usize)> for Matrix {
         type Output = f64;
 
@@ -60,18 +68,34 @@ pub mod matrix2 {
         }
     }
 
+    impl IndexMut<usize> for Matrix {
+        fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+            &mut self.inner[index]
+        }
+    }
+
     impl IndexMut<(usize, usize)> for Matrix {
         fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
             &mut self.inner[index.0 * self.columns + index.1]
         }
     }
-
     
+    /// TODO: Add, Sub, and Mul have similarities. Maybe it can be refactored?
     impl Add for &Matrix {
         type Output = Matrix;
 
         fn add(self, rhs: Self) -> Self::Output {
-            todo!()
+            if self.rows != rhs.rows || self.columns != rhs.columns {
+                panic!("Addition cannot be performed on matrices of different dimensions.")
+            }
+
+            let mut sum = Matrix::zeros(self.rows, self.columns);
+
+            for index in 0..self.inner.len() {
+                sum[index] = self[index] + rhs[index];
+            }
+
+            sum
         }
     }
 
@@ -79,7 +103,17 @@ pub mod matrix2 {
         type Output = Matrix;
 
         fn sub(self, rhs: Self) -> Self::Output {
-            todo!()
+            if self.rows != rhs.rows || self.columns != rhs.columns {
+                panic!("Subtraction cannot be performed on matrices of different dimensions.")
+            }
+
+            let mut sum = Matrix::zeros(self.rows, self.columns);
+
+            for index in 0..self.inner.len() {
+                sum[index] = self[index] - rhs[index];
+            }
+
+            sum
         }
     }
 
@@ -87,7 +121,17 @@ pub mod matrix2 {
         type Output = Matrix;
 
         fn mul(self, rhs: Self) -> Self::Output {
-            todo!()
+            if self.rows != rhs.rows || self.columns != rhs.columns {
+                panic!("Addition cannot be performed on matrices of different dimensions.")
+            }
+
+            let mut sum = Matrix::zeros(self.rows, self.columns);
+
+            for index in 0..self.inner.len() {
+                sum[index] = self[index] * rhs[index];
+            }
+
+            sum
         }
     }
 
@@ -216,9 +260,12 @@ pub mod matrix2 {
             }
 
             fn check(matrix: Matrix) {
+                let mut offset = 0;
+
                 for (index, element) in matrix.inner().iter().enumerate() {
-                    if index % matrix.columns == 0 {
+                    if index == matrix.columns * offset + offset {
                         assert!((*element - 1.0).abs() < EPSILON);
+                        offset += 1;
                     } else {
                         assert!(*element == 0.0);
                     }
@@ -230,7 +277,19 @@ pub mod matrix2 {
             use super::*;
 
             #[test]
-            fn index() {
+            fn index_usize() {
+                let mut matrix = macros::matrix!(4);
+
+                matrix[4*0] = 1.0;
+                matrix[4*1] = 1.0;
+                matrix[4*2] = 1.0;
+                matrix[4*3] = 1.0;
+
+                check_usize(matrix);
+            }
+
+            #[test]
+            fn index_usize_usize() {
                 let mut matrix = macros::matrix!(4);
 
                 matrix[(0,0)] = 1.0;
@@ -238,12 +297,22 @@ pub mod matrix2 {
                 matrix[(2,2)] = 1.0;
                 matrix[(3,3)] = 1.0;
 
-                check(matrix);
+                check_usize_usize(matrix);
             }
 
             #[test]
             #[should_panic]
-            fn index_out_of_bounds() {
+            fn index_out_of_bounds_usize() {
+                // Ignore stacktrace output
+                std::panic::set_hook(Box::new(|_| {}));
+
+                let mut matrix = macros::matrix!(4);
+                matrix[4*4] = 1.0;
+            }
+
+            #[test]
+            #[should_panic]
+            fn index_out_of_bounds_usize_usize() {
                 // Ignore stacktrace output
                 std::panic::set_hook(Box::new(|_| {}));
 
@@ -251,11 +320,130 @@ pub mod matrix2 {
                 matrix[(4,4)] = 1.0;
             }
 
-            fn check(matrix: Matrix) {
+            fn check_usize(matrix: Matrix) {
+                assert!((matrix[4*0] - 1.0).abs() < EPSILON);
+                assert!((matrix[4*1] - 1.0).abs() < EPSILON);
+                assert!((matrix[4*2] - 1.0).abs() < EPSILON);
+                assert!((matrix[4*3] - 1.0).abs() < EPSILON);
+            }
+
+            fn check_usize_usize(matrix: Matrix) {
                 assert!((matrix[(0,0)] - 1.0).abs() < EPSILON);
                 assert!((matrix[(1,1)] - 1.0).abs() < EPSILON);
                 assert!((matrix[(2,2)] - 1.0).abs() < EPSILON);
                 assert!((matrix[(3,3)] - 1.0).abs() < EPSILON);
+            }
+        }
+
+        mod test_trait_add {
+            use super::*;
+
+            #[test]
+            fn add() {
+                let a = macros::identity!(4);
+                let b = macros::identity!(4);
+                let c = &a + &b;
+                check(c);
+            }
+
+            #[test]
+            #[should_panic]
+            fn add_panic() {
+                // Ignore stacktrace output
+                std::panic::set_hook(Box::new(|_| {}));
+                let a = macros::identity!(4);
+                let b = macros::identity!(5);
+                let _c = &a + &b;
+            }
+
+            fn check(matrix: Matrix) {
+                let mut offset = 0;
+
+                for (index, element) in matrix.inner().iter().enumerate() {
+                    if index == matrix.columns * offset + offset {
+                        assert!((*element - 2.0).abs() < EPSILON);
+                        offset += 1;
+                    } else {
+                        assert!(*element == 0.0);
+                    }
+                }
+            }
+        }
+
+        mod test_trait_sub {
+            use super::*;
+
+            #[test]
+            fn sub() {
+                let a = macros::identity!(4);
+                let b = macros::identity!(4);
+                let c = &a - &b;
+                check(c);
+            }
+
+            #[test]
+            #[should_panic]
+            fn sub_panic() {
+                // Ignore stacktrace output
+                std::panic::set_hook(Box::new(|_| {}));
+                let a = macros::identity!(4);
+                let b = macros::identity!(5);
+                let _c = &a - &b;
+            }
+
+            fn check(matrix: Matrix) {
+                for element in matrix.inner().iter() {
+                    assert!(*element == 0.0);
+                }
+            }
+        }
+
+        mod test_trait_mul {
+            use super::*;
+
+            #[test]
+            fn mul() {
+                let mut a = macros::matrix!(4);
+                a[(0,0)] = 1.0;
+                a[(1,1)] = 2.0;
+                a[(2,2)] = 3.0;
+                a[(3,3)] = 4.0;
+
+                let mut b = macros::matrix!(4);
+                b[(0,0)] = 5.0;
+                b[(1,1)] = 6.0;
+                b[(2,2)] = 7.0;
+                b[(3,3)] = 8.0;
+
+                let c = &a * &b;
+                check(c);
+            }
+
+            #[test]
+            #[should_panic]
+            fn mul_panic() {
+                // Ignore stacktrace output
+                std::panic::set_hook(Box::new(|_| {}));
+                let a = macros::identity!(4);
+                let b = macros::identity!(5);
+                let _c = &a * &b;
+            }
+
+            fn check(matrix: Matrix) {
+                let mut offset = 0;
+
+                for (index, element) in matrix.inner().iter().enumerate() {
+                    if index == matrix.columns * offset + offset {
+                        offset += 1;
+                    } else {
+                        assert!(*element == 0.0);
+                    }
+                }
+
+                assert!((matrix[(0,0)] - 5.0).abs() < EPSILON);
+                assert!((matrix[(1,1)] - 12.0).abs() < EPSILON);
+                assert!((matrix[(2,2)] - 21.0).abs() < EPSILON);
+                assert!((matrix[(3,3)] - 32.0).abs() < EPSILON);
             }
         }
     }
