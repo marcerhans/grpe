@@ -70,13 +70,23 @@ pub mod matrix {
             self.columns
         }
 
-        pub fn swap_rows(&mut self, from: usize, to: usize) {
+        // pub fn submatrix(&self, from: (usize, usize), to: (usize, usize)) -> Self {
             
+        // }
+
+        pub fn swap_rows(&mut self, this: usize, that: usize) {
+            let mut buf;
+
+            for column in 0..self.columns {
+                buf = self[(this, column)];
+                self[(this,column)] = self[(that, column)];
+                self[(that,column)] = buf;
+            }
         }
 
-        pub fn swap_columns(&mut self, from: usize, to:usize) {
+        // pub fn swap_columns(&mut self, from: usize, to:usize) {
 
-        }
+        // }
     }
 
     impl std::fmt::Debug for Matrix {
@@ -332,6 +342,29 @@ pub mod matrix {
             }
         }
 
+        mod test_swap {
+            use super::*;
+
+            #[test]
+            fn swap_rows() {
+                let mut matrix = macros::matrix![
+                    [1.0,2.0],
+                    [3.0,4.0],
+                ];
+
+                matrix.swap_rows(0, 1);
+
+                check(matrix);
+            }
+
+            fn check(matrix: Matrix) {
+                assert!(matrix[(0,0)] - 3.0 < f64::EPSILON);
+                assert!(matrix[(0,1)] - 4.0 < f64::EPSILON);
+                assert!(matrix[(1,0)] - 1.0 < f64::EPSILON);
+                assert!(matrix[(1,1)] - 2.0 < f64::EPSILON);
+            }
+        }
+
         mod test_trait_index_and_index_mut {
             use super::*;
 
@@ -538,6 +571,10 @@ mod vector {
                 len: slice.len(),
             }
         }
+
+        fn inner(&self) -> &matrix::Matrix {
+            &self.inner
+        }
     }
 
     pub mod macros {
@@ -570,15 +607,70 @@ mod vector {
 pub mod utility {
     use super::*;
 
-    /// TODO:
-    /// Current solution is to treat the last column as regular values,
-    /// and columns before that as parameter values, for which we have to find the solution.
-    fn gauss_elimination(matrix: matrix::Matrix) -> Option<matrix::Matrix> {
-        for row in 0..(matrix.rows() - 1) {
-            for column in (row + 1)..matrix.columns() {
+    /// Last column in matrix is seen as the sum of the values to the left,
+    /// where the values to the left are parametric.
+    fn gauss_elimination(mut matrix: matrix::Matrix) -> Option<matrix::Matrix> {
+        /// Reorder the rows in the matrix to find a "pivotable" item.
+        /// [None] if none could be found.
+        fn find_next_pivot_row(matrix: &mut matrix::Matrix, start_row: usize, column: usize) -> Option<usize> {
+            for row in start_row..matrix.rows() {
+                if matrix[(row,column)] > f64::EPSILON {
+                    return Some(row);
+                }
+            }
 
+            None
+        }
+
+        /// Normalize the row for a given pivot coordinate.
+        fn normalize_row(matrix: &mut matrix::Matrix, source_row: usize, source_column: usize) {
+        }
+
+        /// Eliminate other rows values in the same column as 'source'.
+        fn eliminate(matrix: &mut matrix::Matrix, source_row: usize, source_column: usize) {
+            for row in 0..matrix.rows() {
+                println!("Before {:?}", matrix);
+                if matrix[(row, source_column)] < f64::EPSILON || row == source_row {
+                    // Ignore columns that already have 0.
+                    // OR
+                    // We are at the source row (ignore).
+                    continue;
+                }
+
+                for column in 0..matrix.columns() {
+                    matrix[(row, column)] = matrix[(row,column)] * matrix[(source_row,source_column)] - matrix[(row,source_column)] * matrix[(source_row,column)];
+                }
+                println!("After{:?}", matrix);
             }
         }
+
+        for column in 0..(matrix.columns() - 1) {
+            let mut is_solvable = false;
+
+            for row in 0..matrix.rows() {
+                if matrix[(row,column)] > f64::EPSILON {
+                    eliminate(&mut matrix, row, column);
+                    is_solvable = true;
+                    break;
+                }
+            }
+
+            if !is_solvable {
+                println!("End: {:?}", matrix);
+                return None;
+            }
+        }
+
+        println!("{:?}", matrix);
+
+        // // "Forward/Downward" elimination
+        // for row in 0..(matrix.rows() - 1) {
+        //     for column in (row + 1)..matrix.columns() {
+
+        //     }
+        // }
+
+        // "Reverse/Upward"
 
         None
     }
@@ -589,10 +681,25 @@ pub mod utility {
 
         #[test]
         fn test_gauss_elimination() {
+            // let matrix = matrix::macros::matrix![
+            //     [1.0, 0.0, 0.0, 1.0],
+            //     [1.0, 1.0, 0.0, 2.0],
+            //     [0.0, 0.0, 1.0, 3.0],
+            // ];
+
+            // gauss_elimination(matrix);
+
             let matrix = matrix::macros::matrix![
-                [1.0, 1.0, 2.0],
-                [1.0, 1.0, 2.0],
+                [1.0, 2.0, 3.0, 4.0],
+                [5.0, 6.0, 7.0, 8.0],
+                [9.0, 10.0, 11.0, 12.0],
             ];
+
+            gauss_elimination(matrix);
+        }
+
+        fn check(matrix: matrix::Matrix) {
+
         }
     }
 }
