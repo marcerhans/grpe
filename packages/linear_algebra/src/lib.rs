@@ -607,9 +607,19 @@ mod vector {
 pub mod utility {
     use super::*;
 
+    #[test]
+    fn foo() {
+        let mut matrix = matrix::macros::matrix![
+            [0.0,2.0,4.0],
+            [2.0,1.0,8.0],
+        ];
+
+        gauss_elimination(&mut matrix);
+    }
+
     /// Last column in matrix is seen as the sum of the values to the left,
     /// where the values to the left are parametric.
-    fn gauss_elimination(mut matrix: matrix::Matrix) -> Option<matrix::Matrix> {
+    fn gauss_elimination(mut matrix: &mut matrix::Matrix) -> Option<matrix::Matrix> {
         /// Reorder the rows in the matrix to find a "pivotable" item.
         /// [None] if none could be found.
         fn find_next_pivot_row(matrix: &mut matrix::Matrix, start_row: usize, column: usize) -> Option<usize> {
@@ -623,11 +633,16 @@ pub mod utility {
         }
 
         /// Normalize the row for a given pivot coordinate.
-        fn normalize_row(matrix: &mut matrix::Matrix, source_row: usize, source_column: usize) {
+        fn normalize_row(matrix: &mut matrix::Matrix, row: usize, divisor_column: usize) {
+            let divisor = matrix[(row,divisor_column)];
+
+            for column in 0..matrix.columns() {
+                matrix[(row,column)] /= divisor;
+            }
         }
 
         /// Eliminate other rows values in the same column as 'source'.
-        fn eliminate(matrix: &mut matrix::Matrix, source_row: usize, source_column: usize) {
+        fn eliminate_column(matrix: &mut matrix::Matrix, source_row: usize, source_column: usize) {
             for row in 0..matrix.rows() {
                 println!("Before {:?}", matrix);
                 if matrix[(row, source_column)] < f64::EPSILON || row == source_row {
@@ -644,24 +659,39 @@ pub mod utility {
             }
         }
 
-        for column in 0..(matrix.columns() - 1) {
-            let mut is_solvable = false;
-
-            for row in 0..matrix.rows() {
-                if matrix[(row,column)] > f64::EPSILON {
-                    eliminate(&mut matrix, row, column);
-                    is_solvable = true;
-                    break;
-                }
-            }
-
-            if !is_solvable {
-                println!("End: {:?}", matrix);
+        for row_and_column in 0..1 { // matrix.rows() {
+            println!("{matrix:?}");
+            if let Some(pivot_row) = find_next_pivot_row(matrix, 0, 0) {
+                matrix.swap_rows(row_and_column,pivot_row);
+                println!("{matrix:?}");
+                normalize_row(&mut matrix, row_and_column, row_and_column);
+                println!("{matrix:?}");
+                eliminate_column(&mut matrix, row_and_column, row_and_column);
+                println!("{matrix:?}");
+                break;
+            } else {
                 return None;
             }
         }
 
-        println!("{:?}", matrix);
+        // for column in 0..(matrix.columns() - 1) {
+        //     let mut is_solvable = false;
+
+        //     for row in 0..matrix.rows() {
+        //         if matrix[(row,column)] > f64::EPSILON {
+        //             eliminate(&mut matrix, row, column);
+        //             is_solvable = true;
+        //             break;
+        //         }
+        //     }
+
+        //     if !is_solvable {
+        //         println!("End: {:?}", matrix);
+        //         return None;
+        //     }
+        // }
+
+        // println!("{:?}", matrix);
 
         // // "Forward/Downward" elimination
         // for row in 0..(matrix.rows() - 1) {
@@ -689,13 +719,13 @@ pub mod utility {
 
             // gauss_elimination(matrix);
 
-            let matrix = matrix::macros::matrix![
-                [1.0, 2.0, 3.0, 4.0],
-                [5.0, 6.0, 7.0, 8.0],
-                [9.0, 10.0, 11.0, 12.0],
-            ];
+            // let matrix = matrix::macros::matrix![
+            //     [1.0, 2.0, 3.0, 4.0],
+            //     [5.0, 6.0, 7.0, 8.0],
+            //     [9.0, 10.0, 11.0, 12.0],
+            // ];
 
-            gauss_elimination(matrix);
+            // gauss_elimination(matrix);
         }
 
         fn check(matrix: matrix::Matrix) {
