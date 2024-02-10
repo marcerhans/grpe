@@ -91,10 +91,22 @@ pub mod matrix {
 
     impl std::fmt::Debug for Matrix {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            let mut fmt_vec = Vec::with_capacity(self.rows);
+
+            for row in 0..self.rows {
+                let mut columns = Vec::with_capacity(self.columns);
+
+                for column in 0..self.columns {
+                    columns.push(self[(row, column)]);
+                }
+
+                fmt_vec.push(columns);
+            }
+
             f.debug_struct("Matrix")
                 .field("rows", &self.rows)
                 .field("columns", &self.columns)
-                .field("inner", &self.inner)
+                .field("inner", &fmt_vec)
                 .finish()
         }
     }
@@ -649,53 +661,30 @@ pub mod utility {
                 }
 
                 for column in 0..matrix.columns() {
-                    matrix[(row, column)] -= matrix[(pivot_row,column)];
+                    matrix[(row, column)] -= matrix[(pivot_row, column)];
                 }
             }
         }
 
-        for row_and_column in 0..1 { // matrix.rows() {
-            println!("{matrix:?}");
+        if matrix.rows() + 1 != matrix.columns() {
+            return None;
+        }
+
+        for row_and_column in 0..matrix.rows() {
             if let Some(pivot_row) = find_next_pivot_row(matrix, 0, 0) {
+                println!("iteration: {matrix:?}");
                 matrix.swap_rows(row_and_column,pivot_row);
-                println!("{matrix:?}");
+                println!("swapped:   {matrix:?}");
                 normalize_row(&mut matrix, row_and_column, row_and_column);
-                println!("{matrix:?}");
-                eliminate_column(&mut matrix, row_and_column, row_and_column, row_and_column + 1);
-                println!("{matrix:?}");
-                break;
+                println!("normalize: {matrix:?}");
+                eliminate_columns(&mut matrix, row_and_column, row_and_column, row_and_column + 1);
+                println!("eliminate: {matrix:?}");
             } else {
                 return None;
             }
         }
 
-        // for column in 0..(matrix.columns() - 1) {
-        //     let mut is_solvable = false;
-
-        //     for row in 0..matrix.rows() {
-        //         if matrix[(row,column)] > f64::EPSILON {
-        //             eliminate(&mut matrix, row, column);
-        //             is_solvable = true;
-        //             break;
-        //         }
-        //     }
-
-        //     if !is_solvable {
-        //         println!("End: {:?}", matrix);
-        //         return None;
-        //     }
-        // }
-
-        // println!("{:?}", matrix);
-
-        // // "Forward/Downward" elimination
-        // for row in 0..(matrix.rows() - 1) {
-        //     for column in (row + 1)..matrix.columns() {
-
-        //     }
-        // }
-
-        // "Reverse/Upward"
+        println!("{matrix:?}");
 
         None
     }
