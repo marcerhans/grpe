@@ -610,8 +610,9 @@ pub mod utility {
     #[test]
     fn foo() {
         let mut matrix = matrix::macros::matrix![
-            [0.0,2.0,4.0],
-            [2.0,1.0,8.0],
+            [0.0,2.0,0.0,4.0],
+            [2.0,1.0,0.0,8.0],
+            [2.0,1.0,1.0,16.0],
         ];
 
         gauss_elimination(&mut matrix);
@@ -620,8 +621,7 @@ pub mod utility {
     /// Last column in matrix is seen as the sum of the values to the left,
     /// where the values to the left are parametric.
     fn gauss_elimination(mut matrix: &mut matrix::Matrix) -> Option<matrix::Matrix> {
-        /// Reorder the rows in the matrix to find a "pivotable" item.
-        /// [None] if none could be found.
+        /// Find a 'pivotable' point in a row given a column.
         fn find_next_pivot_row(matrix: &mut matrix::Matrix, start_row: usize, column: usize) -> Option<usize> {
             for row in start_row..matrix.rows() {
                 if matrix[(row,column)] > f64::EPSILON {
@@ -641,21 +641,16 @@ pub mod utility {
             }
         }
 
-        /// Eliminate other rows values in the same column as 'source'.
-        fn eliminate_column(matrix: &mut matrix::Matrix, source_row: usize, source_column: usize) {
-            for row in 0..matrix.rows() {
-                println!("Before {:?}", matrix);
-                if matrix[(row, source_column)] < f64::EPSILON || row == source_row {
-                    // Ignore columns that already have 0.
-                    // OR
-                    // We are at the source row (ignore).
+        /// Eliminate all rows based on pivot.
+        fn eliminate_columns(matrix: &mut matrix::Matrix, pivot_row: usize, pivot_column: usize, start_row: usize) {
+            for row in start_row..matrix.rows() {
+                if matrix[(row, pivot_column)] < f64::EPSILON {
                     continue;
                 }
 
                 for column in 0..matrix.columns() {
-                    matrix[(row, column)] = matrix[(row,column)] * matrix[(source_row,source_column)] - matrix[(row,source_column)] * matrix[(source_row,column)];
+                    matrix[(row, column)] -= matrix[(pivot_row,column)];
                 }
-                println!("After{:?}", matrix);
             }
         }
 
@@ -666,7 +661,7 @@ pub mod utility {
                 println!("{matrix:?}");
                 normalize_row(&mut matrix, row_and_column, row_and_column);
                 println!("{matrix:?}");
-                eliminate_column(&mut matrix, row_and_column, row_and_column);
+                eliminate_column(&mut matrix, row_and_column, row_and_column, row_and_column + 1);
                 println!("{matrix:?}");
                 break;
             } else {
