@@ -1,6 +1,6 @@
 use std::env;
 
-use linear_algebra::matrix2;
+// use linear_algebra::matrix2;
 
 /// # TODO:
 /// ## Needed types.
