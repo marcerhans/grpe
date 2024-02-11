@@ -619,20 +619,15 @@ mod vector {
 pub mod utility {
     use super::*;
 
-    #[test]
-    fn foo() {
-        let mut matrix = matrix::macros::matrix![
-            [0.0,2.0,0.0,4.0],
-            [2.0,1.0,0.0,8.0],
-            [2.0,1.0,1.0,16.0],
-        ];
-
-        gauss_elimination(&mut matrix);
-    }
-
     /// Last column in matrix is seen as the sum of the values to the left,
     /// where the values to the left are parametric.
+    /// Only solves n by n+1 matrices.
     fn gauss_elimination(mut matrix: &mut matrix::Matrix) -> Option<matrix::Matrix> {
+        enum Direction {
+            Down,
+            Up,
+        }
+
         /// Find a 'pivotable' point in a row given a column.
         fn find_next_pivot_row(matrix: &mut matrix::Matrix, start_row: usize, column: usize) -> Option<usize> {
             for row in start_row..matrix.rows() {
@@ -654,15 +649,34 @@ pub mod utility {
         }
 
         /// Eliminate all rows based on pivot.
-        fn eliminate_columns(matrix: &mut matrix::Matrix, pivot_row: usize, pivot_column: usize, start_row: usize) {
-            for row in start_row..matrix.rows() {
-                if matrix[(row, pivot_column)] < f64::EPSILON {
-                    continue;
-                }
+        fn eliminate_columns(matrix: &mut matrix::Matrix, pivot_row: usize, pivot_column: usize, start_row: usize, direction: Direction) {
+            match direction {
+                Direction::Down => {
+                    for row in start_row..matrix.rows() {
+                        if matrix[(row, pivot_column)] < f64::EPSILON {
+                            continue;
+                        }
 
-                for column in 0..matrix.columns() {
-                    matrix[(row, column)] -= matrix[(pivot_row, column)];
-                }
+                        let pivot_factor = matrix[(row, pivot_column)];
+
+                        for column in 0..matrix.columns() {
+                            matrix[(row, column)] -= matrix[(pivot_row, column)] * pivot_factor;
+                        }
+                    }
+                },
+                Direction::Up => {
+                    for row in (0..start_row).rev() {
+                        if matrix[(row, pivot_column)] < f64::EPSILON {
+                            continue;
+                        }
+
+                        let pivot_factor = matrix[(row, pivot_column)];
+
+                        for column in 0..matrix.columns() {
+                            matrix[(row, column)] -= matrix[(pivot_row, column)] * pivot_factor;
+                        }
+                    }
+                },
             }
         }
 
@@ -670,21 +684,29 @@ pub mod utility {
             return None;
         }
 
-        for row_and_column in 0..matrix.rows() {
-            if let Some(pivot_row) = find_next_pivot_row(matrix, 0, 0) {
-                println!("iteration: {matrix:?}");
+        // "Downward"
+        // println!("Down");
+        for row_and_column in 0..matrix.rows()-1 {
+            if let Some(pivot_row) = find_next_pivot_row(matrix, row_and_column, row_and_column) {
+                // println!("iteration: {matrix:?}");
                 matrix.swap_rows(row_and_column,pivot_row);
-                println!("swapped:   {matrix:?}");
+                // println!("swapped:   {matrix:?}");
                 normalize_row(&mut matrix, row_and_column, row_and_column);
-                println!("normalize: {matrix:?}");
-                eliminate_columns(&mut matrix, row_and_column, row_and_column, row_and_column + 1);
-                println!("eliminate: {matrix:?}");
+                // println!("normalize: {matrix:?}");
+                eliminate_columns(&mut matrix, row_and_column, row_and_column, row_and_column + 1, Direction::Down);
+                // println!("eliminate: {matrix:?}");
             } else {
                 return None;
             }
         }
 
-        println!("{matrix:?}");
+        // "Upward"
+        // println!("Up");
+        for row_and_column in (1..matrix.rows()).rev() {
+            normalize_row(&mut matrix, row_and_column, row_and_column);
+            eliminate_columns(&mut matrix, row_and_column, row_and_column, row_and_column, Direction::Up);
+            println!("eliminate: {matrix:?}");
+        }
 
         None
     }
@@ -693,27 +715,88 @@ pub mod utility {
     mod tests {
         use super::*;
 
-        #[test]
-        fn test_gauss_elimination() {
-            // let matrix = matrix::macros::matrix![
-            //     [1.0, 0.0, 0.0, 1.0],
-            //     [1.0, 1.0, 0.0, 2.0],
-            //     [0.0, 0.0, 1.0, 3.0],
-            // ];
+        mod test_gauss_elimination {
+            use super::*;
 
-            // gauss_elimination(matrix);
+            #[test]
+            fn test_1() {
+                let mut matrix = matrix::macros::matrix![
+                    [1.0,0.0,0.0,1.0],
+                    [0.0,1.0,0.0,2.0],
+                    [0.0,0.0,1.0,3.0],
+                ];
 
-            // let matrix = matrix::macros::matrix![
-            //     [1.0, 2.0, 3.0, 4.0],
-            //     [5.0, 6.0, 7.0, 8.0],
-            //     [9.0, 10.0, 11.0, 12.0],
-            // ];
+                gauss_elimination(&mut matrix);
 
-            // gauss_elimination(matrix);
-        }
+                let expected = matrix::macros::matrix![
+                    [1.0,0.0,0.0,1.0],
+                    [0.0,1.0,0.0,2.0],
+                    [0.0,0.0,1.0,3.0],
+                ];
 
-        fn check(matrix: matrix::Matrix) {
+                check(matrix, expected);
+            }
 
+            #[test]
+            fn test_2() {
+                let mut matrix = matrix::macros::matrix![
+                    [0.0,1.0,0.0,2.0],
+                    [1.0,0.0,0.0,1.0],
+                    [0.0,0.0,1.0,3.0],
+                ];
+
+                gauss_elimination(&mut matrix);
+
+                let expected = matrix::macros::matrix![
+                    [1.0,0.0,0.0,1.0],
+                    [0.0,1.0,0.0,2.0],
+                    [0.0,0.0,1.0,3.0],
+                ];
+
+                check(matrix, expected);
+            }
+
+            #[test]
+            fn test_3() {
+                let mut matrix = matrix::macros::matrix![
+                    [0.0,0.0,1.0,3.0],
+                    [0.0,1.0,0.0,2.0],
+                    [1.0,0.0,0.0,1.0],
+                ];
+
+                gauss_elimination(&mut matrix);
+
+                let expected = matrix::macros::matrix![
+                    [1.0,0.0,0.0,1.0],
+                    [0.0,1.0,0.0,2.0],
+                    [0.0,0.0,1.0,3.0],
+                ];
+
+                check(matrix, expected);
+            }
+
+            #[test]
+            fn test_4() {
+                let mut matrix = matrix::macros::matrix![
+                    [5.0, 3.0,7.0,1.0],
+                    [2.0, 4.0,9.0,3.0],
+                    [11.0,7.0,1.0,4.0],
+                ];
+
+                gauss_elimination(&mut matrix);
+
+                let expected = matrix::macros::matrix![
+                    [1.0,0.0,0.0,   -75.0/214.0],
+                    [0.0,1.0,0.0,   243.0/214.0],
+                    [0.0,0.0,1.0,   -10.0/107.0],
+                ];
+
+                check(matrix, expected);
+            }
+
+            fn check(matrix: matrix::Matrix, expected: matrix::Matrix) {
+                assert!(matrix == expected);
+            }
         }
     }
 }
