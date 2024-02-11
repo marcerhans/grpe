@@ -1,5 +1,7 @@
 use std::env;
 
+use linear_algebra::matrix;
+
 // use linear_algebra::matrix2;
 
 /// # TODO:
@@ -176,11 +178,71 @@ use std::env;
 //     }
 // }
 
+trait Canvas {
+    fn draw();
+}
+
+trait Drawable {
+    fn draw();
+}
+
+struct Cube {
+    matrix: matrix::Matrix,
+}
+
+impl Drawable for Cube {
+    fn draw() {
+        todo!()
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let option = args.get(1);
 
     println!("{}", option.unwrap());
+
+    // let cube = Cube {
+    //     matrix: matrix::macros::matrix![
+
+    //     ]
+    // }; 
+
+    let cube1 = matrix::macros::matrix![
+        [0.0,   0.0,    0.0],   // Point
+    ];
+    let cube2 = matrix::macros::matrix![
+        [4.0,   0.0,    0.0],   // Point
+    ];
+    let cube3 = matrix::macros::matrix![
+        [4.0,   4.0,    0.0],   // Point
+    ];
+    let cube4 = matrix::macros::matrix![
+        [0.0,   4.0,    0.0],   // Point
+    ];
+    
+    let canvas1 = matrix::macros::matrix![
+        [0.0,   0.0,    -4.0],  // Point
+    ];
+    let canvas2 = matrix::macros::matrix![
+        [1.0,   0.0,    0.0],   // Vector
+    ];
+    let canvas3 = matrix::macros::matrix![
+        [0.0,   1.0,    0.0],   // Vector
+    ];
+
+    let camera = matrix::macros::matrix![
+        [0.0,   0.0,    4.0],   // Point
+    ];
+
+    let cube_camera_line_1 = &camera - &cube1;
+    let cube_camera_line_2 = &camera - &cube2;
+    let cube_camera_line_3 = &camera - &cube3;
+    let cube_camera_line_4 = &camera - &cube4;
+
+    let result_1 = matrix::macros::matrix![
+        [],
+    ];
 
     // Set up cube
     // let cube = Matrix::new(vec![
