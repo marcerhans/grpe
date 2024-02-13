@@ -396,7 +396,7 @@ pub mod matrix {
                     [7.0, 8.0, 9.0],
                 ];
 
-                let vector = vec![a,b,c];
+                let vector = [a,b,c];
 
                 assert!(Matrix::from_row_matrices(&vector) == macros::matrix![
                     [1.0, 2.0, 3.0],
@@ -427,7 +427,7 @@ pub mod matrix {
                     [9.0],
                 ];
 
-                let vector = vec![a,b,c];
+                let vector = [a,b,c];
 
                 assert!(Matrix::from_column_matrices(&vector) == macros::matrix![
                     [1.0, 4.0, 7.0],
