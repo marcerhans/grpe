@@ -10,7 +10,7 @@
 /// - Add Vector(?)
 
 pub mod matrix {
-    use std::ops::{Add, Index, IndexMut, Mul, Range, Sub};
+    use std::ops::{Add, Index, IndexMut, Mul, Neg, Range, Sub};
 
     /// Dynamically sized n-dim matrices;
     pub struct Matrix {
@@ -240,6 +240,20 @@ pub mod matrix {
             }
 
             true
+        }
+    }
+
+    impl Neg for &Matrix {
+        type Output = Matrix;
+
+        fn neg(self) -> Self::Output {
+            let mut neg = Matrix::zeros(self.rows, self.columns);
+
+            for index in 0..self.inner.len() {
+                neg[index] = -self[index];
+            }
+
+            neg
         }
     }
 
@@ -811,7 +825,7 @@ pub mod utility {
     /// Last column in matrix is seen as the sum of the values to the left,
     /// where the values to the left are parametric.
     /// Only solves n by n+1 matrices.
-    fn gauss_elimination(mut matrix: &mut matrix::Matrix) -> Option<matrix::Matrix> {
+    pub fn gauss_elimination(mut matrix: &mut matrix::Matrix) -> Option<matrix::Matrix> {
         enum Direction {
             Down,
             Up,
@@ -874,27 +888,20 @@ pub mod utility {
         }
 
         // "Downward"
-        // println!("Down");
         for row_and_column in 0..matrix.rows()-1 {
             if let Some(pivot_row) = find_next_pivot_row(matrix, row_and_column, row_and_column) {
-                // println!("iteration: {matrix:?}");
                 matrix.swap_rows(row_and_column,pivot_row);
-                // println!("swapped:   {matrix:?}");
                 normalize_row(&mut matrix, row_and_column, row_and_column);
-                // println!("normalize: {matrix:?}");
                 eliminate_columns(&mut matrix, row_and_column, row_and_column, row_and_column + 1, Direction::Down);
-                // println!("eliminate: {matrix:?}");
             } else {
                 return None;
             }
         }
 
         // "Upward"
-        // println!("Up");
         for row_and_column in (1..matrix.rows()).rev() {
             normalize_row(&mut matrix, row_and_column, row_and_column);
             eliminate_columns(&mut matrix, row_and_column, row_and_column, row_and_column, Direction::Up);
-            println!("eliminate: {matrix:?}");
         }
 
         None
