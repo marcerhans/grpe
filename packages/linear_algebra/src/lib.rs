@@ -104,7 +104,7 @@ pub mod matrix {
             identity
         }
 
-        fn slice(&self, range_row: Range<usize>, range_column: Range<usize>) -> Matrix {
+        pub fn slice(&self, range_row: Range<usize>, range_column: Range<usize>) -> Matrix {
             let range_row_len = range_row.len();
             let range_column_len = range_column.len();
 

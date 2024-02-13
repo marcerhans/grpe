@@ -197,10 +197,10 @@ impl Drawable for Cube {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let option = args.get(1);
+    // let args: Vec<String> = env::args().collect();
+    // let option = args.get(1);
 
-    println!("{}", option.unwrap());
+    // println!("{}", option.unwrap());
 
     // let cube = Cube {
     //     matrix: matrix::macros::matrix![
@@ -208,26 +208,16 @@ fn main() {
     //     ]
     // }; 
 
-    let cube1 = matrix::macros::matrix![
+    let cube = matrix::macros::matrix![
         [0.0,   0.0,    0.0],   // Point
-    ];
-    let cube2 = matrix::macros::matrix![
         [4.0,   0.0,    0.0],   // Point
-    ];
-    let cube3 = matrix::macros::matrix![
         [4.0,   4.0,    0.0],   // Point
-    ];
-    let cube4 = matrix::macros::matrix![
         [0.0,   4.0,    0.0],   // Point
     ];
     
-    let canvas1 = matrix::macros::matrix![
+    let canvas = matrix::macros::matrix![
         [0.0,   0.0,    -4.0],  // Point
-    ];
-    let canvas2 = matrix::macros::matrix![
         [1.0,   0.0,    0.0],   // Vector
-    ];
-    let canvas3 = matrix::macros::matrix![
         [0.0,   1.0,    0.0],   // Vector
     ];
 
@@ -235,14 +225,14 @@ fn main() {
         [0.0,   0.0,    4.0],   // Point
     ];
 
-    let cube_camera_line_1 = &camera - &cube1;
-    let cube_camera_line_2 = &camera - &cube2;
-    let cube_camera_line_3 = &camera - &cube3;
-    let cube_camera_line_4 = &camera - &cube4;
+    let result = matrix::Matrix::from_row_matrices(&vec![
+        &camera.slice(0..1,0..3) - &cube.slice(0..1,0..3),
+        &camera.slice(0..1,0..3) - &cube.slice(1..2,0..3),
+        &camera.slice(0..1,0..3) - &cube.slice(2..3,0..3),
+        &camera.slice(0..1,0..3) - &cube.slice(3..4,0..3),
+    ]);
 
-    let result_1 = matrix::macros::matrix![
-        [],
-    ];
+    println!("{:?}", result);
 
     // Set up cube
     // let cube = Matrix::new(vec![
