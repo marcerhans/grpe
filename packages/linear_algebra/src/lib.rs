@@ -10,7 +10,7 @@
 /// - Add Vector(?)
 
 pub mod matrix {
-    use std::ops::{Add, Index, IndexMut, Mul, Sub};
+    use std::ops::{Add, Index, IndexMut, Mul, Range, Sub};
 
     /// Dynamically sized n-dim matrices;
     pub struct Matrix {
@@ -56,6 +56,29 @@ pub mod matrix {
             }
 
             identity
+        }
+
+        fn slice(&self, range_row: Range<usize>, range_column: Range<usize>) -> Matrix {
+            let range_row_len = range_row.len();
+            let range_column_len = range_column.len();
+
+            if range_row_len > self.rows || range_column_len > self.columns {
+                panic!("Argument ranges are outside of base matrix scope.");
+            }
+
+            let mut matrix = Matrix {
+                inner: vec![0.0; range_row_len * range_column_len],
+                rows: range_row_len,
+                columns: range_column_len,
+            };
+    
+            for row in range_row.clone() {
+                for column in range_column.clone() {
+                    matrix[(row-range_row.start,column-range_column.start)] = self[(row,column)];
+                }
+            }
+
+            matrix
         }
 
         pub fn inner(&self) -> &[f64] {
@@ -115,7 +138,7 @@ pub mod matrix {
         type Output = f64;
 
         fn index(&self, index: usize) -> &Self::Output {
-            &self.inner()[index]
+            &self.inner[index]
         }
     }
 
@@ -123,7 +146,7 @@ pub mod matrix {
         type Output = f64;
 
         fn index(&self, index: (usize, usize)) -> &Self::Output {
-            &self.inner()[index.0 * self.columns + index.1]
+            &self.inner[index.0 * self.columns + index.1]
         }
     }
 
@@ -374,6 +397,23 @@ pub mod matrix {
                 assert!(matrix[(0,1)] - 4.0 < f64::EPSILON);
                 assert!(matrix[(1,0)] - 1.0 < f64::EPSILON);
                 assert!(matrix[(1,1)] - 2.0 < f64::EPSILON);
+            }
+        }
+
+        mod test_slice {
+            use super::*;
+
+            #[test]
+            fn slice() {
+                let matrix = macros::matrix![
+                    [1.0, 2.0,  3.0,  4.0],
+                    [5.0, 6.0,  7.0,  8.0],
+                    [9.0,10.0, 11.0, 12.0],
+                ];
+
+                assert!(matrix.slice(0..1, 0..4) == macros::matrix![[1.0, 2.0,  3.0,  4.0]]);
+                assert!(matrix.slice(0..3, 0..1) == macros::matrix![[1.0], [5.0], [9.0]]);
+                assert!(matrix.slice(1..3, 1..4) == macros::matrix![[6.0, 7.0, 8.0], [10.0, 11.0, 12.0]]);
             }
         }
 
