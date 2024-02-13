@@ -36,6 +36,52 @@ pub mod matrix {
             }
         }
 
+        pub fn from_row_matrices(matrices: &[Matrix]) -> Self {
+            let rows = matrices.len();
+            let columns = matrices[0].columns();
+
+            let mut matrix = Matrix {
+                inner: vec![0.0; rows * columns],
+                rows,
+                columns,
+            };
+
+            for row in 0..matrices.len() {
+                if columns != matrices[row].columns {
+                    panic!("(Row) Matrices are not uniform.")
+                }
+
+                for column in 0..columns {
+                    matrix[(row,column)] = matrices[row][column];
+                }
+            }
+
+            matrix
+        }
+
+        pub fn from_column_matrices(matrices: &[Matrix]) -> Self {
+            let rows = matrices[0].rows();
+            let columns = matrices.len();
+
+            let mut matrix = Matrix {
+                inner: vec![0.0; rows * columns],
+                rows,
+                columns,
+            };
+
+            for column in 0..matrices.len() {
+                if rows != matrices[column].rows {
+                    panic!("(Column) Matrices are not uniform.")
+                }
+
+                for row in 0..rows {
+                    matrix[(row,column)] = matrices[column][row];
+                }
+            }
+
+            matrix
+        }
+
         pub fn zeros(rows: usize, columns: usize) -> Self {
             Self {
                 inner: vec![0.0; rows * columns],
@@ -316,6 +362,62 @@ pub mod matrix {
                     assert!((val - expected).abs() < EPSILON, "Matrix not valid");
                     expected += 1.0;
                 }
+            }
+        }
+
+        mod test_from_row_matrices {
+            use super::*;
+
+            #[test]
+            fn from_row_matrices() {
+                let a = macros::matrix![
+                    [1.0, 2.0, 3.0],
+                ];
+                let b = macros::matrix![
+                    [4.0, 5.0, 6.0],
+                ];
+                let c = macros::matrix![
+                    [7.0, 8.0, 9.0],
+                ];
+
+                let vector = vec![a,b,c];
+
+                assert!(Matrix::from_row_matrices(&vector) == macros::matrix![
+                    [1.0, 2.0, 3.0],
+                    [4.0, 5.0, 6.0],
+                    [7.0, 8.0, 9.0],
+                ])
+            }
+        }
+
+        mod test_from_column_matrices {
+            use super::*;
+
+            #[test]
+            fn from_column_matrices() {
+                let a = macros::matrix![
+                    [1.0],
+                    [2.0],
+                    [3.0],
+                ];
+                let b = macros::matrix![
+                    [4.0],
+                    [5.0],
+                    [6.0],
+                ];
+                let c = macros::matrix![
+                    [7.0],
+                    [8.0],
+                    [9.0],
+                ];
+
+                let vector = vec![a,b,c];
+
+                assert!(Matrix::from_column_matrices(&vector) == macros::matrix![
+                    [1.0, 4.0, 7.0],
+                    [2.0, 5.0, 8.0],
+                    [3.0, 6.0, 9.0],
+                ])
             }
         }
 
