@@ -104,6 +104,22 @@ pub mod matrix {
             identity
         }
 
+        pub fn transpose(&self) -> Self {
+            let mut matrix = Matrix {
+                inner: vec![0.0; self.rows * self.columns],
+                rows: self.columns,
+                columns: self.rows,
+            };
+
+            for row in 0..self.rows {
+                for column in 0..self.columns {
+                    matrix[(column,row)] = self[(row,column)];
+                }
+            }
+
+            matrix
+        }
+
         pub fn slice(&self, range_row: Range<usize>, range_column: Range<usize>) -> Matrix {
             let range_row_len = range_row.len();
             let range_column_len = range_column.len();
@@ -478,6 +494,24 @@ pub mod matrix {
                         assert!(*element == 0.0);
                     }
                 }
+            }
+        }
+
+        mod test_transpose {
+            use super::*;
+
+            #[test]
+            fn transpose() {
+                let matrix = macros::matrix![
+                    [1.0, 2.0],
+                    [3.0, 4.0],
+                    [5.0, 6.0],
+                ];
+
+                assert!(matrix.transpose() == macros::matrix![
+                    [1.0, 3.0, 5.0],
+                    [2.0, 4.0, 6.0],
+                ]);
             }
         }
 
