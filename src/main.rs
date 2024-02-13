@@ -1,6 +1,6 @@
 use std::env;
 
-use linear_algebra::{matrix,utility};
+use linear_algebra::{matrix::{self, macros::matrix, Matrix},utility};
 
 // use linear_algebra::matrix2;
 
@@ -187,7 +187,7 @@ trait Drawable {
 }
 
 struct Cube {
-    matrix: matrix::Matrix,
+    matrix: Matrix,
 }
 
 impl Drawable for Cube {
@@ -208,44 +208,43 @@ fn main() {
     //     ]
     // }; 
 
-    let camera = matrix::macros::matrix![
+    let camera = matrix![
         [0.0,   0.0,    4.0],   // Point
     ];
 
-    let canvas = matrix::macros::matrix![
+    let canvas = matrix![
         [0.0,   0.0,    2.0],   // Point
         [1.0,   0.0,    0.0],   // Vector (t1)
         [0.0,   1.0,    0.0],   // Vector (t2)
     ];
     let canvas = canvas.transpose();
 
-    let cube_points = matrix::macros::matrix![
+    let cube_points = matrix![
         [0.0,   0.0,    0.0],   // Point 1
         [4.0,   0.0,    0.0],   // Point 2
         [4.0,   4.0,    0.0],   // Point 3
         [0.0,   4.0,    0.0],   // Point 4
     ];
     
-    let cube_direction_vectors = matrix::Matrix::from_row_matrices(&[
+    let cube_direction_vectors = Matrix::from_row_matrices(&[
         &camera.slice(0..1,0..3) - &cube_points.slice(0..1,0..3), // Vector 1
         &camera.slice(0..1,0..3) - &cube_points.slice(1..2,0..3), // Vector 2
         &camera.slice(0..1,0..3) - &cube_points.slice(2..3,0..3), // Vector 3
         &camera.slice(0..1,0..3) - &cube_points.slice(3..4,0..3), // Vector 4
     ]);
 
-    let cube_camera_line_1 = matrix::Matrix::from_row_matrices(&[
+    let cube_camera_line_1 = Matrix::from_row_matrices(&[
         cube_points.slice(0..1,0..3),
         cube_direction_vectors.slice(0..1, 0..3),
     ]);
     let cube_camera_line_1 = cube_camera_line_1.transpose();
 
-    let mut eq_system = matrix::Matrix::from_column_matrices(&[
+    let mut eq_system = Matrix::from_column_matrices(&[
         canvas.slice(0..3, 1..2),
         canvas.slice(0..3, 2..3),
         -&cube_camera_line_1.slice(0..3, 1..2),
         &cube_camera_line_1.slice(0..3, 0..1) - &canvas.slice(0..3, 0..1),
     ]);
-
 
     utility::gauss_elimination(&mut eq_system);
     println!("{:?}", eq_system);
