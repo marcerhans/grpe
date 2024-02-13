@@ -93,10 +93,6 @@ pub mod matrix {
             self.columns
         }
 
-        // pub fn submatrix(&self, from: (usize, usize), to: (usize, usize)) -> Self {
-            
-        // }
-
         pub fn swap_rows(&mut self, this: usize, that: usize) {
             let mut buf;
 
@@ -107,9 +103,15 @@ pub mod matrix {
             }
         }
 
-        // pub fn swap_columns(&mut self, from: usize, to:usize) {
+        pub fn swap_columns(&mut self, this: usize, that: usize) {
+            let mut buf;
 
-        // }
+            for row in 0..self.rows {
+                buf = self[(row, this)];
+                self[(row, this)] = self[(row, that)];
+                self[(row, that)] = buf;
+            }
+        }
     }
 
     impl std::fmt::Debug for Matrix {
@@ -389,14 +391,25 @@ pub mod matrix {
 
                 matrix.swap_rows(0, 1);
 
-                check(matrix);
-            }
-
-            fn check(matrix: Matrix) {
                 assert!(matrix[(0,0)] - 3.0 < f64::EPSILON);
                 assert!(matrix[(0,1)] - 4.0 < f64::EPSILON);
                 assert!(matrix[(1,0)] - 1.0 < f64::EPSILON);
                 assert!(matrix[(1,1)] - 2.0 < f64::EPSILON);
+            }
+
+            #[test]
+            fn swap_columns() {
+                let mut matrix = macros::matrix![
+                    [1.0,2.0],
+                    [3.0,4.0],
+                ];
+
+                matrix.swap_columns(0, 1);
+
+                assert!(matrix[(0,0)] - 2.0 < f64::EPSILON);
+                assert!(matrix[(0,1)] - 1.0 < f64::EPSILON);
+                assert!(matrix[(1,0)] - 4.0 < f64::EPSILON);
+                assert!(matrix[(1,1)] - 3.0 < f64::EPSILON);
             }
         }
 
