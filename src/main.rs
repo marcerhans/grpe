@@ -227,27 +227,36 @@ fn main() {
     ];
     
     let cube_direction_vectors = Matrix::from_row_matrices(&[
-        &camera.slice(0..1,0..3) - &cube_points.slice(0..1,0..3), // Vector 1
-        &camera.slice(0..1,0..3) - &cube_points.slice(1..2,0..3), // Vector 2
-        &camera.slice(0..1,0..3) - &cube_points.slice(2..3,0..3), // Vector 3
-        &camera.slice(0..1,0..3) - &cube_points.slice(3..4,0..3), // Vector 4
+        &camera.row(0) - &cube_points.row(0), // Vector 1
+        &camera.row(0) - &cube_points.row(1), // Vector 2
+        &camera.row(0) - &cube_points.row(2), // Vector 3
+        &camera.row(0) - &cube_points.row(3), // Vector 4
     ]);
 
     let cube_camera_line_1 = Matrix::from_row_matrices(&[
-        cube_points.slice(0..1,0..3),
-        cube_direction_vectors.slice(0..1, 0..3),
+        cube_points.row(0),
+        cube_direction_vectors.row(0),
     ]);
     let cube_camera_line_1 = cube_camera_line_1.transpose();
 
     let mut eq_system = Matrix::from_column_matrices(&[
-        canvas.slice(0..3, 1..2),
-        canvas.slice(0..3, 2..3),
-        -&cube_camera_line_1.slice(0..3, 1..2),
-        &cube_camera_line_1.slice(0..3, 0..1) - &canvas.slice(0..3, 0..1),
+        canvas.column(1),
+        canvas.column(2),
+        -&cube_camera_line_1.column(1),
+        &cube_camera_line_1.column(0) - &canvas.column(0),
     ]);
 
     utility::gauss_elimination(&mut eq_system);
     println!("{:?}", eq_system);
+
+    let degree: f64 = 1.0;
+    let rotation_matrix = matrix![
+        [1.0,   0.0,            0.0],
+        [0.0,   degree.cos(),   -degree.sin()],
+        [0.0,   degree.sin(),   degree.sin()],
+    ];
+
+
 
     // Set up cube
     // let cube = Matrix::new(vec![
