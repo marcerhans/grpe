@@ -10,7 +10,7 @@
 /// - Add Vector(?)
 
 pub mod matrix {
-    use std::ops::{Add, Index, IndexMut, Mul, Neg, Range, Sub};
+    use std::{fmt::Display, ops::{Add, Index, IndexMut, Mul, Neg, Range, Sub}};
 
     /// Dynamically sized n-dim matrices;
     pub struct Matrix {
@@ -147,8 +147,16 @@ pub mod matrix {
             return &self.inner;
         }
 
+        pub fn row(&self, row: usize) -> Self {
+            self.slice(row..row+1, 0..self.columns)
+        }
+
         pub fn rows(&self) -> usize {
             self.rows
+        }
+
+        pub fn column(&self, column: usize) -> Self {
+            self.slice(0..self.rows, column..column+1)
         }
 
         pub fn columns(&self) -> usize {
