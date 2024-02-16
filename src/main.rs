@@ -233,28 +233,43 @@ fn main() {
         &camera.row(0) - &cube_points.row(3), // Vector 4
     ]);
 
-    let cube_camera_line_1 = Matrix::from_row_matrices(&[
-        cube_points.row(0),
-        cube_direction_vectors.row(0),
-    ]);
-    let cube_camera_line_1 = cube_camera_line_1.transpose();
+    let mut index = 0;
 
-    let mut eq_system = Matrix::from_column_matrices(&[
-        canvas.column(1),
-        canvas.column(2),
-        -&cube_camera_line_1.column(1),
-        &cube_camera_line_1.column(0) - &canvas.column(0),
-    ]);
+    loop {
+        if index == 4 {
+            break;
+        }
+        index %= 4;
 
-    utility::gauss_elimination(&mut eq_system);
-    println!("{:?}", eq_system);
+        let cube_camera_line = Matrix::from_row_matrices(&[
+            cube_points.row(index),
+            cube_direction_vectors.row(index),
+        ]);
+        let cube_camera_line_1 = cube_camera_line.transpose();
 
-    let degree: f64 = 1.0;
-    let rotation_matrix = matrix![
-        [1.0,   0.0,            0.0],
-        [0.0,   degree.cos(),   -degree.sin()],
-        [0.0,   degree.sin(),   degree.sin()],
-    ];
+        let mut eq_system = Matrix::from_column_matrices(&[
+            canvas.column(1),
+            canvas.column(2),
+            -&cube_camera_line.column(1),
+            &cube_camera_line.column(0) - &canvas.column(0),
+        ]);
+
+        utility::gauss_elimination(&mut eq_system);
+
+        let cube_point_scalar = eq_system[(2,3)];
+        let mut point_on_canvas = cube_direction_vectors.row(index);
+        point_on_canvas.scalar(cube_point_scalar);
+
+        println!("{:?}", point_on_canvas);
+        index += 1;
+    }
+
+    // let degree: f64 = 1.0;
+    // let rotation_matrix = matrix![
+    //     [1.0,   0.0,            0.0],
+    //     [0.0,   degree.cos(),   -degree.sin()],
+    //     [0.0,   degree.sin(),   degree.sin()],
+    // ];
 
 
 

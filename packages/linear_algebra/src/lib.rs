@@ -120,6 +120,12 @@ pub mod matrix {
             matrix
         }
 
+        pub fn scalar(&mut self, scalar: f64) {
+            for val in self.inner.iter_mut() {
+                *val *= scalar;
+            }
+        }
+
         pub fn slice(&self, range_row: Range<usize>, range_column: Range<usize>) -> Matrix {
             let range_row_len = range_row.len();
             let range_column_len = range_column.len();
@@ -180,6 +186,18 @@ pub mod matrix {
                 buf = self[(row, this)];
                 self[(row, this)] = self[(row, that)];
                 self[(row, that)] = buf;
+            }
+        }
+
+        pub fn set_row(&mut self, row: usize, matrix: Matrix) {
+            for column in 0..self.columns {
+                self[(row, column)] = matrix[(0,column)];
+            }
+        }
+
+        pub fn set_column(&mut self, column: usize, matrix: Matrix) {
+            for row in 0..self.rows {
+                self[(row, column)] = matrix[(row,0)];
             }
         }
     }
