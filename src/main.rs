@@ -225,23 +225,25 @@ fn main() {
     // loop {
         // Rasterize
         for index in 0..cube_points.rows() {
+            let cube_point = cube_points.row(index);
+
             let cube_camera_line = Matrix::from_row_matrices(&[
-                cube_points.row(index),
-                &camera.row(0) - &cube_points.row(index),
+                &cube_point,
+                &(&camera.row(0) - &cube_point),
             ]);
             let cube_camera_line = cube_camera_line.transpose();
 
             let mut eq_system = Matrix::from_column_matrices(&[
-                canvas.column(1),
-                canvas.column(2),
-                -&cube_camera_line.column(1),
-                &cube_camera_line.column(0) - &canvas.column(0),
+                &canvas.column(1),
+                &canvas.column(2),
+                &-&cube_camera_line.column(1),
+                &(&cube_camera_line.column(0) - &canvas.column(0)),
             ]);
 
             utility::gauss_elimination(&mut eq_system);
 
             let cube_point_scalar = eq_system[(2,3)];
-            let mut point_on_canvas = &camera.row(0) - &cube_points.row(index);
+            let mut point_on_canvas = &camera.row(0) - &cube_point;
             point_on_canvas.scalar(cube_point_scalar);
             println!("{:?}", point_on_canvas);
         }

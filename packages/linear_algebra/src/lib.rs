@@ -36,7 +36,7 @@ pub mod matrix {
             }
         }
 
-        pub fn from_row_matrices(matrices: &[Matrix]) -> Self {
+        pub fn from_row_matrices(matrices: &[&Matrix]) -> Self {
             let rows = matrices.len();
             let columns = matrices[0].columns();
 
@@ -59,7 +59,7 @@ pub mod matrix {
             matrix
         }
 
-        pub fn from_column_matrices(matrices: &[Matrix]) -> Self {
+        pub fn from_column_matrices(matrices: &[&Matrix]) -> Self {
             let rows = matrices[0].rows();
             let columns = matrices.len();
 
