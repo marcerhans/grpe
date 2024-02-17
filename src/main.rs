@@ -1,6 +1,7 @@
 use std::env;
 
 use linear_algebra::{matrix::{self, macros::matrix, Matrix},utility};
+use terminal::Terminal;
 
 // use linear_algebra::matrix2;
 
@@ -197,16 +198,11 @@ impl Drawable for Cube {
 }
 
 fn main() {
-    // let args: Vec<String> = env::args().collect();
-    // let option = args.get(1);
+    let args: Vec<String> = env::args().collect();
 
-    // println!("{}", option.unwrap());
-
-    // let cube = Cube {
-    //     matrix: matrix::macros::matrix![
-
-    //     ]
-    // }; 
+    // let terminal_width = usize::from_str_radix(args.get(1).unwrap(), 10);
+    // let terminal_height = usize::from_str_radix(args.get(2).unwrap(), 10);
+    // let terminal = Terminal::new(terminal_width.unwrap(), terminal_height.unwrap());
 
     let camera = matrix![
         [0.0,   0.0,    4.0],   // Point
@@ -219,50 +215,45 @@ fn main() {
     ];
     let canvas = canvas.transpose();
 
-    let cube_points = matrix![
+    let mut cube_points = matrix![
         [0.0,   0.0,    0.0],   // Point 1
         [4.0,   0.0,    0.0],   // Point 2
         [4.0,   4.0,    0.0],   // Point 3
         [0.0,   4.0,    0.0],   // Point 4
     ];
     
-    let cube_direction_vectors = Matrix::from_row_matrices(&[
-        &camera.row(0) - &cube_points.row(0), // Vector 1
-        &camera.row(0) - &cube_points.row(1), // Vector 2
-        &camera.row(0) - &cube_points.row(2), // Vector 3
-        &camera.row(0) - &cube_points.row(3), // Vector 4
-    ]);
+    // loop {
+        // Rasterize
+        for index in 0..cube_points.rows() {
+            let cube_camera_line = Matrix::from_row_matrices(&[
+                cube_points.row(index),
+                &camera.row(0) - &cube_points.row(index),
+            ]);
+            let cube_camera_line = cube_camera_line.transpose();
 
-    let mut index = 0;
+            let mut eq_system = Matrix::from_column_matrices(&[
+                canvas.column(1),
+                canvas.column(2),
+                -&cube_camera_line.column(1),
+                &cube_camera_line.column(0) - &canvas.column(0),
+            ]);
 
-    loop {
-        if index == 4 {
-            break;
+            utility::gauss_elimination(&mut eq_system);
+
+            let cube_point_scalar = eq_system[(2,3)];
+            let mut point_on_canvas = &camera.row(0) - &cube_points.row(index);
+            point_on_canvas.scalar(cube_point_scalar);
+            println!("{:?}", point_on_canvas);
         }
-        index %= 4;
 
-        let cube_camera_line = Matrix::from_row_matrices(&[
-            cube_points.row(index),
-            cube_direction_vectors.row(index),
-        ]);
-        let cube_camera_line = cube_camera_line.transpose();
+        // Draw
+        //asdf
 
-        let mut eq_system = Matrix::from_column_matrices(&[
-            canvas.column(1),
-            canvas.column(2),
-            -&cube_camera_line.column(1),
-            &cube_camera_line.column(0) - &canvas.column(0),
-        ]);
+        // Update position(s) of points
+        cube_points = cube_points;
 
-        utility::gauss_elimination(&mut eq_system);
-
-        let cube_point_scalar = eq_system[(2,3)];
-        let mut point_on_canvas = cube_direction_vectors.row(index);
-        point_on_canvas.scalar(cube_point_scalar);
-
-        println!("{:?}", point_on_canvas);
-        index += 1;
-    }
+        std::thread::sleep(std::time::Duration::from_millis(32));
+    // }
 
     // let degree: f64 = 1.0;
     // let rotation_matrix = matrix![
