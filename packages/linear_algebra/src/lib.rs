@@ -200,6 +200,19 @@ pub mod matrix {
                 self[(row, column)] = matrix[(row,0)];
             }
         }
+
+        pub fn push_row(&mut self, mut matrix: Matrix) {
+            if matrix.columns != self.columns && self.rows != 0 {
+                panic!("Matrix dimensions are not compatible.");
+            }
+
+            if self.rows == 0 {
+                self.columns = matrix.columns;
+            }
+
+            self.inner.append(&mut matrix.inner);
+            self.rows += 1;
+        }
     }
 
     impl std::fmt::Debug for Matrix {
@@ -436,7 +449,7 @@ pub mod matrix {
                     [7.0, 8.0, 9.0],
                 ];
 
-                let vector = [a,b,c];
+                let vector = [&a,&b,&c];
 
                 assert!(Matrix::from_row_matrices(&vector) == macros::matrix![
                     [1.0, 2.0, 3.0],
@@ -467,7 +480,7 @@ pub mod matrix {
                     [9.0],
                 ];
 
-                let vector = [a,b,c];
+                let vector = [&a,&b,&c];
 
                 assert!(Matrix::from_column_matrices(&vector) == macros::matrix![
                     [1.0, 4.0, 7.0],

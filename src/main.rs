@@ -221,6 +221,8 @@ fn main() {
         [4.0,   4.0,    0.0],   // Point 3
         [0.0,   4.0,    0.0],   // Point 4
     ];
+
+    let mut points_to_draw: Matrix = Matrix::zeros(0, 0);
     
     // loop {
         // Rasterize
@@ -245,8 +247,10 @@ fn main() {
             let cube_point_scalar = eq_system[(2,3)];
             let mut point_on_canvas = &camera.row(0) - &cube_point;
             point_on_canvas.scalar(cube_point_scalar);
-            println!("{:?}", point_on_canvas);
+            points_to_draw.push_row(point_on_canvas);
         }
+
+        println!("{:?}", points_to_draw);
 
         // Draw
         //asdf
