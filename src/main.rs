@@ -204,8 +204,8 @@ fn main() {
     // let terminal_height = usize::from_str_radix(args.get(2).unwrap(), 10);
     // let terminal = Terminal::new(terminal_width.unwrap(), terminal_height.unwrap());
 
-    let terminal_width = 8;
-    let terminal_height = 8;
+    let terminal_width = 33;
+    let terminal_height = 33;
     let terminal = Terminal::new(terminal_width, terminal_height);
 
     let camera = matrix![
@@ -225,6 +225,14 @@ fn main() {
         // [4.0,   4.0,    0.0],   // Point 3
         // [0.0,   4.0,    0.0],   // Point 4
         [1.0,   1.0,    0.0],   // Point 1
+        [2.0,   1.0,    0.0],   // Point 1
+        [2.0,   2.0,    0.0],   // Point 1
+        [2.0,   3.0,    0.0],   // Point 1
+        [3.0,   3.0,    0.0],   // Point 1
+        // [0.0,   3.0,    0.0],   // Point 1
+        // [3.0,   2.0,    0.0],   // Point 1
+        // [1.0,   3.0,    0.0],   // Point 1
+        // [1.0,   4.0,    0.0],   // Point 1
         // [2.0,   2.0,    0.0],   // Point 1
         // [3.0,   3.0,    0.0],   // Point 1
         // [4.0,   4.0,    0.0],   // Point 1
@@ -261,15 +269,17 @@ fn main() {
             cube_vector.scalar(cube_point_scalar);
             let point_on_canvas = &cube_point + &cube_vector;
             points_to_draw.push_row(point_on_canvas);
+
+            cube_points[(index,0)] += 1.0;
         }
 
         log::info!("{:?}", points_to_draw);
 
         // Draw
-        terminal.draw(&points_to_draw);
+        terminal.update(&points_to_draw);
+        terminal.draw();
 
         // Update position(s) of points
-        cube_points[(0,0)] += 1.0;
 
         std::thread::sleep(std::time::Duration::from_millis(1000));
     }
