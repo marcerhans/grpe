@@ -75,9 +75,7 @@ impl Terminal {
                         break;
                     }
                 }
-                print!("{}", state[row / 2][column]);
             }
-            println!();
         }
     }
 

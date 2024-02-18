@@ -204,8 +204,8 @@ fn main() {
     // let terminal_height = usize::from_str_radix(args.get(2).unwrap(), 10);
     // let terminal = Terminal::new(terminal_width.unwrap(), terminal_height.unwrap());
 
-    let terminal_width = 33;
-    let terminal_height = 33;
+    let terminal_width = 67;
+    let terminal_height = 67;
     let terminal = Terminal::new(terminal_width, terminal_height);
 
     let camera = matrix![
@@ -333,9 +333,8 @@ fn main() {
         // [8.0,   8.0,    0.0],   // Point 4
     ];
 
-    for _ in 0..50 {
+    for _ in 0..100 {
         // Rasterize
-        // println!("{}", Terminal::ansi_clear());
         let mut points_to_draw: Matrix = Matrix::zeros(0, 0);
 
         for index in 0..cube_points.rows() {
@@ -373,7 +372,7 @@ fn main() {
 
         // Update position(s) of points
 
-        std::thread::sleep(std::time::Duration::from_millis(50));
+        std::thread::sleep(std::time::Duration::from_millis(25));
     }
 }
 
