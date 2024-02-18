@@ -247,7 +247,6 @@ fn main() {
             ]);
             let cube_camera_line = cube_camera_line.transpose();
 
-
             let mut eq_system = Matrix::from_column_matrices(&[
                 &canvas.column(1),
                 &canvas.column(2),
