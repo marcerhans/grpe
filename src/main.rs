@@ -209,7 +209,7 @@ fn main() {
     let terminal = Terminal::new(terminal_width, terminal_height);
 
     let camera = matrix![
-        [0.0,   0.0,    -4.0],   // Point
+        [0.0,   0.0,    -999999999.0],   // Point
     ];
 
     let canvas = matrix![
@@ -234,7 +234,7 @@ fn main() {
         // [8.0,   8.0,    0.0],   // Point 4
     ];
 
-    // loop {
+    loop {
         // Rasterize
         let mut points_to_draw: Matrix = Matrix::zeros(0, 0);
 
@@ -271,8 +271,8 @@ fn main() {
         // Update position(s) of points
         cube_points[(0,0)] += 1.0;
 
-        std::thread::sleep(std::time::Duration::from_millis(100));
-    // }
+        std::thread::sleep(std::time::Duration::from_millis(1000));
+    }
 
     // let degree: f64 = 1.0;
     // let rotation_matrix = matrix![
