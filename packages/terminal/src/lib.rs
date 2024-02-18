@@ -2,10 +2,10 @@ use linear_algebra::matrix::*;
 use std::{io::Write, ops::Range};
 
 mod symbol {
-    pub static UPPER: &str = "u{2580}";
-    pub static LOWER: &str = "u{2584}";
-    pub static FULL: &str = "u{2588}";
-    pub static EMPTY: &str = " ";
+    pub static UPPER: char = '\u{2580}';
+    pub static LOWER: char = '\u{2584}';
+    pub static FULL: char = '\u{2588}';
+    pub static EMPTY: char = ' ';
 }
 
 pub struct Terminal {
@@ -36,20 +36,27 @@ impl Terminal {
                 continue;
             }
 
-            for column in 0..matrix.columns()-1 {
-                let mut symbol = symbol::EMPTY;
+            let x = (matrix[(row,0)] as isize + self.width as isize / 2) as usize;
+            let y = (matrix[(row,1)] as isize + self.height as isize / 2) as usize;
+            let symbol = if y % 2 == 0 {
+                symbol::UPPER
+            } else {
+                symbol::LOWER
+            };
 
-                if row % 2 == 0 {
-                    symbol = symbol::UPPER;
-                } else {
-                    symbol = symbol::LOWER;
-                }
-
-                write!(lock, "{}", symbol::LOWER).unwrap();
-            }
-
-            writeln!(lock);
+            // print!("{}", Self::ansi_set_character_at_pos(symbol, x, y));
+            // println!("");
+            write!(lock, "{}", Self::ansi_set_character_at_pos(symbol, x, y)).unwrap();
+            writeln!(lock).unwrap();
         }
+    }
+
+    pub fn ansi_set_character_at_pos(c: char, x: usize, y: usize) -> String {
+        format!("\x1b[{};{}H{}", y, x, c)
+    }
+
+    pub fn ansi_clear() -> String {
+        format!("\x1b[2J")
     }
 
     fn is_within_range(value: f64, range: &Range<f64>) -> bool {

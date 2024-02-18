@@ -198,14 +198,18 @@ impl Drawable for Cube {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    // let args: Vec<String> = env::args().collect();
 
     // let terminal_width = usize::from_str_radix(args.get(1).unwrap(), 10);
     // let terminal_height = usize::from_str_radix(args.get(2).unwrap(), 10);
     // let terminal = Terminal::new(terminal_width.unwrap(), terminal_height.unwrap());
+    let terminal_width = 100;
+    let terminal_height = 100;
+    let terminal = Terminal::new(terminal_width, terminal_height);
+    println!("{}", Terminal::ansi_clear());
 
     let camera = matrix![
-        [0.0,   0.0,    4.0],   // Point
+        [0.0,   0.0,    1.0],   // Point
     ];
 
     let canvas = matrix![
@@ -216,15 +220,23 @@ fn main() {
     let canvas = canvas.transpose();
 
     let mut cube_points = matrix![
-        [0.0,   0.0,    0.0],   // Point 1
-        [4.0,   0.0,    0.0],   // Point 2
-        [4.0,   4.0,    0.0],   // Point 3
-        [0.0,   4.0,    0.0],   // Point 4
+        // [0.0,   0.0,    0.0],   // Point 1
+        // [4.0,   0.0,    0.0],   // Point 2
+        // [4.0,   4.0,    0.0],   // Point 3
+        // [0.0,   4.0,    0.0],   // Point 4
+        [40.0,   1.0,    0.0],   // Point 1
+        // [2.0,   2.0,    0.0],   // Point 1
+        // [3.0,   3.0,    0.0],   // Point 1
+        // [4.0,   4.0,    0.0],   // Point 1
+        // [5.0,   5.0,    0.0],   // Point 1
+        // [6.0,   6.0,    0.0],   // Point 2
+        // [7.0,   7.0,    0.0],   // Point 3
+        // [8.0,   8.0,    0.0],   // Point 4
     ];
 
     let mut points_to_draw: Matrix = Matrix::zeros(0, 0);
     
-    // loop {
+    loop {
         // Rasterize
         for index in 0..cube_points.rows() {
             let cube_point = cube_points.row(index);
@@ -250,16 +262,16 @@ fn main() {
             points_to_draw.push_row(point_on_canvas);
         }
 
-        println!("{:?}", points_to_draw);
+        log::info!("hej");
 
         // Draw
-        //asdf
+        terminal.draw(&points_to_draw);
 
         // Update position(s) of points
-        cube_points = cube_points;
+        cube_points[(0,0)] += 1.0;
 
-        std::thread::sleep(std::time::Duration::from_millis(32));
-    // }
+        std::thread::sleep(std::time::Duration::from_millis(500));
+    }
 
     // let degree: f64 = 1.0;
     // let rotation_matrix = matrix![
