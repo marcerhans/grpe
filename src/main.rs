@@ -209,11 +209,11 @@ fn main() {
     println!("{}", Terminal::ansi_clear());
 
     let camera = matrix![
-        [0.0,   0.0,    1.0],   // Point
+        [0.0,   0.0,    -4.0],   // Point
     ];
 
     let canvas = matrix![
-        [0.0,   0.0,    2.0],   // Point
+        [0.0,   0.0,    -2.0],   // Point
         [1.0,   0.0,    0.0],   // Vector (t1)
         [0.0,   1.0,    0.0],   // Vector (t2)
     ];
@@ -224,7 +224,7 @@ fn main() {
         // [4.0,   0.0,    0.0],   // Point 2
         // [4.0,   4.0,    0.0],   // Point 3
         // [0.0,   4.0,    0.0],   // Point 4
-        [40.0,   1.0,    0.0],   // Point 1
+        [1.0,   1.0,    0.0],   // Point 1
         // [2.0,   2.0,    0.0],   // Point 1
         // [3.0,   3.0,    0.0],   // Point 1
         // [4.0,   4.0,    0.0],   // Point 1
@@ -234,10 +234,10 @@ fn main() {
         // [8.0,   8.0,    0.0],   // Point 4
     ];
 
-    let mut points_to_draw: Matrix = Matrix::zeros(0, 0);
-    
     loop {
         // Rasterize
+        let mut points_to_draw: Matrix = Matrix::zeros(0, 0);
+
         for index in 0..cube_points.rows() {
             let cube_point = cube_points.row(index);
 
@@ -246,6 +246,7 @@ fn main() {
                 &(&camera.row(0) - &cube_point),
             ]);
             let cube_camera_line = cube_camera_line.transpose();
+
 
             let mut eq_system = Matrix::from_column_matrices(&[
                 &canvas.column(1),
@@ -262,15 +263,15 @@ fn main() {
             points_to_draw.push_row(point_on_canvas);
         }
 
-        log::info!("hej");
+        log::info!("{:?}", points_to_draw);
 
         // Draw
-        terminal.draw(&points_to_draw);
+        // terminal.draw(&points_to_draw);
 
         // Update position(s) of points
         cube_points[(0,0)] += 1.0;
 
-        std::thread::sleep(std::time::Duration::from_millis(500));
+        std::thread::sleep(std::time::Duration::from_millis(10));
     }
 
     // let degree: f64 = 1.0;
