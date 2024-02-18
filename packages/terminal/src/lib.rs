@@ -29,6 +29,8 @@ impl Terminal {
         let stdout = std::io::stdout();
         let mut lock = stdout.lock();
 
+        write!(lock, "{}", Terminal::ansi_clear()).unwrap();
+
         for row in 0..matrix.rows() {
             if !Self::is_within_range(matrix[(row, 0)], &self.width_range)
                 || !Self::is_within_range(matrix[(row, 1)], &self.height_range)
