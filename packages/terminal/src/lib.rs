@@ -1,5 +1,5 @@
 use linear_algebra::matrix::*;
-use std::{io::Write, ops::Range};
+use std::{cell::RefCell, io::Write, ops::Range};
 
 mod symbol {
     pub static UPPER: char = '\u{2580}';
@@ -13,6 +13,7 @@ pub struct Terminal {
     height: usize,
     width_range: Range<f64>,
     height_range: Range<f64>,
+    state: RefCell<Vec<Vec<char>>>,
 }
 
 impl Terminal {
@@ -22,6 +23,7 @@ impl Terminal {
             height,
             width_range: -((width / 2) as f64)..(width / 2) as f64,
             height_range: -((height / 2) as f64)..(height / 2) as f64,
+            state: RefCell::new(vec![vec![symbol::EMPTY; width]; height]),
         }
     }
 
@@ -29,7 +31,7 @@ impl Terminal {
         let stdout = std::io::stdout();
         let mut lock = stdout.lock();
 
-        write!(lock, "{}", Terminal::ansi_clear()).unwrap();
+        // write!(lock, "{}", Terminal::ansi_clear()).unwrap();
 
         for row in 0..matrix.rows() {
             if !Self::is_within_range(matrix[(row, 0)], &self.width_range)
@@ -40,14 +42,21 @@ impl Terminal {
 
             let x = (matrix[(row,0)] as isize + self.width as isize / 2) as usize;
             let y = (matrix[(row,1)] as isize + self.height as isize / 2) as usize;
-            let symbol = if y % 2 == 0 {
-                symbol::UPPER
-            } else {
-                symbol::LOWER
-            };
 
-            // print!("{}", Self::ansi_set_character_at_pos(symbol, x, y));
-            // println!("");
+            // let symbol = if y % 2 == 0 {
+            //     symbol::UPPER
+            // } else {
+            //     if y > 0 && self.state.borrow()[y][x] == symbol::LOWER {
+
+            //     }
+            //     symbol::LOWER
+            // };
+            let symbol = symbol::FULL;
+
+            // Update state and draw (print)
+            self.state.borrow_mut()[x][y] = symbol;
+            println!("{:?}", self.state);
+
             write!(lock, "{}", Self::ansi_set_character_at_pos(symbol, x, y)).unwrap();
             writeln!(lock).unwrap();
         }
