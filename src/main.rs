@@ -208,7 +208,7 @@ fn main() {
     let terminal_height = 67;
     let terminal = Terminal::new(terminal_width, terminal_height);
 
-    let camera = matrix![
+    let mut camera = matrix![
         [0.0,   0.0,    -100.0],   // Point
     ];
 
@@ -371,9 +371,12 @@ fn main() {
         terminal.draw();
 
         // Update position(s) of points
+        camera[(0,2)] += 0.8;
 
         std::thread::sleep(std::time::Duration::from_millis(25));
     }
+
+    camera[(0,2)] = -100.0;
 }
 
     // let degree: f64 = 1.0;

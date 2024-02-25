@@ -22,6 +22,7 @@ version = "0.1.0"
 linear_algebra = { path = "packages/linear_algebra", version = "*" }
 terminal = { path = "packages/terminal", version = "*" }
 log = { path = "packages/log", version = "*" }
+io = { path = "packages/io", version = "*" }
 
 [package]
 name = "grpe"
@@ -32,3 +33,4 @@ edition.workspace = true
 linear_algebra.workspace = true
 terminal.workspace = true
 log.workspace = true
+io.workspace = true
