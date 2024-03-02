@@ -2,6 +2,7 @@ use std::env;
 
 use linear_algebra::{matrix::{self, macros::matrix, Matrix},utility};
 use terminal::Terminal;
+use io::platform::*;
 
 // use linear_algebra::matrix2;
 
