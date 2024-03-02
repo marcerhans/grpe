@@ -946,6 +946,36 @@ pub mod utility {
         None
     }
 
+    pub fn rotate_x(matrix: &matrix::Matrix, radians: f64) -> matrix::Matrix {
+        let rotation_matrix = matrix::macros::matrix![
+            [1.0,   0.0,             0.0],
+            [0.0,   radians.cos(),   -radians.sin()],
+            [0.0,   radians.sin(),   radians.cos()],
+        ];
+
+        matrix * &rotation_matrix
+    }
+
+    pub fn rotate_y(matrix: &matrix::Matrix, radians: f64) -> matrix::Matrix {
+        let rotation_matrix = matrix::macros::matrix![
+            [radians.cos(),     0.0,   radians.sin()],
+            [0.0,               1.0,   0.0],
+            [-radians.sin(),    0.0,   radians.cos()],
+        ];
+
+        matrix * &rotation_matrix
+    }
+
+    pub fn rotate_z(matrix: &matrix::Matrix, radians: f64) -> matrix::Matrix {
+        let rotation_matrix = matrix::macros::matrix![
+            [radians.cos(),     -radians.sin(),     0.0],
+            [radians.sin(),     radians.cos(),      0.0],
+            [0.0,               0.0,                1.0],
+        ];
+
+        matrix * &rotation_matrix
+    }
+
     #[cfg(test)]
     mod tests {
         use super::*;

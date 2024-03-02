@@ -26,4 +26,37 @@ impl IOTrait for IO {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn main() {
+        unsafe {
+            let display: *mut Display = XOpenDisplay(std::ptr::null());
+
+            if !display.is_null() {
+                println!("Display!");
+
+                let window = XCreateWindow(
+                    display,
+                    XDefaultRootWindow(display),
+                    0,
+                    0,
+                    200,
+                    100,
+                    0,
+                    CopyFromParent as i32,
+                    CopyFromParent as u32,
+                    std::ptr::null_mut(),
+                    0,
+                    std::ptr::null_mut(),
+                );
+
+                XMapWindow(display, window);
+                XFlush(display);
+
+            }
+        }
+
+        std::thread::sleep(std::time::Duration::from_millis(10000));
+    }
 }
