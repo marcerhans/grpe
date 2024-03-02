@@ -1,8 +1,11 @@
-use std::env;
+use std::{env, f64::consts::PI};
 
-use linear_algebra::{matrix::{self, macros::matrix, Matrix},utility};
-use terminal::Terminal;
 use io::platform::*;
+use linear_algebra::{
+    matrix::{self, macros::matrix, Matrix},
+    utility,
+};
+use terminal::Terminal;
 
 // use linear_algebra::matrix2;
 
@@ -112,7 +115,7 @@ use io::platform::*;
 //     impl Plane {
 //         /// Set the Plane and the Line to equal eachother, and solve
 //         /// the resulting equation system.
-//         /// 
+//         ///
 //         /// |plane_x_0|          |x|          |x|   |line_x_0|         |x|
 //         /// |plane_y_0| + plane_t|y| + plane_s|y| = |line_y_0| + line_t|y|
 //         /// |plane_z_0|          |z|          |z|   |line_z_0|         |z|
@@ -144,9 +147,9 @@ use io::platform::*;
 
 //             // We now have the following system that has to be solved:
 //             //
-//             //        |x|          |x|         |x|   |x_sum0|    
+//             //        |x|          |x|         |x|   |x_sum0|
 //             // plane_t|y| + plane_s|y| - line_t|y| = |y_sum1|
-//             //        |z|          |z|         |z|   |z_sum2|    
+//             //        |z|          |z|         |z|   |z_sum2|
 //             Plane::gauss_elimination();
 
 //             None
@@ -214,209 +217,166 @@ fn main() {
     ];
 
     let canvas = matrix![
-        [0.0,   0.0,    -2.0],   // Point
-        [1.0,   0.0,    0.0],   // Vector (t1)
-        [0.0,   1.0,    0.0],   // Vector (t2)
+        [0.0, 0.0, -2.0], // Point
+        [1.0, 0.0, 0.0],  // Vector (t1)
+        [0.0, 1.0, 0.0],  // Vector (t2)
     ];
-    let canvas = canvas.transpose();
+    let mut canvas = canvas.transpose();
 
     loop {
-    let mut cube_points = matrix![
-        // [0.0,   0.0,    0.0],   // Point 1
-        // [4.0,   0.0,    0.0],   // Point 2
-        // [4.0,   4.0,    0.0],   // Point 3
-        // [0.0,   4.0,    0.0],   // Point 4
-        [0.0,   1.0,    0.0],   // Point 1
-        [2.0,   1.0,    0.0],   // Point 1
-        [-1.0,   1.0,    0.0],   // Point 1
-        [3.0,   1.0,    0.0],   // Point 1
-        [-1.0,   2.0,    0.0],   // Point 1
-        [3.0,   2.0,    0.0],   // Point 1
-        [1.0,   1.0,    0.0],   // Point 1
-        [1.0,   2.0,    0.0],   // Point 1
-        [1.0,   3.0,    0.0],   // Point 1
-        [1.0,   4.0,    0.0],   // Point 1
-        [1.0,   5.0,    0.0],   // Point 1
-        [1.0,   6.0,    0.0],   // Point 1
-        [1.0,   7.0,    0.0],   // Point 1
-        [1.0,   8.0,    0.0],   // Point 1
-        [0.0,   8.0,    0.0],   // Point 1
-        [2.0,   8.0,    0.0],   // Point 1
-        [-1.0,   8.0,    0.0],   // Point 1
-        [3.0,   8.0,    0.0],   // Point 1
-        [-1.0,   7.0,    0.0],   // Point 1
-        [3.0,   7.0,    0.0],   // Point 1
+        let mut cube_points = matrix![
+            [0.0, 0.0, 0.0], // Point 1
+            [4.0, 0.0, 0.0], // Point 2
+            [4.0, 4.0, 0.0], // Point 3
+            [0.0, 4.0, 0.0], // Point 4
+                             // [0.0,   1.0,    0.0],   // Point 1
+                             // [2.0,   1.0,    0.0],   // Point 1
+                             // [-1.0,   1.0,    0.0],   // Point 1
+                             // [3.0,   1.0,    0.0],   // Point 1
+                             // [-1.0,   2.0,    0.0],   // Point 1
+                             // [3.0,   2.0,    0.0],   // Point 1
+                             // [1.0,   1.0,    0.0],   // Point 1
+                             // [1.0,   2.0,    0.0],   // Point 1
+                             // [1.0,   3.0,    0.0],   // Point 1
+                             // [1.0,   4.0,    0.0],   // Point 1
+                             // [1.0,   5.0,    0.0],   // Point 1
+                             // [1.0,   6.0,    0.0],   // Point 1
+                             // [1.0,   7.0,    0.0],   // Point 1
+                             // [1.0,   8.0,    0.0],   // Point 1
+                             // [0.0,   8.0,    0.0],   // Point 1
+                             // [2.0,   8.0,    0.0],   // Point 1
+                             // [-1.0,   8.0,    0.0],   // Point 1
+                             // [3.0,   8.0,    0.0],   // Point 1
+                             // [-1.0,   7.0,    0.0],   // Point 1
+                             // [3.0,   7.0,    0.0],   // Point 1
 
-        [0.0,   1.0,     100.0],   // Point 1
-        [2.0,   1.0,     100.0],   // Point 1
-        [-1.0,   1.0,    100.0],   // Point 1
-        [3.0,   1.0,     100.0],   // Point 1
-        [-1.0,   2.0,    100.0],   // Point 1
-        [3.0,   2.0,     100.0],   // Point 1
-        [1.0,   1.0,     100.0],   // Point 1
-        [1.0,   2.0,     100.0],   // Point 1
-        [1.0,   3.0,     100.0],   // Point 1
-        [1.0,   4.0,     100.0],   // Point 1
-        [1.0,   5.0,     100.0],   // Point 1
-        [1.0,   6.0,     100.0],   // Point 1
-        [1.0,   7.0,     100.0],   // Point 1
-        [1.0,   8.0,     100.0],   // Point 1
-        [0.0,   8.0,     100.0],   // Point 1
-        [2.0,   8.0,     100.0],   // Point 1
-        [-1.0,   8.0,    100.0],   // Point 1
-        [3.0,   8.0,     100.0],   // Point 1
-        [-1.0,   7.0,    100.0],   // Point 1
-        [3.0,   7.0,     100.0],   // Point 1
+                             // [0.0,   1.0,     100.0],   // Point 1
+                             // [2.0,   1.0,     100.0],   // Point 1
+                             // [-1.0,   1.0,    100.0],   // Point 1
+                             // [3.0,   1.0,     100.0],   // Point 1
+                             // [-1.0,   2.0,    100.0],   // Point 1
+                             // [3.0,   2.0,     100.0],   // Point 1
+                             // [1.0,   1.0,     100.0],   // Point 1
+                             // [1.0,   2.0,     100.0],   // Point 1
+                             // [1.0,   3.0,     100.0],   // Point 1
+                             // [1.0,   4.0,     100.0],   // Point 1
+                             // [1.0,   5.0,     100.0],   // Point 1
+                             // [1.0,   6.0,     100.0],   // Point 1
+                             // [1.0,   7.0,     100.0],   // Point 1
+                             // [1.0,   8.0,     100.0],   // Point 1
+                             // [0.0,   8.0,     100.0],   // Point 1
+                             // [2.0,   8.0,     100.0],   // Point 1
+                             // [-1.0,   8.0,    100.0],   // Point 1
+                             // [3.0,   8.0,     100.0],   // Point 1
+                             // [-1.0,   7.0,    100.0],   // Point 1
+                             // [3.0,   7.0,     100.0],   // Point 1
 
-        [0.0,    9.0,     50.0],   // Point 1
-        [2.0,    9.0,     50.0],   // Point 1
-        [-1.0,   9.0,    50.0],   // Point 1
-        [3.0,    9.0,     50.0],   // Point 1
-        [-1.0,   10.0,    50.0],   // Point 1
-        [3.0,    10.0,     50.0],   // Point 1
-        [1.0,    9.0,     50.0],   // Point 1
-        [1.0,    10.0,     50.0],   // Point 1
-        [1.0,    11.0,     50.0],   // Point 1
-        [1.0,    12.0,     50.0],   // Point 1
-        [1.0,    13.0,     50.0],   // Point 1
-        [1.0,    14.0,     50.0],   // Point 1
-        [1.0,    15.0,     50.0],   // Point 1
-        [1.0,    16.0,     50.0],   // Point 1
-        [0.0,    16.0,     50.0],   // Point 1
-        [2.0,    16.0,     50.0],   // Point 1
-        [-1.0,   16.0,    50.0],   // Point 1
-        [3.0,    16.0,     50.0],   // Point 1
-        [-1.0,   15.0,    50.0],   // Point 1
-        [3.0,    15.0,     50.0],   // Point 1
+                             // [0.0,    9.0,     50.0],   // Point 1
+                             // [2.0,    9.0,     50.0],   // Point 1
+                             // [-1.0,   9.0,    50.0],   // Point 1
+                             // [3.0,    9.0,     50.0],   // Point 1
+                             // [-1.0,   10.0,    50.0],   // Point 1
+                             // [3.0,    10.0,     50.0],   // Point 1
+                             // [1.0,    9.0,     50.0],   // Point 1
+                             // [1.0,    10.0,     50.0],   // Point 1
+                             // [1.0,    11.0,     50.0],   // Point 1
+                             // [1.0,    12.0,     50.0],   // Point 1
+                             // [1.0,    13.0,     50.0],   // Point 1
+                             // [1.0,    14.0,     50.0],   // Point 1
+                             // [1.0,    15.0,     50.0],   // Point 1
+                             // [1.0,    16.0,     50.0],   // Point 1
+                             // [0.0,    16.0,     50.0],   // Point 1
+                             // [2.0,    16.0,     50.0],   // Point 1
+                             // [-1.0,   16.0,    50.0],   // Point 1
+                             // [3.0,    16.0,     50.0],   // Point 1
+                             // [-1.0,   15.0,    50.0],   // Point 1
+                             // [3.0,    15.0,     50.0],   // Point 1
 
-        [0.0,    27.0,     75.0],   // Point 1
-        [2.0,    27.0,     75.0],   // Point 1
-        [-1.0,   27.0,     75.0],   // Point 1
-        [3.0,    27.0,     75.0],   // Point 1
-        [-1.0,   28.0,    75.0],   // Point 1
-        [3.0,    28.0,    75.0],   // Point 1
-        [1.0,    27.0,     75.0],   // Point 1
-        [1.0,    28.0,    75.0],   // Point 1
-        [1.0,    29.0,    75.0],   // Point 1
-        [1.0,    30.0,    75.0],   // Point 1
-        [1.0,    31.0,    75.0],   // Point 1
-        [1.0,    32.0,    75.0],   // Point 1
-        [1.0,    33.0,    75.0],   // Point 1
-        [1.0,    34.0,    75.0],   // Point 1
-        [0.0,    34.0,    75.0],   // Point 1
-        [2.0,    34.0,    75.0],   // Point 1
-        [-1.0,   34.0,    75.0],   // Point 1
-        [3.0,    34.0,    75.0],   // Point 1
-        [-1.0,   33.0,    75.0],   // Point 1
-        [3.0,    33.0,    75.0],   // Point 1
+                             // [0.0,    27.0,     75.0],   // Point 1
+                             // [2.0,    27.0,     75.0],   // Point 1
+                             // [-1.0,   27.0,     75.0],   // Point 1
+                             // [3.0,    27.0,     75.0],   // Point 1
+                             // [-1.0,   28.0,    75.0],   // Point 1
+                             // [3.0,    28.0,    75.0],   // Point 1
+                             // [1.0,    27.0,     75.0],   // Point 1
+                             // [1.0,    28.0,    75.0],   // Point 1
+                             // [1.0,    29.0,    75.0],   // Point 1
+                             // [1.0,    30.0,    75.0],   // Point 1
+                             // [1.0,    31.0,    75.0],   // Point 1
+                             // [1.0,    32.0,    75.0],   // Point 1
+                             // [1.0,    33.0,    75.0],   // Point 1
+                             // [1.0,    34.0,    75.0],   // Point 1
+                             // [0.0,    34.0,    75.0],   // Point 1
+                             // [2.0,    34.0,    75.0],   // Point 1
+                             // [-1.0,   34.0,    75.0],   // Point 1
+                             // [3.0,    34.0,    75.0],   // Point 1
+                             // [-1.0,   33.0,    75.0],   // Point 1
+                             // [3.0,    33.0,    75.0],   // Point 1
 
-        // [3.0,   1.0,    0.0],   // Point 1
-        // [3.0,   1.0,    0.0],   // Point 1
-        // [3.0,   3.0,    0.0],   // Point 1
-        // [2.0,   1.0,    0.0],   // Point 1
+                             // [3.0,   1.0,    0.0],   // Point 1
+                             // [3.0,   1.0,    0.0],   // Point 1
+                             // [3.0,   3.0,    0.0],   // Point 1
+                             // [2.0,   1.0,    0.0],   // Point 1
 
+                             // [1.0,   1.0,    100.0],   // Point 1
+                             // [2.0,   1.0,    100.0],   // Point 1
+                             // [2.0,   2.0,    100.0],   // Point 1
+                             // [2.0,   3.0,    100.0],   // Point 1
+                             // [3.0,   3.0,    100.0],   // Point 1
+                             // [0.0,   3.0,    0.0],   // Point 1
+                             // [3.0,   2.0,    0.0],   // Point 1
+                             // [1.0,   3.0,    0.0],   // Point 1
+                             // [1.0,   4.0,    0.0],   // Point 1
+                             // [2.0,   2.0,    0.0],   // Point 1
+                             // [3.0,   3.0,    0.0],   // Point 1
+                             // [4.0,   4.0,    0.0],   // Point 1
+                             // [5.0,   5.0,    0.0],   // Point 1
+                             // [6.0,   6.0,    0.0],   // Point 2
+                             // [7.0,   7.0,    0.0],   // Point 3
+                             // [8.0,   8.0,    0.0],   // Point 4
+        ];
 
-        // [1.0,   1.0,    100.0],   // Point 1
-        // [2.0,   1.0,    100.0],   // Point 1
-        // [2.0,   2.0,    100.0],   // Point 1
-        // [2.0,   3.0,    100.0],   // Point 1
-        // [3.0,   3.0,    100.0],   // Point 1
-        // [0.0,   3.0,    0.0],   // Point 1
-        // [3.0,   2.0,    0.0],   // Point 1
-        // [1.0,   3.0,    0.0],   // Point 1
-        // [1.0,   4.0,    0.0],   // Point 1
-        // [2.0,   2.0,    0.0],   // Point 1
-        // [3.0,   3.0,    0.0],   // Point 1
-        // [4.0,   4.0,    0.0],   // Point 1
-        // [5.0,   5.0,    0.0],   // Point 1
-        // [6.0,   6.0,    0.0],   // Point 2
-        // [7.0,   7.0,    0.0],   // Point 3
-        // [8.0,   8.0,    0.0],   // Point 4
-    ];
+        for _ in 0..100 {
+            // Rasterize
+            let mut points_to_draw: Matrix = Matrix::zeros(0, 0);
 
-    for _ in 0..100 {
-        // Rasterize
-        let mut points_to_draw: Matrix = Matrix::zeros(0, 0);
+            for index in 0..cube_points.rows() {
+                let cube_point = cube_points.row(index);
+                let mut cube_vector = &camera.row(0) - &cube_point;
 
-        for index in 0..cube_points.rows() {
-            let cube_point = cube_points.row(index);
-            let mut cube_vector = &camera.row(0) - &cube_point;
+                let cube_camera_line = Matrix::from_row_matrices(&[&cube_point, &cube_vector]);
+                let cube_camera_line = cube_camera_line.transpose();
 
-            let cube_camera_line = Matrix::from_row_matrices(&[
-                &cube_point,
-                &cube_vector,
-            ]);
-            let cube_camera_line = cube_camera_line.transpose();
+                let mut eq_system = Matrix::from_column_matrices(&[
+                    &canvas.column(1),
+                    &canvas.column(2),
+                    &-&cube_camera_line.column(1),
+                    &(&cube_camera_line.column(0) - &canvas.column(0)),
+                ]);
 
-            let mut eq_system = Matrix::from_column_matrices(&[
-                &canvas.column(1),
-                &canvas.column(2),
-                &-&cube_camera_line.column(1),
-                &(&cube_camera_line.column(0) - &canvas.column(0)),
-            ]);
+                utility::gauss_elimination(&mut eq_system);
 
-            utility::gauss_elimination(&mut eq_system);
+                let cube_point_scalar = eq_system[(2, 3)];
+                cube_vector.scalar(cube_point_scalar);
+                let point_on_canvas = &cube_point + &cube_vector;
+                points_to_draw.push_row(point_on_canvas);
+            }
 
-            let cube_point_scalar = eq_system[(2,3)];
-            cube_vector.scalar(cube_point_scalar);
-            let point_on_canvas = &cube_point + &cube_vector;
-            points_to_draw.push_row(point_on_canvas);
+            // log::info!("{:?}", points_to_draw);
 
-            cube_points[(index,0)] += 1.0;
+            // Draw
+            terminal.update(&points_to_draw);
+            terminal.draw();
+
+            // Update position(s) of points
+            // camera[(0,2)] += 0.8;
+
+            // Update camera
+            // camera[(0,0)] += 10.0;
+            // canvas = utility::rotate_z(&canvas, 2.0 * PI / 360.0);
+            // camera = utility::rotate_z(&camera, 2.0 * PI / 360.0);
+
+            std::thread::sleep(std::time::Duration::from_millis(25));
         }
-
-        // log::info!("{:?}", points_to_draw);
-
-        // Draw
-        terminal.update(&points_to_draw);
-        terminal.draw();
-
-        // Update position(s) of points
-        camera[(0,2)] += 0.8;
-
-        std::thread::sleep(std::time::Duration::from_millis(25));
     }
-
-    camera[(0,2)] = -100.0;
-}
-
-    // let degree: f64 = 1.0;
-    // let rotation_matrix = matrix![
-    //     [1.0,   0.0,            0.0],
-    //     [0.0,   degree.cos(),   -degree.sin()],
-    //     [0.0,   degree.sin(),   degree.sin()],
-    // ];
-
-
-
-    // Set up cube
-    // let cube = Matrix::new(vec![
-    //     vec![0, 0],
-    //     vec![4, 0],
-    //     vec![0, 4],
-    // ]);
-
-    // // Draw cube
-    // cube.unwrap().draw(&(16,9));
-
-    // let rows = 10;
-    // let cols = 10;
-
-    // let canvas = Canvas::new(cols, rows);
-
-    // let terminal = Terminal::new(16, 9);
-
-    // terminal.transform_buffer(canva)
-
-    // canvas.draw();
-    // println!();
-
-    // Cube described in matrix.
-
-    // Project cube onto 2d-plane (screen)
-
-    // Adjust positions in order to fit in terminal
-
-    // Display in terminal
-    // let plane = Plane::new(vec![0, 0, 1]);
 }
