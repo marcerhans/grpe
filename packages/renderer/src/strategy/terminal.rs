@@ -1,5 +1,20 @@
 use crate::{DimensionsTrait, RendererBuilderTrait, RendererTrait};
 
+// pub struct Camera {
+//     position: [f64; 3],
+// }
+
+// /// Canvas
+// pub struct Canvas {
+//     position: Point,
+//     parameters: (Point, Point),
+// }
+
+// pub struct Vertex {
+//     position: [f64; 3],
+// }
+
+
 mod symbol {
     pub static LINE_HORIZONTAL: char = '\u{254c}';  // ╌
     pub static LINE_VERTICAL: char = '\u{2506}';    // ┆

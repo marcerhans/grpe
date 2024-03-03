@@ -3,17 +3,14 @@ use linear_algebra::matrix::Matrix;
 pub mod strategy;
 pub use strategy::renderer;
 
-pub struct Camera {
-    position: [f64; 3],
+pub trait VertexTrait {
+    fn position(&self) -> &Matrix;
 }
 
-pub struct Canvas {
-    position: [f64; 3],
-    parameter_1
-}
+pub trait CameraTrait: VertexTrait {}
 
-pub struct Vertex {
-    position: [f64; 3],
+pub trait CanvasTrait : VertexTrait {
+    fn parameters(&self) -> (&Matrix, &Matrix);
 }
 
 pub trait DimensionsTrait {
@@ -21,25 +18,32 @@ pub trait DimensionsTrait {
     fn y(&self) -> usize;
 }
 
-/// [RendererBuilderTrait] are categorized settings for a renderer.
+/// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
 pub trait RendererBuilderTrait {
     type Dimensions: DimensionsTrait;
+    type Camera: CameraTrait;
+    type Canvas: CanvasTrait;
 
     fn new() -> Self;
     fn dimensions(self, dimensions: Self::Dimensions) -> Self;
+    fn camera(self, camera: Self::Camera) -> Self;
+    fn canvas(self, canvas: Self::Canvas) -> Self;
     fn build(self) -> renderer::Renderer;
 }
 
 /// [RendererTrait] for rendering to display.
 pub trait RendererTrait {
-    /// Project vertices on to canvas.
-    fn project(&self, vertices: &[(Vertex, Vertex, Vertex)]);
+    type Vertex: VertexTrait;
+
+    /// Project vertices on to [CanvasTrait].
+    fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]);
 
     /// Rasterize [RendererTrait::project]ed vertices.
-    fn rasterize(&self, vertices: &[(Vertex, Vertex, Vertex)]);
+    fn rasterize(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]);
 
     /// Do all steps needed, in correct order, to produce a fully rendered image.
-    fn run_pipeline(&self, vertices: &[(Vertex, Vertex, Vertex)]) {
+    fn run_pipeline(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) {
+        self.project(vertices);
         self.rasterize(vertices);
     }
 }
