@@ -23,13 +23,13 @@ pub mod matrix {
             }
         }
 
-        // pub fn from_matrices(data: &[&Matrix<Data, Rows, Columns>; Rows]) -> Self {
-        //     Matrix {
-        //         inner: data.to_owned(),
-        //         rows: Rows,
-        //         columns: Columns,
-        //     }
-        // }
+        pub fn from_slice(data: [&[Data; COLUMNS]; ROWS]) -> Self {
+            Self {
+                inner: data.into_iter().flatten().cloned().collect(),
+                rows: ROWS,
+                columns: COLUMNS,
+            }
+        }
 
         // pub fn zeros(rows: usize, columns: usize) -> Self {
         //     Self {
@@ -352,13 +352,31 @@ pub mod matrix {
                     [1,2,3],
                     [5,6,7],
                 ]);
-                // let matrix = Matrix::<f64, 5, 4>::from_array([
-                //     [1.0, 2.0, 3.0, 4.0],
-                //     [5.0, 6.0, 7.0, 8.0],
-                //     [9.0, 10.0, 11.0, 12.0],
-                //     [13.0, 14.0, 15.0, 16.0],
-                //     [17.0, 18.0, 19.0, 20.0],
-                // ]);
+
+                let matrix = Matrix::from_array([
+                    [1,2,3],
+                    [5,6,7],
+                ]);
+            }
+        }
+
+        mod test_from_matrices {
+            use super::*;
+
+            #[test]
+            fn from_matrices() {
+                let matrix_col_1 = Matrix::from_array([
+                    [1,2,3],
+                ]);
+
+                let matrix_col_2 = Matrix::from_array([
+                    [4,5,6],
+                ]);
+
+                let matrix = Matrix::from_matrices([
+                    &matrix_col_1,
+                    &matrix_col_2,
+                ]);
             }
         }
     }
