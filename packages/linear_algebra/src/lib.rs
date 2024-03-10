@@ -1,35 +1,44 @@
-pub type VectorRow<Data, const ROWS: usize> = matrix::Matrix<Data, ROWS, 1>;
-pub type VectorCol<Data, const COLUMNS: usize> = matrix::Matrix<Data, 1, COLUMNS>;
+// pub type Vectorfunny cute catsRow<Data, const ROWS: usize> = matrix::Matrix<Data, ROWS, 1>;
+// pub type VectorCol<Data, const COLUMNS: usize> = matrix::Matrix<Data, 1, COLUMNS>;
 
 pub mod matrix {
-    use std::ops::{Add, Index, IndexMut, Mul, Neg, Range, Sub};
+    use std::{
+        marker::PhantomData, ops::{Add, Index, IndexMut, Mul, Neg, Range, Sub}, slice::SliceIndex
+    };
 
     pub trait MatrixData: Clone {}
     impl<T: Clone> MatrixData for T {}
 
-    /// Dynamically sized n-dim matrices;
+    pub struct Dyn(pub usize);
+
     pub struct Matrix<Data: MatrixData, const ROWS: usize, const COLUMNS: usize> {
-        inner: Vec<Data>,
-        rows: usize,
-        columns: usize,
+        data: Vec<Data>,
+        // _attributes: PhantomData<(Data, Rows, Columns)>
     }
 
     impl<Data: MatrixData, const ROWS: usize, const COLUMNS: usize> Matrix<Data, ROWS, COLUMNS> {
-        pub fn from_array(data: [[Data; COLUMNS]; ROWS]) -> Self {
-            Self {
-                inner: data.concat(),
-                rows: ROWS,
-                columns: COLUMNS,
-            }
-        }
+        // pub fn from_array<const ROWS: usize, const COLUMNS: usize>(data: &[[Data; COLUMNS]; ROWS]) -> Matrix<Data>
+        // {
+        //     Matrix::<Data> {
+        //         rows: ROWS,
+        //         columns: COLUMNS,
+        //         data: data.to_owned(),
+        //     }
+        // }
 
-        pub fn from_slice(data: [&[Data; COLUMNS]; ROWS]) -> Self {
-            Self {
-                inner: data.into_iter().flatten().cloned().collect(),
-                rows: ROWS,
-                columns: COLUMNS,
-            }
-        }
+        // pub fn from_slice(data: [&[Data; COLUMNS]; ROWS]) -> Self {
+        //     let mut data_ = Vec::new();
+
+        //     for row in data {
+        //         data_.push(row.to_vec());
+        //     }
+
+        //     Self {
+        //         data: data_,
+        //         rows: ROWS,
+        //         columns: COLUMNS,
+        //     }
+        // }
 
         // pub fn zeros(rows: usize, columns: usize) -> Self {
         //     Self {
@@ -164,6 +173,18 @@ pub mod matrix {
         //     self.rows += 1;
         // }
     }
+
+    // impl<Data, const ROWS: usize, const COLUMNS: usize, Idx> Index<Idx> for Matrix<Data, ROWS, COLUMNS>
+    // where
+    //     Data: MatrixData,
+    //     Idx: SliceIndex<[Vec<Data>]>,
+    // {
+    //     type Output = Idx::Output;
+
+    //     fn index(&self, index: Idx) -> &Self::Output {
+    //         let what = &self.data[index]
+    //     }
+    // }
 
     // impl std::fmt::Debug for Matrix {
     //     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -348,35 +369,24 @@ pub mod matrix {
 
             #[test]
             fn from_array() {
-                let matrix = Matrix::<usize, 2, 3>::from_array([
-                    [1,2,3],
-                    [5,6,7],
-                ]);
+                let matrix = Matrix::<usize, 2, 3>::from_array([[1, 2, 3], [5, 6, 7]]);
 
-                let matrix = Matrix::from_array([
-                    [1,2,3],
-                    [5,6,7],
-                ]);
+                let matrix = Matrix::from_array([[1, 2, 3], [5, 6, 7]]);
             }
         }
 
-        mod test_from_matrices {
+        mod test_from_slice {
             use super::*;
 
             #[test]
-            fn from_matrices() {
-                let matrix_col_1 = Matrix::from_array([
-                    [1,2,3],
-                ]);
+            fn from_slice() {
+                let matrix_col_1 = Matrix::from_array([[1, 2, 3]]);
 
-                let matrix_col_2 = Matrix::from_array([
-                    [4,5,6],
-                ]);
+                let matrix_col_2 = Matrix::from_array([[4, 5, 6]]);
 
-                let matrix = Matrix::from_matrices([
-                    &matrix_col_1,
-                    &matrix_col_2,
-                ]);
+                let what = matrix_col_1[0];
+
+                // let matrix = Matrix::from_slice([&matrix_col_1[], &matrix_col_2[0]]);
             }
         }
     }
