@@ -6,11 +6,21 @@ pub mod matrix {
         ops::{Add, Div, Index, IndexMut, Mul, Neg, Range, Sub}, slice::SliceIndex
     };
 
-    pub trait DataTrait : Add + Sub + Mul + Div + PartialEq + Clone + Default + Sized {
+    pub trait DataTrait: Add + Sub + Mul + Div + PartialEq + Clone + Default + Sized {
         fn zero() -> Self;
         fn one() -> Self;
         fn eqq(&self, rhs: &Self) -> bool {
             *self == *rhs
+        }
+    }
+
+    impl DataTrait for usize {
+        fn zero() -> Self {
+            0
+        }
+    
+        fn one() -> Self {
+            1
         }
     }
 
@@ -28,32 +38,43 @@ pub mod matrix {
         }
     }
 
+    #[derive(Debug)]
     pub struct Matrix<Data: DataTrait> {
         data: Vec<Data>,
+        rows: usize,
+        columns: usize,
     }
 
     impl<Data: DataTrait> Matrix<Data> {
         pub fn from_array<const ROWS: usize, const COLUMNS: usize>(data: [[Data; COLUMNS]; ROWS]) -> Self {
             Self {
                 data: data.iter().flatten().cloned().collect(),
+                rows: ROWS,
+                columns: COLUMNS,
             }
         }
 
         pub fn from_slice<const ROWS: usize, const COLUMNS: usize>(data: &[&[Data; COLUMNS]; ROWS]) -> Self {
             Self {
                 data: data.iter().cloned().flatten().cloned().collect(),
+                rows: ROWS,
+                columns: COLUMNS,
             }
         }
 
         pub fn zeros<const ROWS: usize, const COLUMNS: usize>() -> Self {
             Self {
                 data: vec![Data::zero(); ROWS * COLUMNS],
+                rows: ROWS,
+                columns: COLUMNS,
             }
         }
 
         pub fn identity<const ROWS: usize, const COLUMNS: usize>() -> Self {
             let mut identity = Self {
                 data: vec![Data::zero(); ROWS * COLUMNS],
+                rows: ROWS,
+                columns: COLUMNS,
             };
 
             for element in identity.data.iter_mut().step_by(COLUMNS + 1) {
@@ -63,16 +84,32 @@ pub mod matrix {
             identity
         }
 
+        pub fn index(&self, row: usize, column: usize) -> &Data {
+            &self.data[row * (self.columns - 1) + column]
+        }
+
+        pub fn index_mut(&mut self, row: usize, column: usize) -> &mut Data {
+            &mut self.data[row * (self.columns - 1) + column]
+        }
+
+        // pub fn slice(&self, row: usize, column: usize) -> &Data {
+        //     todo!()
+        // }
+
+        // pub fn slice_mut(&mut self, row: usize, column: usize) -> &mut Data {
+        //     todo!()
+        // }
+
         pub fn transpose(&self) -> Self {
             let mut transpose = Self {
-                inner: vec![0.0; self.rows * self.columns],
+                data: vec![Data::zero(); self.rows * self.columns],
                 rows: self.columns,
                 columns: self.rows,
             };
 
             for row in 0..self.rows {
                 for column in 0..self.columns {
-                    transpose[(column, row)] = self[(row, column)];
+                    *transpose.index_mut(column, row) = self.index(row, column).clone();
                 }
             }
 
@@ -217,8 +254,8 @@ pub mod matrix {
     //     }
     // }
 
-    // impl Index<(usize, usize)> for Matrix {
-    //     type Output = f64;
+    // impl<Data: DataTrait> Index<(usize, usize)> for Matrix<Data> {
+    //     type Output = Box<dyn DataTrait>;
 
     //     fn index(&self, index: (usize, usize)) -> &Self::Output {
     //         &self.inner[index.0 * self.columns + index.1]
@@ -369,10 +406,34 @@ pub mod matrix {
             use super::*;
 
             #[test]
-            fn from_array() {
-                // let matrix = Matrix::<usize, 2, 3>::from_array([[1, 2, 3], [5, 6, 7]]);
+            fn from_array_f64() {
+                let matrix_f64 = Matrix::from_array([
+                    [1.0, 2.0, 3.0],
+                    [4.0, 5.0, 6.0],
+                ]);
 
-                // let matrix = Matrix::from_array([[1, 2, 3], [5, 6, 7]]);
+                for row in 0..3 {
+                    for column in 0..3 {
+                        assert!(*matrix_f64.index(row, column) - ((row + column) as f64) + 1.0 < f64::EPSILON);
+                    }
+                }
+            }
+
+            #[test]
+            fn from_array_usize() {
+                let matrix_usize = Matrix::from_array([
+                    [1, 2, 3],
+                    [4, 5, 6],
+                ]);
+
+                println!("{:?}", matrix_usize);
+
+                for row in 0..2 {
+                    for column in 0..3 {
+                        println!("{}x{} : {}", row, column, matrix_usize.index(row, column));
+                        assert!(*matrix_usize.index(1, column) == (row + column) + 1);
+                    }
+                }
             }
         }
 
