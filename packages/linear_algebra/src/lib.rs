@@ -477,6 +477,85 @@ pub mod matrix {
                 }
             }
         }
+
+        mod test_zeros {
+            use super::*;
+
+            #[test]
+            fn zeros_f64() {
+                let zeros = Matrix::<f64>::zeros::<3,4>();
+
+                for row in 0..3 {
+                    for column in 0..4 {
+                        assert!(*zeros.index(row, column) == f64::zero());
+                    }
+                }
+            }
+
+            #[test]
+            fn zeros_usize() {
+                let zeros = Matrix::<usize>::zeros::<3,4>();
+
+                for row in 0..3 {
+                    for column in 0..4 {
+                        assert!(*zeros.index(row, column) == usize::zero());
+                    }
+                }
+            }
+        }
+
+        mod test_identity {
+            use super::*;
+
+            #[test]
+            fn identity_f64() {
+                let zeros = Matrix::<f64>::identity::<3,4>();
+
+                for row in 0..3 {
+                    for column in 0..4 {
+                        if row == column {
+                            assert!(*zeros.index(row, column) == f64::one());
+                        } else {
+                            assert!(*zeros.index(row, column) == f64::zero());
+                        }
+                    }
+                }
+            }
+
+            #[test]
+            fn identity_usize() {
+                let zeros = Matrix::<usize>::identity::<3,4>();
+
+                for row in 0..3 {
+                    for column in 0..4 {
+                        if row == column {
+                            assert!(*zeros.index(row, column) == usize::one());
+                        } else {
+                            assert!(*zeros.index(row, column) == usize::zero());
+                        }
+                    }
+                }
+            }
+        }
+
+        mod test_index_and_index_mut {
+            use super::*;
+
+            #[test]
+            fn index_mut() {
+                let mut matrix = Matrix::<usize>::zeros::<3,4>();
+
+                let mut incr = 1;
+
+                for row in 0..3 {
+                    for column in 0..4 {
+                        *matrix.index_mut(row, column) = incr;
+                        assert!(*matrix.index(row, column) == incr);
+                        incr += 1;
+                    }
+                }
+            }
+        }
     }
 }
 
