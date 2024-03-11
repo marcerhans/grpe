@@ -3,12 +3,21 @@
 
 pub mod matrix {
     use std::{
-        ops::{Add, Div, Index, IndexMut, Mul, Neg, Range, Sub}, slice::SliceIndex
+        fmt::Debug,
+        ops::{Add, Div, Index, IndexMut, Mul, Neg, Range, Sub},
+        slice::SliceIndex,
     };
 
-    pub trait DataTrait: Add + Sub + Mul + Div + PartialEq + Clone + Default + Sized {
+    pub trait DataTrait:
+        Add + Sub + Mul + Div + PartialEq + Clone + Default + Debug + Sized
+    {
         fn zero() -> Self;
         fn one() -> Self;
+
+        // TODO: Hmm these are not that great...
+        fn neg(&self) -> Self;
+        fn add(&self, rhs: &Self) -> Self;
+        fn mul(&self, rhs: &Self) -> Self;
         fn eqq(&self, rhs: &Self) -> bool {
             *self == *rhs
         }
@@ -18,9 +27,21 @@ pub mod matrix {
         fn zero() -> Self {
             0
         }
-    
+
         fn one() -> Self {
             1
+        }
+
+        fn neg(&self) -> Self {
+            -self
+        }
+
+        fn add(&self, rhs: &Self) -> Self {
+            self + rhs
+        }
+
+        fn mul(&self, rhs: &Self) -> Self {
+            self * rhs
         }
     }
 
@@ -28,9 +49,21 @@ pub mod matrix {
         fn zero() -> Self {
             0.0
         }
-    
+
         fn one() -> Self {
             1.0
+        }
+
+        fn neg(&self) -> Self {
+            -self
+        }
+
+        fn add(&self, rhs: &Self) -> Self {
+            self + rhs
+        }
+
+        fn mul(&self, rhs: &Self) -> Self {
+            self * rhs
         }
 
         fn eqq(&self, rhs: &Self) -> bool {
@@ -38,7 +71,7 @@ pub mod matrix {
         }
     }
 
-    #[derive(Debug)]
+    #[derive(Clone)]
     pub struct Matrix<Data: DataTrait> {
         data: Vec<Data>,
         rows: usize,
@@ -46,7 +79,9 @@ pub mod matrix {
     }
 
     impl<Data: DataTrait> Matrix<Data> {
-        pub fn from_array<const ROWS: usize, const COLUMNS: usize>(data: [[Data; COLUMNS]; ROWS]) -> Self {
+        pub fn from_array<const ROWS: usize, const COLUMNS: usize>(
+            data: [[Data; COLUMNS]; ROWS],
+        ) -> Self {
             Self {
                 data: data.iter().flatten().cloned().collect(),
                 rows: ROWS,
@@ -54,7 +89,9 @@ pub mod matrix {
             }
         }
 
-        pub fn from_slice<const ROWS: usize, const COLUMNS: usize>(data: &[&[Data; COLUMNS]; ROWS]) -> Self {
+        pub fn from_slice<const ROWS: usize, const COLUMNS: usize>(
+            data: &[&[Data; COLUMNS]; ROWS],
+        ) -> Self {
             Self {
                 data: data.iter().cloned().flatten().cloned().collect(),
                 rows: ROWS,
@@ -212,159 +249,123 @@ pub mod matrix {
         // }
     }
 
-    // impl<Data, const ROWS: usize, const COLUMNS: usize, Idx> Index<Idx> for Matrix<Data, ROWS, COLUMNS>
-    // where
-    //     Data: MatrixData,
-    //     Idx: SliceIndex<[Vec<Data>]>,
-    // {
-    //     type Output = Idx::Output;
+    impl<Data: DataTrait> std::fmt::Debug for Matrix<Data> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            let mut fmt_vec = Vec::with_capacity(self.rows);
 
-    //     fn index(&self, index: Idx) -> &Self::Output {
-    //         let what = &self.data[index]
-    //     }
-    // }
+            for row in 0..self.rows {
+                let mut columns = Vec::with_capacity(self.columns);
 
-    // impl std::fmt::Debug for Matrix {
-    //     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    //         let mut fmt_vec = Vec::with_capacity(self.rows);
+                for column in 0..self.columns {
+                    columns.push(self.index(row, column));
+                }
 
-    //         for row in 0..self.rows {
-    //             let mut columns = Vec::with_capacity(self.columns);
+                fmt_vec.push(columns);
+            }
 
-    //             for column in 0..self.columns {
-    //                 columns.push(self[(row, column)]);
-    //             }
+            f.debug_struct("Matrix")
+                .field("rows", &self.rows)
+                .field("columns", &self.columns)
+                .field("data", &fmt_vec)
+                .finish()
+        }
+    }
 
-    //             fmt_vec.push(columns);
-    //         }
+    impl<Data: DataTrait> PartialEq for Matrix<Data> {
+        fn eq(&self, other: &Self) -> bool {
+            if self.rows != other.rows || self.columns != other.columns {
+                return false;
+            }
 
-    //         f.debug_struct("Matrix")
-    //             .field("rows", &self.rows)
-    //             .field("columns", &self.columns)
-    //             .field("inner", &fmt_vec)
-    //             .finish()
-    //     }
-    // }
+            for (lhs, rhs) in self.data.iter().zip(other.data.iter()) {
+                if !lhs.eqq(rhs) {
+                    return false;
+                }
+            }
 
-    // impl Index<usize> for Matrix {
-    //     type Output = f64;
+            true
+        }
+    }
 
-    //     fn index(&self, index: usize) -> &Self::Output {
-    //         &self.inner[index]
-    //     }
-    // }
+    impl<Data: DataTrait> Neg for &Matrix<Data> {
+        type Output = Matrix<Data>;
 
-    // impl<Data: DataTrait> Index<(usize, usize)> for Matrix<Data> {
-    //     type Output = Box<dyn DataTrait>;
+        fn neg(self) -> Self::Output {
+            let mut neg = self.to_owned();
 
-    //     fn index(&self, index: (usize, usize)) -> &Self::Output {
-    //         &self.inner[index.0 * self.columns + index.1]
-    //     }
-    // }
+            for index in 0..self.data.len() {
+                neg.data[index] = DataTrait::neg(&self.data[index]);
+            }
 
-    // impl IndexMut<usize> for Matrix {
-    //     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-    //         &mut self.inner[index]
-    //     }
-    // }
+            neg
+        }
+    }
 
-    // impl IndexMut<(usize, usize)> for Matrix {
-    //     fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
-    //         &mut self.inner[index.0 * self.columns + index.1]
-    //     }
-    // }
+    impl<Data: DataTrait> Add for &Matrix<Data> {
+        type Output = Matrix<Data>;
 
-    // impl Eq for Matrix {}
-    // impl PartialEq for Matrix {
-    //     fn eq(&self, other: &Self) -> bool {
-    //         if self.rows != other.rows || self.columns != other.columns {
-    //             return false;
-    //         }
+        fn add(self, rhs: Self) -> Self::Output {
+            if self.rows != rhs.rows || self.columns != rhs.columns {
+                panic!("Addition cannot be performed on matrices of different dimensions.")
+            }
 
-    //         for (lhs, rhs) in self.inner.iter().zip(other.inner.iter()) {
-    //             if (lhs - rhs).abs() > f64::EPSILON {
-    //                 return false;
-    //             }
-    //         }
+            let mut sum = self.to_owned();
 
-    //         true
-    //     }
-    // }
+            for index in 0..self.data.len() {
+                sum.data[index] = DataTrait::add(&self.data[index], &rhs.data[index]);
+            }
 
-    // impl Neg for &Matrix {
-    //     type Output = Matrix;
+            sum
+        }
+    }
 
-    //     fn neg(self) -> Self::Output {
-    //         let mut neg = Matrix::zeros(self.rows, self.columns);
+    impl<Data: DataTrait> Sub for &Matrix<Data> {
+        type Output = Matrix<Data>;
 
-    //         for index in 0..self.inner.len() {
-    //             neg[index] = -self[index];
-    //         }
+        fn sub(self, rhs: Self) -> Self::Output {
+            if self.rows != rhs.rows || self.columns != rhs.columns {
+                panic!("Subtraction cannot be performed on matrices of different dimensions.")
+            }
 
-    //         neg
-    //     }
-    // }
+            let mut sum = self.to_owned();
 
-    // /// TODO: Add, Sub, and Mul have similarities. Maybe it can be refactored?
-    // impl Add for &Matrix {
-    //     type Output = Matrix;
+            for index in 0..self.data.len() {
+                sum.data[index] =
+                    DataTrait::add(&self.data[index], &DataTrait::neg(&rhs.data[index]));
+            }
 
-    //     fn add(self, rhs: Self) -> Self::Output {
-    //         if self.rows != rhs.rows || self.columns != rhs.columns {
-    //             panic!("Addition cannot be performed on matrices of different dimensions.")
-    //         }
+            sum
+        }
+    }
 
-    //         let mut sum = Matrix::zeros(self.rows, self.columns);
+    impl<Data: DataTrait> Mul for &Matrix<Data> {
+        type Output = Matrix<Data>;
 
-    //         for index in 0..self.inner.len() {
-    //             sum[index] = self[index] + rhs[index];
-    //         }
+        fn mul(self, rhs: Self) -> Self::Output {
+            if self.columns != rhs.rows {
+                panic!("Matrix multiplication cannot be performed on matrices with incompatible dimensions.")
+            }
 
-    //         sum
-    //     }
-    // }
+            let mut product = self.to_owned();
 
-    // impl Sub for &Matrix {
-    //     type Output = Matrix;
+            for product_index_row in 0..self.rows {
+                for product_index_column in 0..rhs.columns {
+                    for index_column_row in 0..self.columns {
+                        *product.index_mut(product_index_row, product_index_column) =
+                            DataTrait::add(
+                                product.index(product_index_row, product_index_column),
+                                &DataTrait::mul(
+                                    self.index(product_index_row, index_column_row),
+                                    rhs.index(index_column_row, product_index_column),
+                                ),
+                            );
+                    }
+                }
+            }
 
-    //     fn sub(self, rhs: Self) -> Self::Output {
-    //         if self.rows != rhs.rows || self.columns != rhs.columns {
-    //             panic!("Subtraction cannot be performed on matrices of different dimensions.")
-    //         }
-
-    //         let mut sum = Matrix::zeros(self.rows, self.columns);
-
-    //         for index in 0..self.inner.len() {
-    //             sum[index] = self[index] - rhs[index];
-    //         }
-
-    //         sum
-    //     }
-    // }
-
-    // impl Mul for &Matrix {
-    //     type Output = Matrix;
-
-    //     fn mul(self, rhs: Self) -> Self::Output {
-    //         if self.columns != rhs.rows {
-    //             panic!("Matrix multiplication cannot be performed on matrices with incompatible dimensions.")
-    //         }
-
-    //         let mut product = Matrix::zeros(self.rows, rhs.columns);
-
-    //         for product_index_row in 0..self.rows {
-    //             for product_index_column in 0..rhs.columns {
-    //                 for index_column_row in 0..self.columns {
-    //                     product[(product_index_row, product_index_column)] += self
-    //                         [(product_index_row, index_column_row)]
-    //                         * rhs[(index_column_row, product_index_column)];
-    //                 }
-    //             }
-    //         }
-
-    //         product
-    //     }
-    // }
+            product
+        }
+    }
 
     // pub mod macros {
     //     #[macro_export]
@@ -407,10 +408,7 @@ pub mod matrix {
 
             #[test]
             fn from_array_f64() {
-                let matrix_f64 = Matrix::from_array([
-                    [1.0, 2.0, 3.0],
-                    [4.0, 5.0, 6.0],
-                ]);
+                let matrix_f64 = Matrix::from_array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]);
 
                 let mut check = 1.0;
 
@@ -424,10 +422,7 @@ pub mod matrix {
 
             #[test]
             fn from_array_i64() {
-                let matrix_i64 = Matrix::from_array([
-                    [1, 2, 3],
-                    [4, 5, 6],
-                ]);
+                let matrix_i64 = Matrix::from_array([[1, 2, 3], [4, 5, 6]]);
 
                 let mut check = 1;
 
@@ -445,10 +440,7 @@ pub mod matrix {
 
             #[test]
             fn from_slice_f64() {
-                let matrix_f64 = Matrix::from_slice(&[
-                    &[1.0, 2.0, 3.0],
-                    &[4.0, 5.0, 6.0],
-                ]);
+                let matrix_f64 = Matrix::from_slice(&[&[1.0, 2.0, 3.0], &[4.0, 5.0, 6.0]]);
 
                 let mut check = 1.0;
 
@@ -462,10 +454,7 @@ pub mod matrix {
 
             #[test]
             fn from_slice_i64() {
-                let matrix_i64 = Matrix::from_slice(&[
-                    &[1, 2, 3],
-                    &[4, 5, 6],
-                ]);
+                let matrix_i64 = Matrix::from_slice(&[&[1, 2, 3], &[4, 5, 6]]);
 
                 let mut check = 1;
 
@@ -483,7 +472,7 @@ pub mod matrix {
 
             #[test]
             fn zeros_f64() {
-                let zeros = Matrix::<f64>::zeros::<3,4>();
+                let zeros = Matrix::<f64>::zeros::<3, 4>();
 
                 for row in 0..3 {
                     for column in 0..4 {
@@ -494,7 +483,7 @@ pub mod matrix {
 
             #[test]
             fn zeros_i64() {
-                let zeros = Matrix::<i64>::zeros::<3,4>();
+                let zeros = Matrix::<i64>::zeros::<3, 4>();
 
                 for row in 0..3 {
                     for column in 0..4 {
@@ -509,7 +498,7 @@ pub mod matrix {
 
             #[test]
             fn identity_f64() {
-                let zeros = Matrix::<f64>::identity::<3,4>();
+                let zeros = Matrix::<f64>::identity::<3, 4>();
 
                 for row in 0..3 {
                     for column in 0..4 {
@@ -524,7 +513,7 @@ pub mod matrix {
 
             #[test]
             fn identity_i64() {
-                let zeros = Matrix::<i64>::identity::<3,4>();
+                let zeros = Matrix::<i64>::identity::<3, 4>();
 
                 for row in 0..3 {
                     for column in 0..4 {
@@ -543,7 +532,7 @@ pub mod matrix {
 
             #[test]
             fn index_mut() {
-                let mut matrix = Matrix::<i64>::zeros::<3,4>();
+                let mut matrix = Matrix::<i64>::zeros::<3, 4>();
 
                 let mut incr = 1;
 
@@ -562,10 +551,7 @@ pub mod matrix {
 
             #[test]
             fn transpose() {
-                let transpose = Matrix::from_array([
-                    [1,2,3,4,5],
-                    [6,7,8,9,10]
-                ]);
+                let transpose = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
 
                 let transposed = transpose.transpose();
 
@@ -576,138 +562,70 @@ pub mod matrix {
                 }
             }
         }
+
+        mod test_partial_eq {
+            use super::*;
+
+            #[test]
+            fn partial_eq() {
+                let matrix_a = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+                let matrix_b = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+                let matrix_c = Matrix::from_array([[1, 2, 0, 4, 5], [6, 7, 8, 9, 10]]);
+
+                assert!(matrix_a == matrix_b);
+                assert!(matrix_b != matrix_c);
+            }
+        }
+
+        mod test_neg {
+            use super::*;
+
+            #[test]
+            fn neg() {
+                let matrix = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+                let matrix_neg = Matrix::from_array([[-1, -2, -3, -4, -5], [-6, -7, -8, -9, -10]]);
+
+                assert!(matrix == -&matrix_neg);
+            }
+        }
+
+        mod test_add {
+            use super::*;
+
+            #[test]
+            fn add() {
+                let matrix = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+                let matrix_neg = Matrix::from_array([[-1, -2, -3, -4, -5], [-6, -7, -8, -9, -10]]);
+
+                assert!((&matrix + &matrix_neg) == Matrix::zeros::<2,5>());
+            }
+        }
+
+        mod test_sub {
+            use super::*;
+
+            #[test]
+            fn sub() {
+                let matrix = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+                let matrix_neg = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+
+                assert!((&matrix - &matrix_neg) == Matrix::zeros::<2,5>());
+            }
+        }
+
+        mod test_mul {
+            use super::*;
+
+            #[test]
+            fn mul() {
+                let matrix = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+                println!("{:?}", &matrix * &matrix);
+
+                // assert!((&matrix * &matrix) == Matrix::from_array([[1,4,9,16,25],[36,49,64,81,100]]));
+            }
+        }
     }
 }
-
-//             #[test]
-//             fn from_slices_with_macro() {
-//                 let matrix = macros::matrix![
-//                     [1.0, 2.0, 3.0, 4.0],
-//                     [5.0, 6.0, 7.0, 8.0],
-//                     [9.0, 10.0, 11.0, 12.0],
-//                     [13.0, 14.0, 15.0, 16.0],
-//                     [17.0, 18.0, 19.0, 20.0],
-//                 ];
-
-//                 check(matrix);
-//             }
-
-//             fn check(matrix: Matrix) {
-//                 let mut expected = 1.0;
-
-//                 for val in matrix.inner() {
-//                     assert!((val - expected).abs() < EPSILON, "Matrix not valid");
-//                     expected += 1.0;
-//                 }
-//             }
-//         }
-
-//         mod test_from_row_matrices {
-//             use super::*;
-
-//             #[test]
-//             fn from_row_matrices() {
-//                 let a = macros::matrix![[1.0, 2.0, 3.0],];
-//                 let b = macros::matrix![[4.0, 5.0, 6.0],];
-//                 let c = macros::matrix![[7.0, 8.0, 9.0],];
-
-//                 let vector = [&a, &b, &c];
-
-//                 assert!(
-//                     Matrix::from_row_matrices(&vector)
-//                         == macros::matrix![[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0],]
-//                 )
-//             }
-//         }
-
-//         mod test_from_column_matrices {
-//             use super::*;
-
-//             #[test]
-//             fn from_column_matrices() {
-//                 let a = macros::matrix![[1.0], [2.0], [3.0],];
-//                 let b = macros::matrix![[4.0], [5.0], [6.0],];
-//                 let c = macros::matrix![[7.0], [8.0], [9.0],];
-
-//                 let vector = [&a, &b, &c];
-
-//                 assert!(
-//                     Matrix::from_column_matrices(&vector)
-//                         == macros::matrix![[1.0, 4.0, 7.0], [2.0, 5.0, 8.0], [3.0, 6.0, 9.0],]
-//                 )
-//             }
-//         }
-
-//         mod test_zeros {
-//             use super::*;
-
-//             #[test]
-//             fn zeros() {
-//                 let matrix = Matrix::zeros(3, 4);
-//                 check(matrix, 3, 4);
-//             }
-
-//             #[test]
-//             fn zeros_with_macro() {
-//                 let matrix = macros::matrix!(3, 4);
-//                 check(matrix, 3, 4);
-
-//                 let matrix = macros::matrix!(4);
-//                 check(matrix, 4, 4);
-//             }
-
-//             fn check(matrix: Matrix, rows: usize, columns: usize) {
-//                 let expected = 0.0;
-
-//                 for val in matrix.inner() {
-//                     assert!((val - expected).abs() < EPSILON, "Matrix not valid");
-//                 }
-
-//                 assert!(matrix.rows == rows);
-//                 assert!(matrix.columns == columns);
-//                 assert!(matrix.inner().len() == matrix.rows * matrix.columns);
-//             }
-//         }
-
-//         mod test_identity {
-//             use super::*;
-
-//             #[test]
-//             fn identity() {
-//                 let matrix = Matrix::identity(4);
-//                 check(matrix);
-//             }
-
-//             #[test]
-//             fn identity_with_macro() {
-//                 let matrix = macros::identity!(4);
-//                 check(matrix);
-//             }
-
-//             fn check(matrix: Matrix) {
-//                 let mut offset = 0;
-
-//                 for (index, element) in matrix.inner().iter().enumerate() {
-//                     if index == matrix.columns * offset + offset {
-//                         assert!((*element - 1.0).abs() < EPSILON);
-//                         offset += 1;
-//                     } else {
-//                         assert!(*element == 0.0);
-//                     }
-//                 }
-//             }
-//         }
-
-//         mod test_transpose {
-//             use super::*;
-
-//             #[test]
-//             fn transpose() {
-//                 let matrix = macros::matrix![[1.0, 2.0], [3.0, 4.0], [5.0, 6.0],];
-
-//                 assert!(matrix.transpose() == macros::matrix![[1.0, 3.0, 5.0], [2.0, 4.0, 6.0],]);
-//             }
-//         }
 
 //         mod test_swap {
 //             use super::*;
