@@ -444,14 +444,37 @@ pub mod matrix {
             use super::*;
 
             #[test]
-            fn from_slice() {
-                // let matrix_col_1 = Matrix::from_array([[1, 2, 3]]);
+            fn from_slice_f64() {
+                let matrix_f64 = Matrix::from_slice(&[
+                    &[1.0, 2.0, 3.0],
+                    &[4.0, 5.0, 6.0],
+                ]);
 
-                // let matrix_col_2 = Matrix::from_array([[4, 5, 6]]);
+                let mut check = 1.0;
 
-                // let what = matrix_col_1[0];
+                for row in 0..2 {
+                    for column in 0..3 {
+                        assert!(*matrix_f64.index(row, column) == check);
+                        check += 1.0;
+                    }
+                }
+            }
 
-                // let matrix = Matrix::from_slice([&matrix_col_1[], &matrix_col_2[0]]);
+            #[test]
+            fn from_slice_usize() {
+                let matrix_usize = Matrix::from_slice(&[
+                    &[1, 2, 3],
+                    &[4, 5, 6],
+                ]);
+
+                let mut check = 1;
+
+                for row in 0..2 {
+                    for column in 0..3 {
+                        assert!(*matrix_usize.index(row, column) == check);
+                        check += 1;
+                    }
+                }
             }
         }
     }
