@@ -14,7 +14,7 @@ pub mod matrix {
         }
     }
 
-    impl DataTrait for usize {
+    impl DataTrait for i64 {
         fn zero() -> Self {
             0
         }
@@ -423,8 +423,8 @@ pub mod matrix {
             }
 
             #[test]
-            fn from_array_usize() {
-                let matrix_usize = Matrix::from_array([
+            fn from_array_i64() {
+                let matrix_i64 = Matrix::from_array([
                     [1, 2, 3],
                     [4, 5, 6],
                 ]);
@@ -433,7 +433,7 @@ pub mod matrix {
 
                 for row in 0..2 {
                     for column in 0..3 {
-                        assert!(*matrix_usize.index(row, column) == check);
+                        assert!(*matrix_i64.index(row, column) == check);
                         check += 1;
                     }
                 }
@@ -461,8 +461,8 @@ pub mod matrix {
             }
 
             #[test]
-            fn from_slice_usize() {
-                let matrix_usize = Matrix::from_slice(&[
+            fn from_slice_i64() {
+                let matrix_i64 = Matrix::from_slice(&[
                     &[1, 2, 3],
                     &[4, 5, 6],
                 ]);
@@ -471,7 +471,7 @@ pub mod matrix {
 
                 for row in 0..2 {
                     for column in 0..3 {
-                        assert!(*matrix_usize.index(row, column) == check);
+                        assert!(*matrix_i64.index(row, column) == check);
                         check += 1;
                     }
                 }
@@ -493,12 +493,12 @@ pub mod matrix {
             }
 
             #[test]
-            fn zeros_usize() {
-                let zeros = Matrix::<usize>::zeros::<3,4>();
+            fn zeros_i64() {
+                let zeros = Matrix::<i64>::zeros::<3,4>();
 
                 for row in 0..3 {
                     for column in 0..4 {
-                        assert!(*zeros.index(row, column) == usize::zero());
+                        assert!(*zeros.index(row, column) == i64::zero());
                     }
                 }
             }
@@ -523,15 +523,15 @@ pub mod matrix {
             }
 
             #[test]
-            fn identity_usize() {
-                let zeros = Matrix::<usize>::identity::<3,4>();
+            fn identity_i64() {
+                let zeros = Matrix::<i64>::identity::<3,4>();
 
                 for row in 0..3 {
                     for column in 0..4 {
                         if row == column {
-                            assert!(*zeros.index(row, column) == usize::one());
+                            assert!(*zeros.index(row, column) == i64::one());
                         } else {
-                            assert!(*zeros.index(row, column) == usize::zero());
+                            assert!(*zeros.index(row, column) == i64::zero());
                         }
                     }
                 }
@@ -543,7 +543,7 @@ pub mod matrix {
 
             #[test]
             fn index_mut() {
-                let mut matrix = Matrix::<usize>::zeros::<3,4>();
+                let mut matrix = Matrix::<i64>::zeros::<3,4>();
 
                 let mut incr = 1;
 
@@ -552,6 +552,26 @@ pub mod matrix {
                         *matrix.index_mut(row, column) = incr;
                         assert!(*matrix.index(row, column) == incr);
                         incr += 1;
+                    }
+                }
+            }
+        }
+
+        mod test_transpose {
+            use super::*;
+
+            #[test]
+            fn transpose() {
+                let transpose = Matrix::from_array([
+                    [1,2,3,4,5],
+                    [6,7,8,9,10]
+                ]);
+
+                let transposed = transpose.transpose();
+
+                for row in 0..2 {
+                    for column in 0..5 {
+                        assert!(*transpose.index(row, column) == *transposed.index(column, row));
                     }
                 }
             }
