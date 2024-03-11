@@ -412,9 +412,12 @@ pub mod matrix {
                     [4.0, 5.0, 6.0],
                 ]);
 
-                for row in 0..3 {
+                let mut check = 1.0;
+
+                for row in 0..2 {
                     for column in 0..3 {
-                        assert!(*matrix_f64.index(row, column) - ((row + column) as f64) + 1.0 < f64::EPSILON);
+                        assert!(*matrix_f64.index(row, column) == check);
+                        check += 1.0;
                     }
                 }
             }
