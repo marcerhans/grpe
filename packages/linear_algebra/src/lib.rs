@@ -85,11 +85,11 @@ pub mod matrix {
         }
 
         pub fn index(&self, row: usize, column: usize) -> &Data {
-            &self.data[row * (self.columns - 1) + column]
+            &self.data[row * self.columns + column]
         }
 
         pub fn index_mut(&mut self, row: usize, column: usize) -> &mut Data {
-            &mut self.data[row * (self.columns - 1) + column]
+            &mut self.data[row * self.columns + column]
         }
 
         // pub fn slice(&self, row: usize, column: usize) -> &Data {
@@ -426,12 +426,12 @@ pub mod matrix {
                     [4, 5, 6],
                 ]);
 
-                println!("{:?}", matrix_usize);
+                let mut check = 1;
 
                 for row in 0..2 {
                     for column in 0..3 {
-                        println!("{}x{} : {}", row, column, matrix_usize.index(row, column));
-                        assert!(*matrix_usize.index(1, column) == (row + column) + 1);
+                        assert!(*matrix_usize.index(row, column) == check);
+                        check += 1;
                     }
                 }
             }
