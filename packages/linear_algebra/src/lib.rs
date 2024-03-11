@@ -3,80 +3,81 @@
 
 pub mod matrix {
     use std::{
-        marker::PhantomData, ops::{Add, Index, IndexMut, Mul, Neg, Range, Sub}, slice::SliceIndex
+        ops::{Add, Div, Index, IndexMut, Mul, Neg, Range, Sub}, slice::SliceIndex
     };
 
-    pub trait MatrixData: Clone {}
-    impl<T: Clone> MatrixData for T {}
-
-    pub struct Dyn(pub usize);
-
-    pub struct Matrix<Data: MatrixData, const ROWS: usize, const COLUMNS: usize> {
-        data: Vec<Data>,
-        // _attributes: PhantomData<(Data, Rows, Columns)>
+    pub trait DataTrait : Add + Sub + Mul + Div + PartialEq + Clone + Default + Sized {
+        fn zero() -> Self;
+        fn one() -> Self;
+        fn eqq(&self, rhs: &Self) -> bool {
+            *self == *rhs
+        }
     }
 
-    impl<Data: MatrixData, const ROWS: usize, const COLUMNS: usize> Matrix<Data, ROWS, COLUMNS> {
-        // pub fn from_array<const ROWS: usize, const COLUMNS: usize>(data: &[[Data; COLUMNS]; ROWS]) -> Matrix<Data>
-        // {
-        //     Matrix::<Data> {
-        //         rows: ROWS,
-        //         columns: COLUMNS,
-        //         data: data.to_owned(),
-        //     }
-        // }
+    impl DataTrait for f64 {
+        fn zero() -> Self {
+            0.0
+        }
+    
+        fn one() -> Self {
+            1.0
+        }
 
-        // pub fn from_slice(data: [&[Data; COLUMNS]; ROWS]) -> Self {
-        //     let mut data_ = Vec::new();
+        fn eqq(&self, rhs: &Self) -> bool {
+            self - rhs < Self::EPSILON
+        }
+    }
 
-        //     for row in data {
-        //         data_.push(row.to_vec());
-        //     }
+    pub struct Matrix<Data: DataTrait> {
+        data: Vec<Data>,
+    }
 
-        //     Self {
-        //         data: data_,
-        //         rows: ROWS,
-        //         columns: COLUMNS,
-        //     }
-        // }
+    impl<Data: DataTrait> Matrix<Data> {
+        pub fn from_array<const ROWS: usize, const COLUMNS: usize>(data: [[Data; COLUMNS]; ROWS]) -> Self {
+            Self {
+                data: data.iter().flatten().cloned().collect(),
+            }
+        }
 
-        // pub fn zeros(rows: usize, columns: usize) -> Self {
-        //     Self {
-        //         inner: vec![0.0; rows * columns],
-        //         rows,
-        //         columns,
-        //     }
-        // }
+        pub fn from_slice<const ROWS: usize, const COLUMNS: usize>(data: &[&[Data; COLUMNS]; ROWS]) -> Self {
+            Self {
+                data: data.iter().cloned().flatten().cloned().collect(),
+            }
+        }
 
-        // pub fn identity(rows_cols: usize) -> Self {
-        //     let mut identity = Self {
-        //         inner: vec![0.0; rows_cols.pow(2)],
-        //         rows: rows_cols,
-        //         columns: rows_cols,
-        //     };
+        pub fn zeros<const ROWS: usize, const COLUMNS: usize>() -> Self {
+            Self {
+                data: vec![Data::zero(); ROWS * COLUMNS],
+            }
+        }
 
-        //     for element in identity.inner.iter_mut().step_by(identity.columns + 1) {
-        //         *element = 1.0;
-        //     }
+        pub fn identity<const ROWS: usize, const COLUMNS: usize>() -> Self {
+            let mut identity = Self {
+                data: vec![Data::zero(); ROWS * COLUMNS],
+            };
 
-        //     identity
-        // }
+            for element in identity.data.iter_mut().step_by(COLUMNS + 1) {
+                *element = Data::one();
+            }
 
-        // pub fn transpose(&self) -> Self {
-        //     let mut matrix = Matrix {
-        //         inner: vec![0.0; self.rows * self.columns],
-        //         rows: self.columns,
-        //         columns: self.rows,
-        //     };
+            identity
+        }
 
-        //     for row in 0..self.rows {
-        //         for column in 0..self.columns {
-        //             matrix[(column, row)] = self[(row, column)];
-        //         }
-        //     }
+        pub fn transpose(&self) -> Self {
+            let mut transpose = Self {
+                inner: vec![0.0; self.rows * self.columns],
+                rows: self.columns,
+                columns: self.rows,
+            };
 
-        //     matrix
-        // }
+            for row in 0..self.rows {
+                for column in 0..self.columns {
+                    transpose[(column, row)] = self[(row, column)];
+                }
+            }
+
+            transpose
+        }
 
         // pub fn scalar(&mut self, scalar: f64) {
         //     for val in self.inner.iter_mut() {
@@ -369,9 +370,9 @@ pub mod matrix {
 
             #[test]
             fn from_array() {
-                let matrix = Matrix::<usize, 2, 3>::from_array([[1, 2, 3], [5, 6, 7]]);
+                // let matrix = Matrix::<usize, 2, 3>::from_array([[1, 2, 3], [5, 6, 7]]);
 
-                let matrix = Matrix::from_array([[1, 2, 3], [5, 6, 7]]);
+                // let matrix = Matrix::from_array([[1, 2, 3], [5, 6, 7]]);
             }
         }
 
@@ -380,11 +381,11 @@ pub mod matrix {
 
             #[test]
             fn from_slice() {
-                let matrix_col_1 = Matrix::from_array([[1, 2, 3]]);
+                // let matrix_col_1 = Matrix::from_array([[1, 2, 3]]);
 
-                let matrix_col_2 = Matrix::from_array([[4, 5, 6]]);
+                // let matrix_col_2 = Matrix::from_array([[4, 5, 6]]);
 
-                let what = matrix_col_1[0];
+                // let what = matrix_col_1[0];
 
                 // let matrix = Matrix::from_slice([&matrix_col_1[], &matrix_col_2[0]]);
             }
