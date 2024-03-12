@@ -603,6 +603,22 @@ pub mod matrix {
 
                 assert!((&matrix + &matrix_neg) == Matrix::zeros::<2,5>());
             }
+
+            #[test]
+            #[should_panic]
+            fn add_panic() {
+                std::panic::set_hook(Box::new(|_info| {
+                    // do nothing
+                }));
+            
+                let _ = std::panic::catch_unwind(|| {
+                    panic!("test panic");
+                });
+
+                let matrix_a = Matrix::from_array([[1, 2, 3, 4, 5, 11], [6, 7, 8, 9, 10, 11]]);
+                let matrix_b = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+                &matrix_a + &matrix_b;
+            }
         }
 
         mod test_sub {
@@ -615,6 +631,22 @@ pub mod matrix {
 
                 assert!((&matrix - &matrix_neg) == Matrix::zeros::<2,5>());
             }
+
+            #[test]
+            #[should_panic]
+            fn sub_panic() {
+                std::panic::set_hook(Box::new(|_info| {
+                    // do nothing
+                }));
+            
+                let _ = std::panic::catch_unwind(|| {
+                    panic!("test panic");
+                });
+
+                let matrix_a = Matrix::from_array([[1, 2, 3, 4, 5, 11], [6, 7, 8, 9, 10, 11]]);
+                let matrix_b = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+                &matrix_a - &matrix_b;
+            }
         }
 
         mod test_mul {
@@ -625,6 +657,21 @@ pub mod matrix {
                 let matrix_a= Matrix::from_array([[1, 2, 3], [4, 5, 6]]);
                 let matrix_b = matrix_a.transpose();
                 assert!((&matrix_a * &matrix_b) == Matrix::from_array([[(1*1 + 2*2 + 3*3), (1*4 + 2*5 + 3*6)],[(4*1 + 5*2 + 6*3), (4*4 + 5*5 + 6*6)]]));
+            }
+
+            #[test]
+            #[should_panic]
+            fn mul_panic() {
+                std::panic::set_hook(Box::new(|_info| {
+                    // do nothing
+                }));
+            
+                let _ = std::panic::catch_unwind(|| {
+                    panic!("test panic");
+                });
+
+                let matrix = Matrix::from_array([[1, 2, 3], [4, 5, 6]]);
+                &matrix * &matrix;
             }
         }
     }
