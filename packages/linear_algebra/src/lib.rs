@@ -129,7 +129,6 @@ pub mod matrix {
             transpose
         }
 
-        // TODO: Add tests for bellow methods.
         pub fn scalar(&mut self, scalar: Data) {
             for val in self.data.iter_mut() {
                 *val *= scalar;
