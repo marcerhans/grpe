@@ -195,13 +195,13 @@ pub mod matrix {
             }
         }
 
-        pub fn set_row(&mut self, row: usize, matrix: Self) {
+        pub fn set_row(&mut self, row: usize, matrix: &Self) {
             for column in 0..self.columns {
                 *self.index_mut(row, column) = *matrix.index(0, column);
             }
         }
 
-        pub fn set_column(&mut self, column: usize, matrix: Self) {
+        pub fn set_column(&mut self, column: usize, matrix: &Self) {
             for row in 0..self.rows {
                 *self.index_mut(row, column) = *matrix.index(row, 0);
             }
@@ -573,17 +573,11 @@ pub mod matrix {
 
             #[test]
             fn scalar() {
-                let mut matrix = Matrix::from_array([
-                    [1,2,3],
-                    [4,5,6],
-                ]);
+                let mut matrix = Matrix::from_array([[1, 2, 3], [4, 5, 6]]);
 
                 matrix.scalar(2);
 
-                assert!(matrix == Matrix::from_array([
-                    [2,4,6],
-                    [8,10,12],
-                ]))
+                assert!(matrix == Matrix::from_array([[2, 4, 6], [8, 10, 12],]))
             }
         }
 
@@ -592,17 +586,154 @@ pub mod matrix {
 
             #[test]
             fn slice() {
-                let matrix = Matrix::from_array([
-                    [1,2,3,4],
-                    [5,6,7,8],
-                    [9,10,11,12],
-                ]);
+                let matrix = Matrix::from_array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]);
 
                 let slice = matrix.slice(1..3, 1..3);
-                let check = vec![6,7,10,11];
+                let check = vec![6, 7, 10, 11];
                 let check_ref = check.iter().collect::<Vec<&i64>>();
 
                 assert!(slice == check_ref);
+            }
+        }
+
+        mod test_row_column {
+            use super::*;
+
+            #[test]
+            fn row() {
+                let matrix = Matrix::from_array([
+                    [1, 2, 3, 4],
+                    [5, 6, 7, 8],
+                    [9, 10, 11, 12],
+                    [13, 14, 15, 16],
+                ]);
+
+                let check = vec![9, 10, 11, 12];
+                let check_ref = check.iter().collect::<Vec<&i64>>();
+
+                assert!(matrix.row(2) == check_ref);
+            }
+
+            #[test]
+            fn column() {
+                let matrix = Matrix::from_array([
+                    [1, 2, 3, 4],
+                    [5, 6, 7, 8],
+                    [9, 10, 11, 12],
+                    [13, 14, 15, 16],
+                ]);
+
+                let check = vec![3, 7, 11, 15];
+                let check_ref = check.iter().collect::<Vec<&i64>>();
+
+                assert!(matrix.column(2) == check_ref);
+            }
+        }
+
+        mod test_swap_rows_columns {
+            use super::*;
+
+            #[test]
+            fn swap_rows() {
+                let mut matrix = Matrix::from_array([
+                    [1, 2, 3, 4],
+                    [5, 6, 7, 8],
+                    [9, 10, 11, 12],
+                    [13, 14, 15, 16],
+                ]);
+                let check = Matrix::from_array([
+                    [1, 2, 3, 4],
+                    [9, 10, 11, 12],
+                    [5, 6, 7, 8],
+                    [13, 14, 15, 16],
+                ]);
+
+                matrix.swap_rows(1, 2);
+
+                assert!(matrix == check);
+            }
+
+            #[test]
+            fn swap_columns() {
+                let mut matrix = Matrix::from_array([
+                    [1, 2, 3, 4],
+                    [5, 6, 7, 8],
+                    [9, 10, 11, 12],
+                    [13, 14, 15, 16],
+                ]);
+                let check = Matrix::from_array([
+                    [1, 3, 2, 4],
+                    [5, 7, 6, 8],
+                    [9, 11, 10, 12],
+                    [13, 15, 14, 16],
+                ]);
+
+                matrix.swap_columns(1, 2);
+
+                assert!(matrix == check);
+            }
+        }
+
+        mod set_row_column {
+            use super::*;
+
+            #[test]
+            fn set_row() {
+                let mut matrix = Matrix::from_array([
+                    [1, 2, 3, 4],
+                    [5, 6, 7, 8],
+                    [9, 10, 11, 12],
+                    [13, 14, 15, 16],
+                ]);
+                let check = Matrix::from_array([
+                    [1, 2, 3, 4],
+                    [5, 6, 7, 8],
+                    [-1, -2, -3, -4],
+                    [13, 14, 15, 16],
+                ]);
+
+                matrix.set_row(2, &Matrix::from_array([[-1, -2, -3, -4]]));
+
+                assert!(matrix == check, "{matrix:?}");
+            }
+
+            #[test]
+            fn set_column() {
+                let mut matrix = Matrix::from_array([
+                    [1, 2, 3, 4],
+                    [5, 6, 7, 8],
+                    [9, 10, 11, 12],
+                    [13, 14, 15, 16],
+                ]);
+                let check = Matrix::from_array([
+                    [1, 2, -1, 4],
+                    [5, 6, -2, 8],
+                    [9, 10, -3, 12],
+                    [13, 14, -4, 16],
+                ]);
+
+                matrix.set_column(2, &Matrix::from_array([[-1], [-2], [-3], [-4]]));
+
+                assert!(matrix == check, "{matrix:?}");
+            }
+        }
+
+        mod test_push_row {
+            use super::*;
+
+            #[test]
+            fn push_row() {
+                let mut matrix = Matrix::from_array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]);
+                let check = Matrix::from_array([
+                    [1, 2, 3, 4],
+                    [5, 6, 7, 8],
+                    [9, 10, 11, 12],
+                    [13, 14, 15, 16],
+                ]);
+
+                matrix.push_row(Matrix::from_array([[13, 14, 15, 16]]));
+
+                assert!(matrix == check, "{matrix:?}");
             }
         }
 
@@ -718,109 +849,6 @@ pub mod matrix {
         }
     }
 }
-
-//         mod test_swap {
-//             use super::*;
-
-//             #[test]
-//             fn swap_rows() {
-//                 let mut matrix = macros::matrix![[1.0, 2.0], [3.0, 4.0],];
-
-//                 matrix.swap_rows(0, 1);
-
-//                 assert!(matrix[(0, 0)] - 3.0 < f64::EPSILON);
-//                 assert!(matrix[(0, 1)] - 4.0 < f64::EPSILON);
-//                 assert!(matrix[(1, 0)] - 1.0 < f64::EPSILON);
-//                 assert!(matrix[(1, 1)] - 2.0 < f64::EPSILON);
-//             }
-
-//             #[test]
-//             fn swap_columns() {
-//                 let mut matrix = macros::matrix![[1.0, 2.0], [3.0, 4.0],];
-
-//                 matrix.swap_columns(0, 1);
-
-//                 assert!(matrix[(0, 0)] - 2.0 < f64::EPSILON);
-//                 assert!(matrix[(0, 1)] - 1.0 < f64::EPSILON);
-//                 assert!(matrix[(1, 0)] - 4.0 < f64::EPSILON);
-//                 assert!(matrix[(1, 1)] - 3.0 < f64::EPSILON);
-//             }
-//         }
-
-//         mod test_slice {
-//             use super::*;
-
-//             #[test]
-//             fn slice() {
-//                 let matrix = macros::matrix![
-//                     [1.0, 2.0, 3.0, 4.0],
-//                     [5.0, 6.0, 7.0, 8.0],
-//                     [9.0, 10.0, 11.0, 12.0],
-//                 ];
-
-//                 assert!(matrix.slice(0..1, 0..4) == macros::matrix![[1.0, 2.0, 3.0, 4.0]]);
-//                 assert!(matrix.slice(0..3, 0..1) == macros::matrix![[1.0], [5.0], [9.0]]);
-//                 assert!(
-//                     matrix.slice(1..3, 1..4)
-//                         == macros::matrix![[6.0, 7.0, 8.0], [10.0, 11.0, 12.0]]
-//                 );
-//             }
-//         }
-
-// /// TODO:
-// /// Implement a vector type.
-// /// - Refactor and extract aspects from the matrix type as traits,
-// /// and share between both vector and matrix.
-// ///
-// /// There is currently no NEED for vector (though it would be nice/better).
-// mod vector {
-//     use super::*;
-
-//     /// [Vector] which internally uses a nx1 [matrix::Matrix].
-//     pub struct Vector {
-//         inner: matrix::Matrix,
-//         len: usize,
-//     }
-
-//     impl Vector {
-//         fn from_slice(slice: &[f64]) -> Self {
-//             Self {
-//                 inner: matrix::Matrix::from_slices(&[slice]),
-//                 len: slice.len(),
-//             }
-//         }
-
-//         fn inner(&self) -> &matrix::Matrix {
-//             &self.inner
-//         }
-//     }
-
-//     pub mod macros {
-//         #[macro_export]
-//         macro_rules! vector {
-//             [ $( $row:expr ),* ] => {
-//                 crate::vector::Vector::from_slice(
-//                     &[$($row),*]
-//                 )
-//             };
-
-//             ( $len:expr ) => {
-//                 crate::vector::Vector::from_slice(($len))
-//             };
-//         }
-//         pub use vector;
-//     }
-
-//     #[cfg(test)]
-//     mod tests {
-//         use super::*;
-
-//         #[test]
-//         fn main() {
-//             let vector = macros::vector![1.0, 2.0, 3.0];
-//         }
-//     }
-// }
 
 // pub mod utility {
 //     use super::*;
