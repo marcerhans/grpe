@@ -346,7 +346,11 @@ pub mod matrix {
                 panic!("Matrix multiplication cannot be performed on matrices with incompatible dimensions.")
             }
 
-            let mut product = self.to_owned();
+            let mut product = Matrix {
+                data: vec![Data::zero(); self.rows * rhs.columns],
+                rows: self.rows,
+                columns: rhs.columns,
+            };
 
             for product_index_row in 0..self.rows {
                 for product_index_column in 0..rhs.columns {
@@ -618,10 +622,9 @@ pub mod matrix {
 
             #[test]
             fn mul() {
-                let matrix = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
-                println!("{:?}", &matrix * &matrix);
-
-                // assert!((&matrix * &matrix) == Matrix::from_array([[1,4,9,16,25],[36,49,64,81,100]]));
+                let matrix_a= Matrix::from_array([[1, 2, 3], [4, 5, 6]]);
+                let matrix_b = matrix_a.transpose();
+                assert!((&matrix_a * &matrix_b) == Matrix::from_array([[(1*1 + 2*2 + 3*3), (1*4 + 2*5 + 3*6)],[(4*1 + 5*2 + 6*3), (4*4 + 5*5 + 6*6)]]));
             }
         }
     }
