@@ -10,8 +10,11 @@ pub mod matrix {
 
     pub trait DataTrait:
         Add<Output = Self>
+        + AddAssign
         + Sub<Output = Self>
+        + SubAssign
         + Mul<Output = Self>
+        + MulAssign
         + Div<Output = Self>
         + Neg<Output = Self>
         + PartialEq
@@ -19,7 +22,6 @@ pub mod matrix {
         + Copy
         + Default
         + Debug
-        + Sized
     {
         fn zero() -> Self;
         fn one() -> Self;
@@ -135,100 +137,96 @@ pub mod matrix {
             transpose
         }
 
-        // pub fn scalar(&mut self, scalar: Data) {
-        //     for val in self.data.iter_mut() {
-        //         *val *= scalar;
-        //     }
-        // }
+        // TODO: Add tests for bellow methods.
+        pub fn scalar(&mut self, scalar: Data) {
+            for val in self.data.iter_mut() {
+                *val *= scalar;
+            }
+        }
 
-        // pub fn slice(&self, range_row: Range<usize>, range_column: Range<usize>) -> Matrix {
-        //     let range_row_len = range_row.len();
-        //     let range_column_len = range_column.len();
+        pub fn slice(&self, range_row: Range<usize>, range_column: Range<usize>) -> Vec<&Data> {
+            let range_row_len = range_row.len();
+            let range_column_len = range_column.len();
 
-        //     if range_row_len > self.rows || range_column_len > self.columns {
-        //         panic!("Argument ranges are outside of base matrix scope.");
-        //     }
+            if range_row_len > self.rows || range_column_len > self.columns {
+                panic!("Argument ranges are outside of base matrix scope.");
+            }
 
-        //     let mut matrix = Matrix {
-        //         inner: vec![0.0; range_row_len * range_column_len],
-        //         rows: range_row_len,
-        //         columns: range_column_len,
-        //     };
+            let mut slice_vec = Vec::new();
 
-        //     for row in range_row.clone() {
-        //         for column in range_column.clone() {
-        //             matrix[(row - range_row.start, column - range_column.start)] =
-        //                 self[(row, column)];
-        //         }
-        //     }
+            for i in range_row {
+              for j in range_column.clone() {
+                slice_vec.push(&self.data[i * self.columns + j]);
+              }
+            }
 
-        //     matrix
-        // }
+            slice_vec
+        }
 
-        // pub fn inner(&self) -> &[f64] {
-        //     return &self.inner;
-        // }
+        pub fn data(&self) -> &[Data] {
+            &self.data
+        }
 
-        // pub fn row(&self, row: usize) -> Self {
-        //     self.slice(row..row + 1, 0..self.columns)
-        // }
+        pub fn row(&self, row: usize) -> Vec<&Data> {
+            self.slice(row..row + 1, 0..self.columns)
+        }
 
-        // pub fn rows(&self) -> usize {
-        //     self.rows
-        // }
+        pub fn rows(&self) -> usize {
+            self.rows
+        }
 
-        // pub fn column(&self, column: usize) -> Self {
-        //     self.slice(0..self.rows, column..column + 1)
-        // }
+        pub fn column(&self, column: usize) -> Vec<&Data> {
+            self.slice(0..self.rows, column..column + 1)
+        }
 
-        // pub fn columns(&self) -> usize {
-        //     self.columns
-        // }
+        pub fn columns(&self) -> usize {
+            self.columns
+        }
 
-        // pub fn swap_rows(&mut self, this: usize, that: usize) {
-        //     let mut buf;
+        pub fn swap_rows(&mut self, this: usize, that: usize) {
+            let mut buf;
 
-        //     for column in 0..self.columns {
-        //         buf = self[(this, column)];
-        //         self[(this, column)] = self[(that, column)];
-        //         self[(that, column)] = buf;
-        //     }
-        // }
+            for column in 0..self.columns {
+                buf = self.index(this, column).clone();
+                *self.index_mut(this, column) = *self.index(that, column);
+                *self.index_mut(that, column) = buf;
+            }
+        }
 
-        // pub fn swap_columns(&mut self, this: usize, that: usize) {
-        //     let mut buf;
+        pub fn swap_columns(&mut self, this: usize, that: usize) {
+            let mut buf;
 
-        //     for row in 0..self.rows {
-        //         buf = self[(row, this)];
-        //         self[(row, this)] = self[(row, that)];
-        //         self[(row, that)] = buf;
-        //     }
-        // }
+            for row in 0..self.rows {
+                buf = self.index(row, this).clone();
+                *self.index_mut(row, this) = *self.index(row, that);
+                *self.index_mut(row, that) = buf;
+            }
+        }
 
-        // pub fn set_row(&mut self, row: usize, matrix: Matrix) {
-        //     for column in 0..self.columns {
-        //         self[(row, column)] = matrix[(0, column)];
-        //     }
-        // }
+        pub fn set_row(&mut self, row: usize, matrix: Self) {
+            for column in 0..self.columns {
+                *self.index_mut(row, column) = *matrix.index(0, column);
+            }
+        }
 
-        // pub fn set_column(&mut self, column: usize, matrix: Matrix) {
-        //     for row in 0..self.rows {
-        //         self[(row, column)] = matrix[(row, 0)];
-        //     }
-        // }
+        pub fn set_column(&mut self, column: usize, matrix: Self) {
+            for row in 0..self.rows {
+                *self.index_mut(row, column) = *matrix.index(row, 0);
+            }
+        }
 
-        // pub fn push_row(&mut self, mut matrix: Matrix) {
-        //     if matrix.columns != self.columns && self.rows != 0 {
-        //         panic!("Matrix dimensions are not compatible.");
-        //     }
+        pub fn push_row(&mut self, mut matrix: Self) {
+            if matrix.columns != self.columns && self.rows != 0 {
+                panic!("Matrix dimensions are not compatible.");
+            }
 
-        //     if self.rows == 0 {
-        //         self.columns = matrix.columns;
-        //     }
+            if self.rows == 0 {
+                self.columns = matrix.columns;
+            }
 
-        //     self.inner.append(&mut matrix.inner);
-        //     self.rows += 1;
-        // }
+            self.data.append(&mut matrix.data);
+            self.rows += 1;
+        }
     }
 
     impl<Data: DataTrait> std::fmt::Debug for Matrix<Data> {
