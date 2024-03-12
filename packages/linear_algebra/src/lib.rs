@@ -823,6 +823,8 @@ pub mod utility {
     /// Last column in matrix is seen as the sum of the values to the left,
     /// where the values to the left are parametric.
     /// Only solves n by n+1 matrices.
+    ///
+    /// Note: This probably currently only works with floating point data types.
     pub fn gauss_elimination<Data: DataTrait>(mut matrix: &mut matrix::Matrix<Data>) -> Option<matrix::Matrix<Data>> {
         enum Direction {
             Down,
