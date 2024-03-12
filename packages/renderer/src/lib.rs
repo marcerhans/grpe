@@ -21,12 +21,13 @@ pub trait RendererBuilderTrait {
     type Dimensions: DimensionsTrait;
     type Camera: VertexTrait;
     type Canvas: SurfaceTrait;
+    type Renderer: RendererTrait;
 
     fn new() -> Self;
     fn dimensions(self, dimensions: Self::Dimensions) -> Self;
     fn camera(self, camera: Self::Camera) -> Self;
     fn canvas(self, canvas: Self::Canvas) -> Self;
-    fn build(self) -> renderer::Renderer;
+    fn build(self) -> Self::Renderer;
 }
 
 /// [RendererTrait] for rendering to display.
