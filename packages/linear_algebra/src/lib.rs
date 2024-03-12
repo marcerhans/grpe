@@ -1,11 +1,7 @@
-// pub type Vectorfunny cute catsRow<Data, const ROWS: usize> = matrix::Matrix<Data, ROWS, 1>;
-// pub type VectorCol<Data, const COLUMNS: usize> = matrix::Matrix<Data, 1, COLUMNS>;
-
 pub mod matrix {
     use std::{
         fmt::Debug,
-        ops::{Add, AddAssign, Div, Index, IndexMut, Mul, MulAssign, Neg, Range, Sub, SubAssign},
-        slice::SliceIndex,
+        ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Range, Sub, SubAssign},
     };
 
     pub trait DataTrait:
@@ -360,38 +356,6 @@ pub mod matrix {
             product
         }
     }
-
-    // pub mod macros {
-    //     #[macro_export]
-    //     macro_rules! matrix {
-    //         [ $( [ $( $row:expr ),* ] $(,)* )* ] => {
-    //             crate::matrix::Matrix::from_slices(
-    //                 &[
-    //                     $(
-    //                         &[$($row),*]
-    //                     ),*
-    //                 ]
-    //             )
-    //         };
-
-    //         ( $rows:expr, $columns:expr ) => {
-    //             crate::matrix::Matrix::zeros(($rows), ($columns))
-    //         };
-
-    //         ( $rows_cols:expr ) => {
-    //             crate::matrix::Matrix::zeros(($rows_cols), ($rows_cols))
-    //         };
-    //     }
-    //     pub use matrix;
-
-    //     #[macro_export]
-    //     macro_rules! identity {
-    //         ( $rows_cols:expr ) => {
-    //             crate::matrix::Matrix::identity(($rows_cols))
-    //         };
-    //     }
-    //     pub use identity;
-    // }
 
     #[cfg(test)]
     mod tests {
