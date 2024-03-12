@@ -1,7 +1,7 @@
 pub mod matrix {
     use std::{
         fmt::Debug,
-        ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Range, Sub, SubAssign},
+        ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Range, Sub, SubAssign},
     };
 
     pub trait DataTrait:
@@ -12,8 +12,10 @@ pub mod matrix {
         + Mul<Output = Self>
         + MulAssign
         + Div<Output = Self>
+        + DivAssign
         + Neg<Output = Self>
         + PartialEq
+        + PartialOrd
         + Clone
         + Copy
         + Default
@@ -813,115 +815,119 @@ pub mod matrix {
     }
 }
 
-// pub mod utility {
-//     use super::*;
+pub mod utility {
+    use self::matrix::DataTrait;
 
-//     /// Last column in matrix is seen as the sum of the values to the left,
-//     /// where the values to the left are parametric.
-//     /// Only solves n by n+1 matrices.
-//     pub fn gauss_elimination(mut matrix: &mut matrix::Matrix) -> Option<matrix::Matrix> {
-//         enum Direction {
-//             Down,
-//             Up,
-//         }
+    use super::*;
 
-//         /// Find a 'pivotable' point in a row given a column.
-//         fn find_next_pivot_row(
-//             matrix: &mut matrix::Matrix,
-//             start_row: usize,
-//             column: usize,
-//         ) -> Option<usize> {
-//             for row in start_row..matrix.rows() {
-//                 if matrix[(row, column)] > f64::EPSILON {
-//                     return Some(row);
-//                 }
-//             }
+    /// Last column in matrix is seen as the sum of the values to the left,
+    /// where the values to the left are parametric.
+    /// Only solves n by n+1 matrices.
+    pub fn gauss_elimination<Data: DataTrait>(mut matrix: &mut matrix::Matrix<Data>) -> Option<matrix::Matrix<Data>> {
+        enum Direction {
+            Down,
+            Up,
+        }
 
-//             None
-//         }
+        /// Find a 'pivotable' point in a row given a column.
+        fn find_next_pivot_row<Data: DataTrait>(
+            matrix: &mut matrix::Matrix<Data>,
+            start_row: usize,
+            column: usize,
+        ) -> Option<usize> {
+            for row in start_row..matrix.rows() {
+                if *matrix.index(row, column) > Data::zero() {
+                    return Some(row);
+                }
+            }
 
-//         /// Normalize the row for a given pivot coordinate.
-//         fn normalize_row(matrix: &mut matrix::Matrix, row: usize, divisor_column: usize) {
-//             let divisor = matrix[(row, divisor_column)];
+            None
+        }
 
-//             for column in 0..matrix.columns() {
-//                 matrix[(row, column)] /= divisor;
-//             }
-//         }
+        /// Normalize the row for a given pivot coordinate.
+        fn normalize_row<Data: DataTrait>(matrix: &mut matrix::Matrix<Data>, row: usize, divisor_column: usize) {
+            let divisor = matrix.index(row, divisor_column).clone();
 
-//         /// Eliminate all rows based on pivot.
-//         fn eliminate_columns(
-//             matrix: &mut matrix::Matrix,
-//             pivot_row: usize,
-//             pivot_column: usize,
-//             start_row: usize,
-//             direction: Direction,
-//         ) {
-//             match direction {
-//                 Direction::Down => {
-//                     for row in start_row..matrix.rows() {
-//                         if matrix[(row, pivot_column)] < f64::EPSILON {
-//                             continue;
-//                         }
+            for column in 0..matrix.columns() {
+                *matrix.index_mut(row, column) /= divisor;
+            }
+        }
 
-//                         let pivot_factor = matrix[(row, pivot_column)];
+        /// Eliminate all rows based on pivot.
+        fn eliminate_columns<Data: DataTrait>(
+            matrix: &mut matrix::Matrix<Data>,
+            pivot_row: usize,
+            pivot_column: usize,
+            start_row: usize,
+            direction: Direction,
+        ) {
+            match direction {
+                Direction::Down => {
+                    for row in start_row..matrix.rows() {
+                        if *matrix.index(row, pivot_column) < Data::zero() {
+                            continue;
+                        }
 
-//                         for column in 0..matrix.columns() {
-//                             matrix[(row, column)] -= matrix[(pivot_row, column)] * pivot_factor;
-//                         }
-//                     }
-//                 }
-//                 Direction::Up => {
-//                     for row in (0..start_row).rev() {
-//                         if matrix[(row, pivot_column)] < f64::EPSILON {
-//                             continue;
-//                         }
+                        let pivot_factor = matrix.index(row, pivot_column).clone();
 
-//                         let pivot_factor = matrix[(row, pivot_column)];
+                        for column in 0..matrix.columns() {
+                            let tmp = matrix.index(pivot_row, column).clone();
+                            *matrix.index_mut(row, column) -=  tmp * pivot_factor;
+                        }
+                    }
+                }
+                Direction::Up => {
+                    for row in (0..start_row).rev() {
+                        if *matrix.index(row, pivot_column) < Data::zero() {
+                            continue;
+                        }
 
-//                         for column in 0..matrix.columns() {
-//                             matrix[(row, column)] -= matrix[(pivot_row, column)] * pivot_factor;
-//                         }
-//                     }
-//                 }
-//             }
-//         }
+                        let pivot_factor = matrix.index(row, pivot_column).clone();
 
-//         if matrix.rows() + 1 != matrix.columns() {
-//             return None;
-//         }
+                        for column in 0..matrix.columns() {
+                            let tmp = matrix.index(pivot_row, column).clone();
+                            *matrix.index_mut(row, column) -= tmp * pivot_factor;
+                        }
+                    }
+                }
+            }
+        }
 
-//         // "Downward"
-//         for row_and_column in 0..matrix.rows() - 1 {
-//             if let Some(pivot_row) = find_next_pivot_row(matrix, row_and_column, row_and_column) {
-//                 matrix.swap_rows(row_and_column, pivot_row);
-//                 normalize_row(&mut matrix, row_and_column, row_and_column);
-//                 eliminate_columns(
-//                     &mut matrix,
-//                     row_and_column,
-//                     row_and_column,
-//                     row_and_column + 1,
-//                     Direction::Down,
-//                 );
-//             } else {
-//                 return None;
-//             }
-//         }
+        if matrix.rows() + 1 != matrix.columns() {
+            return None;
+        }
 
-//         // "Upward"
-//         for row_and_column in (1..matrix.rows()).rev() {
-//             normalize_row(&mut matrix, row_and_column, row_and_column);
-//             eliminate_columns(
-//                 &mut matrix,
-//                 row_and_column,
-//                 row_and_column,
-//                 row_and_column,
-//                 Direction::Up,
-//             );
-//         }
+        // "Downward"
+        for row_and_column in 0..matrix.rows() - 1 {
+            if let Some(pivot_row) = find_next_pivot_row(matrix, row_and_column, row_and_column) {
+                matrix.swap_rows(row_and_column, pivot_row);
+                normalize_row(&mut matrix, row_and_column, row_and_column);
+                eliminate_columns(
+                    &mut matrix,
+                    row_and_column,
+                    row_and_column,
+                    row_and_column + 1,
+                    Direction::Down,
+                );
+            } else {
+                return None;
+            }
+        }
 
-//         None
-//     }
+        // "Upward"
+        for row_and_column in (1..matrix.rows()).rev() {
+            normalize_row(&mut matrix, row_and_column, row_and_column);
+            eliminate_columns(
+                &mut matrix,
+                row_and_column,
+                row_and_column,
+                row_and_column,
+                Direction::Up,
+            );
+        }
+
+        None
+    }
 
 //     pub fn rotate_x(matrix: &matrix::Matrix, radians: f64) -> matrix::Matrix {
 //         let rotation_matrix = matrix::macros::matrix![
@@ -953,92 +959,94 @@ pub mod matrix {
 //         matrix * &rotation_matrix
 //     }
 
-//     #[cfg(test)]
-//     mod tests {
-//         use super::*;
+    #[cfg(test)]
+    mod tests {
+        use super::*;
 
-//         mod test_gauss_elimination {
-//             use super::*;
+        mod test_gauss_elimination {
+            use self::matrix::Matrix;
 
-//             #[test]
-//             fn test_1() {
-//                 let mut matrix = matrix::macros::matrix![
-//                     [1.0, 0.0, 0.0, 1.0],
-//                     [0.0, 1.0, 0.0, 2.0],
-//                     [0.0, 0.0, 1.0, 3.0],
-//                 ];
+            use super::*;
 
-//                 gauss_elimination(&mut matrix);
+            #[test]
+            fn test_1() {
+                let mut matrix = Matrix::from_array([
+                    [1.0, 0.0, 0.0, 1.0],
+                    [0.0, 1.0, 0.0, 2.0],
+                    [0.0, 0.0, 1.0, 3.0],
+                ]);
 
-//                 let expected = matrix::macros::matrix![
-//                     [1.0, 0.0, 0.0, 1.0],
-//                     [0.0, 1.0, 0.0, 2.0],
-//                     [0.0, 0.0, 1.0, 3.0],
-//                 ];
+                gauss_elimination(&mut matrix);
 
-//                 check(matrix, expected);
-//             }
+                let expected = Matrix::from_array([
+                    [1.0, 0.0, 0.0, 1.0],
+                    [0.0, 1.0, 0.0, 2.0],
+                    [0.0, 0.0, 1.0, 3.0],
+                ]);
 
-//             #[test]
-//             fn test_2() {
-//                 let mut matrix = matrix::macros::matrix![
-//                     [0.0, 1.0, 0.0, 2.0],
-//                     [1.0, 0.0, 0.0, 1.0],
-//                     [0.0, 0.0, 1.0, 3.0],
-//                 ];
+                check(matrix, expected);
+            }
 
-//                 gauss_elimination(&mut matrix);
+            #[test]
+            fn test_2() {
+                let mut matrix = Matrix::from_array([
+                    [0.0, 1.0, 0.0, 2.0],
+                    [1.0, 0.0, 0.0, 1.0],
+                    [0.0, 0.0, 1.0, 3.0],
+                ]);
 
-//                 let expected = matrix::macros::matrix![
-//                     [1.0, 0.0, 0.0, 1.0],
-//                     [0.0, 1.0, 0.0, 2.0],
-//                     [0.0, 0.0, 1.0, 3.0],
-//                 ];
+                gauss_elimination(&mut matrix);
 
-//                 check(matrix, expected);
-//             }
+                let expected = Matrix::from_array([
+                    [1.0, 0.0, 0.0, 1.0],
+                    [0.0, 1.0, 0.0, 2.0],
+                    [0.0, 0.0, 1.0, 3.0],
+                ]);
 
-//             #[test]
-//             fn test_3() {
-//                 let mut matrix = matrix::macros::matrix![
-//                     [0.0, 0.0, 1.0, 3.0],
-//                     [0.0, 1.0, 0.0, 2.0],
-//                     [1.0, 0.0, 0.0, 1.0],
-//                 ];
+                check(matrix, expected);
+            }
 
-//                 gauss_elimination(&mut matrix);
+            #[test]
+            fn test_3() {
+                let mut matrix = Matrix::from_array([
+                    [0.0, 0.0, 1.0, 3.0],
+                    [0.0, 1.0, 0.0, 2.0],
+                    [1.0, 0.0, 0.0, 1.0],
+                ]);
 
-//                 let expected = matrix::macros::matrix![
-//                     [1.0, 0.0, 0.0, 1.0],
-//                     [0.0, 1.0, 0.0, 2.0],
-//                     [0.0, 0.0, 1.0, 3.0],
-//                 ];
+                gauss_elimination(&mut matrix);
 
-//                 check(matrix, expected);
-//             }
+                let expected = Matrix::from_array([
+                    [1.0, 0.0, 0.0, 1.0],
+                    [0.0, 1.0, 0.0, 2.0],
+                    [0.0, 0.0, 1.0, 3.0],
+                ]);
 
-//             #[test]
-//             fn test_4() {
-//                 let mut matrix = matrix::macros::matrix![
-//                     [5.0, 3.0, 7.0, 1.0],
-//                     [2.0, 4.0, 9.0, 3.0],
-//                     [11.0, 7.0, 1.0, 4.0],
-//                 ];
+                check(matrix, expected);
+            }
 
-//                 gauss_elimination(&mut matrix);
+            #[test]
+            fn test_4() {
+                let mut matrix = Matrix::from_array([
+                    [5.0, 3.0, 7.0, 1.0],
+                    [2.0, 4.0, 9.0, 3.0],
+                    [11.0, 7.0, 1.0, 4.0],
+                ]);
 
-//                 let expected = matrix::macros::matrix![
-//                     [1.0, 0.0, 0.0, -75.0 / 214.0],
-//                     [0.0, 1.0, 0.0, 243.0 / 214.0],
-//                     [0.0, 0.0, 1.0, -10.0 / 107.0],
-//                 ];
+                gauss_elimination(&mut matrix);
 
-//                 check(matrix, expected);
-//             }
+                let expected = Matrix::from_array([
+                    [1.0, 0.0, 0.0, -75.0 / 214.0],
+                    [0.0, 1.0, 0.0, 243.0 / 214.0],
+                    [0.0, 0.0, 1.0, -10.0 / 107.0],
+                ]);
 
-//             fn check(matrix: matrix::Matrix, expected: matrix::Matrix) {
-//                 assert!(matrix == expected);
-//             }
-//         }
-//     }
-// }
+                check(matrix, expected);
+            }
+
+            fn check<Data: DataTrait>(matrix: matrix::Matrix<Data>, expected: matrix::Matrix<Data>) {
+                assert!(matrix == expected);
+            }
+        }
+    }
+}
