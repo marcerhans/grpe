@@ -155,9 +155,9 @@ pub mod matrix {
             let mut slice_vec = Vec::new();
 
             for i in range_row {
-              for j in range_column.clone() {
-                slice_vec.push(&self.data[i * self.columns + j]);
-              }
+                for j in range_column.clone() {
+                    slice_vec.push(&self.data[i * self.columns + j]);
+                }
             }
 
             slice_vec
@@ -406,6 +406,16 @@ pub mod matrix {
     mod tests {
         use super::*;
 
+        fn should_panic() {
+            std::panic::set_hook(Box::new(|_info| {
+                // do nothing
+            }));
+
+            let _ = std::panic::catch_unwind(|| {
+                panic!("test panic");
+            });
+        }
+
         mod test_from_array {
             use super::*;
 
@@ -606,14 +616,7 @@ pub mod matrix {
             #[test]
             #[should_panic]
             fn add_panic() {
-                std::panic::set_hook(Box::new(|_info| {
-                    // do nothing
-                }));
-
-                let _ = std::panic::catch_unwind(|| {
-                    panic!("test panic");
-                });
-
+                should_panic();
                 let matrix_a = Matrix::from_array([[1, 2, 3, 4, 5, 11], [6, 7, 8, 9, 10, 11]]);
                 let matrix_b = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
                 &matrix_a + &matrix_b;
@@ -643,14 +646,7 @@ pub mod matrix {
             #[test]
             #[should_panic]
             fn sub_panic() {
-                std::panic::set_hook(Box::new(|_info| {
-                    // do nothing
-                }));
-
-                let _ = std::panic::catch_unwind(|| {
-                    panic!("test panic");
-                });
-
+                should_panic();
                 let matrix_a = Matrix::from_array([[1, 2, 3, 4, 5, 11], [6, 7, 8, 9, 10, 11]]);
                 let matrix_b = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
                 &matrix_a - &matrix_b;
@@ -685,14 +681,7 @@ pub mod matrix {
             #[test]
             #[should_panic]
             fn mul_panic() {
-                std::panic::set_hook(Box::new(|_info| {
-                    // do nothing
-                }));
-
-                let _ = std::panic::catch_unwind(|| {
-                    panic!("test panic");
-                });
-
+                should_panic();
                 let matrix = Matrix::from_array([[1, 2, 3], [4, 5, 6]]);
                 &matrix * &matrix;
             }
