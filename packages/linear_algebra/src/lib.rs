@@ -4,7 +4,7 @@
 pub mod matrix {
     use std::{
         fmt::Debug,
-        ops::{Add, Div, Index, IndexMut, Mul, Neg, Range, Sub},
+        ops::{Add, AddAssign, Div, Index, IndexMut, Mul, MulAssign, Neg, Range, Sub, SubAssign},
         slice::SliceIndex,
     };
 
@@ -135,8 +135,8 @@ pub mod matrix {
             transpose
         }
 
-        // pub fn scalar(&mut self, scalar: f64) {
-        //     for val in self.inner.iter_mut() {
+        // pub fn scalar(&mut self, scalar: Data) {
+        //     for val in self.data.iter_mut() {
         //         *val *= scalar;
         //     }
         // }
@@ -301,6 +301,18 @@ pub mod matrix {
         }
     }
 
+    impl<Data: DataTrait> AddAssign<&Matrix<Data>> for Matrix<Data> {
+        fn add_assign(&mut self, rhs: &Matrix<Data>) {
+            if self.rows != rhs.rows || self.columns != rhs.columns {
+                panic!("Addition cannot be performed on matrices of different dimensions.")
+            }
+
+            for (lhs, rhs) in self.data.iter_mut().zip(rhs.data.iter()) {
+                *lhs = *lhs + *rhs;
+            }
+        }
+    }
+
     impl<Data: DataTrait> Sub for &Matrix<Data> {
         type Output = Matrix<Data>;
 
@@ -316,6 +328,18 @@ pub mod matrix {
             }
 
             sum
+        }
+    }
+
+    impl<Data: DataTrait> SubAssign<&Matrix<Data>> for Matrix<Data> {
+        fn sub_assign(&mut self, rhs: &Matrix<Data>) {
+            if self.rows != rhs.rows || self.columns != rhs.columns {
+                panic!("Subtraction cannot be performed on matrices of different dimensions.")
+            }
+
+            for (lhs, rhs) in self.data.iter_mut().zip(rhs.data.iter()) {
+                *lhs = *lhs - *rhs;
+            }
         }
     }
 
@@ -596,6 +620,15 @@ pub mod matrix {
                 let matrix_b = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
                 &matrix_a + &matrix_b;
             }
+
+            #[test]
+            fn add_assign() {
+                let mut matrix = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+                let matrix_neg = Matrix::from_array([[-1, -2, -3, -4, -5], [-6, -7, -8, -9, -10]]);
+                matrix += &matrix_neg;
+
+                assert!(matrix == Matrix::zeros::<2, 5>());
+            }
         }
 
         mod test_sub {
@@ -623,6 +656,15 @@ pub mod matrix {
                 let matrix_a = Matrix::from_array([[1, 2, 3, 4, 5, 11], [6, 7, 8, 9, 10, 11]]);
                 let matrix_b = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
                 &matrix_a - &matrix_b;
+            }
+
+            #[test]
+            fn sub_assign() {
+                let mut matrix = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+                let matrix_neg = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
+                matrix -= &matrix_neg;
+
+                assert!(matrix == Matrix::zeros::<2, 5>());
             }
         }
 
