@@ -7,6 +7,7 @@ pub trait VertexTrait {
     fn x(&self) -> Self::Output;
     fn y(&self) -> Self::Output;
     fn z(&self) -> Self::Output;
+    fn slice(&self) -> &[Self::Output];
 }
 
 pub trait SurfaceTrait {}
