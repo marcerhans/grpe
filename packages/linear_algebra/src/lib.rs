@@ -113,14 +113,6 @@ pub mod matrix {
             &mut self.data[row * self.columns + column]
         }
 
-        // pub fn slice(&self, row: usize, column: usize) -> &Data {
-        //     todo!()
-        // }
-
-        // pub fn slice_mut(&mut self, row: usize, column: usize) -> &mut Data {
-        //     todo!()
-        // }
-
         pub fn transpose(&self) -> Self {
             let mut transpose = Self {
                 data: vec![Data::zero(); self.rows * self.columns],
