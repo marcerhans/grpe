@@ -9,15 +9,21 @@ pub mod matrix {
     };
 
     pub trait DataTrait:
-        Add + Sub + Mul + Div + PartialEq + Clone + Default + Debug + Sized
+        Add<Output = Self>
+        + Sub<Output = Self>
+        + Mul<Output = Self>
+        + Div<Output = Self>
+        + Neg<Output = Self>
+        + PartialEq
+        + Clone
+        + Copy
+        + Default
+        + Debug
+        + Sized
     {
         fn zero() -> Self;
         fn one() -> Self;
 
-        // TODO: Hmm these are not that great... The whole point of extending Add, div, mul... was to use existing implementations...
-        fn neg(&self) -> Self;
-        fn add(&self, rhs: &Self) -> Self;
-        fn mul(&self, rhs: &Self) -> Self;
         fn eqq(&self, rhs: &Self) -> bool {
             *self == *rhs
         }
@@ -31,18 +37,6 @@ pub mod matrix {
         fn one() -> Self {
             1
         }
-
-        fn neg(&self) -> Self {
-            -self
-        }
-
-        fn add(&self, rhs: &Self) -> Self {
-            self + rhs
-        }
-
-        fn mul(&self, rhs: &Self) -> Self {
-            self * rhs
-        }
     }
 
     impl DataTrait for f64 {
@@ -52,18 +46,6 @@ pub mod matrix {
 
         fn one() -> Self {
             1.0
-        }
-
-        fn neg(&self) -> Self {
-            -self
-        }
-
-        fn add(&self, rhs: &Self) -> Self {
-            self + rhs
-        }
-
-        fn mul(&self, rhs: &Self) -> Self {
-            self * rhs
         }
 
         fn eqq(&self, rhs: &Self) -> bool {
@@ -294,7 +276,7 @@ pub mod matrix {
             let mut neg = self.to_owned();
 
             for index in 0..self.data.len() {
-                neg.data[index] = DataTrait::neg(&self.data[index]);
+                neg.data[index] = -self.data[index];
             }
 
             neg
@@ -312,7 +294,7 @@ pub mod matrix {
             let mut sum = self.to_owned();
 
             for index in 0..self.data.len() {
-                sum.data[index] = DataTrait::add(&self.data[index], &rhs.data[index]);
+                sum.data[index] = self.data[index] + rhs.data[index];
             }
 
             sum
@@ -330,8 +312,7 @@ pub mod matrix {
             let mut sum = self.to_owned();
 
             for index in 0..self.data.len() {
-                sum.data[index] =
-                    DataTrait::add(&self.data[index], &DataTrait::neg(&rhs.data[index]));
+                sum.data[index] = self.data[index] - rhs.data[index];
             }
 
             sum
@@ -355,14 +336,10 @@ pub mod matrix {
             for product_index_row in 0..self.rows {
                 for product_index_column in 0..rhs.columns {
                     for index_column_row in 0..self.columns {
-                        *product.index_mut(product_index_row, product_index_column) =
-                            DataTrait::add(
-                                product.index(product_index_row, product_index_column),
-                                &DataTrait::mul(
-                                    self.index(product_index_row, index_column_row),
-                                    rhs.index(index_column_row, product_index_column),
-                                ),
-                            );
+                        *product.index_mut(product_index_row, product_index_column) = *product
+                            .index(product_index_row, product_index_column)
+                            + (*self.index(product_index_row, index_column_row)
+                                * *rhs.index(index_column_row, product_index_column));
                     }
                 }
             }
@@ -601,7 +578,7 @@ pub mod matrix {
                 let matrix = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
                 let matrix_neg = Matrix::from_array([[-1, -2, -3, -4, -5], [-6, -7, -8, -9, -10]]);
 
-                assert!((&matrix + &matrix_neg) == Matrix::zeros::<2,5>());
+                assert!((&matrix + &matrix_neg) == Matrix::zeros::<2, 5>());
             }
 
             #[test]
@@ -610,7 +587,7 @@ pub mod matrix {
                 std::panic::set_hook(Box::new(|_info| {
                     // do nothing
                 }));
-            
+
                 let _ = std::panic::catch_unwind(|| {
                     panic!("test panic");
                 });
@@ -629,7 +606,7 @@ pub mod matrix {
                 let matrix = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
                 let matrix_neg = Matrix::from_array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]);
 
-                assert!((&matrix - &matrix_neg) == Matrix::zeros::<2,5>());
+                assert!((&matrix - &matrix_neg) == Matrix::zeros::<2, 5>());
             }
 
             #[test]
@@ -638,7 +615,7 @@ pub mod matrix {
                 std::panic::set_hook(Box::new(|_info| {
                     // do nothing
                 }));
-            
+
                 let _ = std::panic::catch_unwind(|| {
                     panic!("test panic");
                 });
@@ -654,9 +631,15 @@ pub mod matrix {
 
             #[test]
             fn mul() {
-                let matrix_a= Matrix::from_array([[1, 2, 3], [4, 5, 6]]);
+                let matrix_a = Matrix::from_array([[1, 2, 3], [4, 5, 6]]);
                 let matrix_b = matrix_a.transpose();
-                assert!((&matrix_a * &matrix_b) == Matrix::from_array([[(1*1 + 2*2 + 3*3), (1*4 + 2*5 + 3*6)],[(4*1 + 5*2 + 6*3), (4*4 + 5*5 + 6*6)]]));
+                assert!(
+                    (&matrix_a * &matrix_b)
+                        == Matrix::from_array([
+                            [(1 * 1 + 2 * 2 + 3 * 3), (1 * 4 + 2 * 5 + 3 * 6)],
+                            [(4 * 1 + 5 * 2 + 6 * 3), (4 * 4 + 5 * 5 + 6 * 6)]
+                        ])
+                );
             }
 
             #[test]
@@ -665,7 +648,7 @@ pub mod matrix {
                 std::panic::set_hook(Box::new(|_info| {
                     // do nothing
                 }));
-            
+
                 let _ = std::panic::catch_unwind(|| {
                     panic!("test panic");
                 });
@@ -724,7 +707,6 @@ pub mod matrix {
 //                 );
 //             }
 //         }
-
 
 // /// TODO:
 // /// Implement a vector type.
