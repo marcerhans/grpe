@@ -287,15 +287,13 @@ pub mod matrix {
         }
     }
 
-    // TODO: FIX LIKE THIS!!!
-    impl<'a, Data: DataTrait> Neg for &'a Matrix<Data> where &'a Data: Neg {
+    impl<Data: DataTrait> Neg for &Matrix<Data> {
         type Output = Matrix<Data>;
 
         fn neg(self) -> Self::Output {
             let mut neg = self.to_owned();
 
             for index in 0..self.data.len() {
-                let what = -&self.data[index];
                 neg.data[index] = DataTrait::neg(&self.data[index]);
             }
 
