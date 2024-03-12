@@ -15,7 +15,7 @@ mod symbol {
 pub struct Renderer;
 
 impl RendererTrait for Renderer {
-    type Vertex = Vertex;
+    type Vertex = Vertex<i64>;
     
     fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn crate::SurfaceTrait {
         todo!()

@@ -17,7 +17,7 @@ pub trait DimensionsTrait {
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
-pub trait RendererBuilderTrait<Data> {
+pub trait RendererBuilderTrait {
     type Dimensions: DimensionsTrait;
     type Camera: VertexTrait;
     type Canvas: SurfaceTrait;
