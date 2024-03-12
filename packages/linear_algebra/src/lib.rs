@@ -14,7 +14,7 @@ pub mod matrix {
         fn zero() -> Self;
         fn one() -> Self;
 
-        // TODO: Hmm these are not that great...
+        // TODO: Hmm these are not that great... The whole point of extending Add, div, mul... was to use existing implementations...
         fn neg(&self) -> Self;
         fn add(&self, rhs: &Self) -> Self;
         fn mul(&self, rhs: &Self) -> Self;
