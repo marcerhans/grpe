@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::RendererTrait;
 
 use super::common::*;
@@ -12,10 +14,12 @@ mod symbol {
     pub static EMPTY: char = ' ';                   //
 }
 
-pub struct Renderer;
+pub struct Renderer<'a, T> {
+    _phantom_data: PhantomData<&'a T>
+}
 
-impl RendererTrait for Renderer {
-    type Vertex = Vertex<i64>;
+impl<'a> RendererTrait for Renderer<'a, i64> {
+    type Vertex = Vertex<'a, i64>;
     
     fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn crate::SurfaceTrait {
         todo!()
