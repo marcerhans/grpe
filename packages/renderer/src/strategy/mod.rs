@@ -3,6 +3,8 @@ pub use terminal as renderer;
 
 /// Common structures and traits.
 pub mod common {
+    use std::marker::PhantomData;
+
     use linear_algebra::matrix::{DataTrait, Matrix};
 
     use crate::{DimensionsTrait, VertexTrait};
@@ -17,10 +19,10 @@ pub mod common {
         }
     }
 
-    pub struct Vertex<Data>(Matrix<Data>);
+    pub struct Vertex<'a, Data: DataTrait>(Matrix<Data>, PhantomData<&'a Data>);
 
-    impl<Data: DataTrait> VertexTrait for Vertex<Data> {
-        type Output = Data;
+    impl<'a, Data: DataTrait> VertexTrait for Vertex<'a, Data> {
+        type Output = &'a Data;
 
         fn x(&self) -> Self::Output {
             self.0.index(0,0)
