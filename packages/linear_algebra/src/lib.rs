@@ -174,9 +174,12 @@ pub mod matrix {
         }
 
         pub fn swap_rows(&mut self, this: usize, that: usize) {
+            let this_row = this * self.columns;
+            let that_row = that * self.columns;
+
             for column in 0..self.columns {
                 self.data
-                    .swap(column + this * self.columns, column + that * self.columns);
+                    .swap(column + this_row, column + that_row);
             }
         }
 
