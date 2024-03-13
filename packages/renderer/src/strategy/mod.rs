@@ -21,7 +21,7 @@ pub mod common {
 
     pub struct Vertex<'a, Data: DataTrait>(Matrix<Data>, PhantomData<&'a Data>);
 
-    impl<'a, Data: DataTrait> VertexTrait for Vertex<'a, Data> {
+    impl<'a, Data: DataTrait> VertexTrait<'a> for Vertex<'a, Data> {
         type Output = &'a Data;
 
         fn x(&self) -> Self::Output {
@@ -34,6 +34,10 @@ pub mod common {
 
         fn z(&self) -> Self::Output {
             self.0.index(0,2)
+        }
+        
+        fn slice(&self) -> &[Self::Output] {
+            todo!()
         }
     }
 }

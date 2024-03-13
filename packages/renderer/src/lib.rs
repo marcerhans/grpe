@@ -1,7 +1,7 @@
 pub mod strategy;
 pub use strategy::renderer;
 
-pub trait VertexTrait {
+pub trait VertexTrait<'a> {
     type Output;
 
     fn x(&self) -> Self::Output;
@@ -18,11 +18,11 @@ pub trait DimensionsTrait {
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
-pub trait RendererBuilderTrait {
+pub trait RendererBuilderTrait<'a> {
     type Dimensions: DimensionsTrait;
-    type Camera: VertexTrait;
+    type Camera: VertexTrait<'a>;
     type Canvas: SurfaceTrait;
-    type Renderer: RendererTrait;
+    type Renderer: RendererTrait<'a>;
 
     fn new() -> Self;
     fn dimensions(self, dimensions: Self::Dimensions) -> Self;
@@ -32,8 +32,8 @@ pub trait RendererBuilderTrait {
 }
 
 /// [RendererTrait] for rendering to display.
-pub trait RendererTrait {
-    type Vertex: VertexTrait;
+pub trait RendererTrait<'a> {
+    type Vertex: VertexTrait<'a>;
 
     /// Project vertices on to a [SurfaceTrait].
     fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
