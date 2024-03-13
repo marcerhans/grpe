@@ -29,6 +29,10 @@ impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a, f64> {
     fn new() -> Self {
         todo!()
     }
+
+    fn default() -> Self {
+        todo!()
+    }
     
     fn with_dimensions(self, dimensions: Self::Dimensions) -> Self {
         todo!()
