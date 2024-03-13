@@ -2,13 +2,14 @@ pub mod strategy;
 pub use strategy::renderer;
 
 pub trait VertexTrait<'a> {
-    type Output;
-    type OutputRef;
+    type Data;
+    type DataRef;
 
-    fn x(&self) -> Self::OutputRef;
-    fn y(&self) -> Self::OutputRef;
-    fn z(&self) -> Self::OutputRef;
-    fn slice(&self) -> &[Self::Output];
+    fn new(data: [Self::Data; 3]) -> Self;
+    fn x(&self) -> Self::DataRef;
+    fn y(&self) -> Self::DataRef;
+    fn z(&self) -> Self::DataRef;
+    fn slice(&self) -> &[Self::Data];
 }
 
 pub trait SurfaceTrait {}
