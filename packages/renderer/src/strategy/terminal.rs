@@ -18,8 +18,8 @@ pub struct Renderer<'a, T> {
     _phantom_data: PhantomData<&'a T>
 }
 
-impl<'a> RendererTrait for Renderer<'a, i64> {
-    type Vertex = Vertex<'a, i64>;
+impl<'a> RendererTrait<'a> for Renderer<'a, i64> {
+    type Vertex = Vertex<'a, f64>;
     
     fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn crate::SurfaceTrait {
         todo!()
