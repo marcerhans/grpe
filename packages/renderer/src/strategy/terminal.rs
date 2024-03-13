@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::RendererTrait;
+use crate::{RendererBuilderTrait, RendererTrait, SurfaceTrait};
 
 use super::common::*;
 
@@ -12,6 +12,39 @@ mod character {
     pub static LOWER: char = '\u{2584}';            // ▄
     pub static FULL: char = '\u{2588}';             // █
     pub static EMPTY: char = ' ';                   //
+}
+
+pub struct TerminalBuilder<'a, T>(PhantomData<&'a T>);
+
+impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a, f64> {
+    type Dimensions = (usize, usize);
+    type Camera = Vertex<'a, f64>;
+    type Canvas;
+    type Renderer = Terminal<'a, f64>;
+
+    fn man() -> &'static str {
+        todo!()
+    }
+
+    fn new() -> Self {
+        todo!()
+    }
+
+    fn dimensions(self, dimensions: Self::Dimensions) -> Self {
+        todo!()
+    }
+
+    fn camera(self, camera: Self::Camera) -> Self {
+        todo!()
+    }
+
+    fn canvas(self, canvas: Self::Canvas) -> Self {
+        todo!()
+    }
+
+    fn build(self) -> Self::Renderer {
+        todo!()
+    }
 }
 
 pub struct Terminal<'a, T> {
@@ -33,7 +66,7 @@ impl<'a, T> Terminal<'a, T> {
     }
 }
 
-impl<'a> RendererTrait<'a> for Terminal<'a, i64> {
+impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
     type Vertex = Vertex<'a, f64>;
     
     fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn crate::SurfaceTrait {

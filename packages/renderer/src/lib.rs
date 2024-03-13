@@ -1,22 +1,12 @@
+/// TODO: Currently (mostly) focuses on f64, and not general data types.
+
 pub mod strategy;
-pub use strategy::renderer;
+pub use strategy::{renderer, common::*};
 
-pub trait VertexTrait<'a> {
-    type Data;
-    type DataRef;
-
-    fn new(data: [Self::Data; 3]) -> Self;
-    fn x(&'a self) -> Self::DataRef;
-    fn y(&'a self) -> Self::DataRef;
-    fn z(&'a self) -> Self::DataRef;
-    fn slice(&'a self) -> &[Self::Data];
-}
-
-pub trait SurfaceTrait {}
-
-pub trait DimensionsTrait {
-    fn width(&self) -> usize;
-    fn height(&self) -> usize;
+pub struct RendererConfiguration<'a> {
+    dimensions: (usize, usize),
+    camera: Camera<'a, f64>,
+    canvas: Canvas<'a, f64>,
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
@@ -26,16 +16,33 @@ pub trait RendererBuilderTrait<'a> {
     type Canvas: SurfaceTrait;
     type Renderer: RendererTrait<'a>;
 
+    /// In order to instantiate this type, since the implementation may vary for different renderers,
+    /// the implementation should provide a 'man' (manual/info) string for what info is needed to 
+    /// initialize it.
+    fn man() -> &'static str;
+
+    /// Create new instance of the [RendererBuilderTrait].
     fn new() -> Self;
-    fn dimensions(self, dimensions: Self::Dimensions) -> Self;
-    fn camera(self, camera: Self::Camera) -> Self;
-    fn canvas(self, canvas: Self::Canvas) -> Self;
+
+    fn with_dimensions(self, dimensions: Self::Dimensions) -> Self;
+    fn with_camera(self, camera: Self::Camera) -> Self;
+    fn with_canvas(self, canvas: Self::Canvas) -> Self;
+    fn with_config(self, config: RendererConfiguration) -> Self;
+
+    /// Build an instance of [RendererTrait].
     fn build(self) -> Self::Renderer;
 }
 
 /// [RendererTrait] for rendering to display on some [SurfaceTrait].
 pub trait RendererTrait<'a> {
     type Vertex: VertexTrait<'a>;
+
+    /// Get [RendererConfiguration].
+    fn config(&self) -> RendererConfiguration;
+
+    /// Set a new config ([RendererConfiguration]) for the [RendererTrait].
+    /// Returns [Result::Ok] if configuration is valid for current renderer.
+    fn set_config(&self) -> Result<(), ()>;
 
     /// Project vertices on to a [SurfaceTrait].
     fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
