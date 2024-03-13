@@ -31,7 +31,7 @@ pub trait RendererBuilderTrait<'a> {
     /// Build an instance of [RendererTrait].
     fn build(self) -> Self::Renderer;
 
-    /// Build an instance of [RenderTrait] using an existing [RendererConfiguration].
+    /// Build an instance of [RendererTrait] using an existing [RendererConfiguration].
     fn build_with_config(self, config: RendererConfiguration) -> Self::Renderer;
 }
 
@@ -43,6 +43,7 @@ pub trait RendererTrait<'a> {
     fn config(&self) -> RendererConfiguration;
 
     /// Set a new config ([RendererConfiguration]) for the [RendererTrait].
+    /// Useful if the dimensions of the [Canvas] changes in size, for example.
     /// Returns [Result::Ok] if configuration is valid for current renderer.
     fn set_config(&self) -> Result<(), ()>;
 
