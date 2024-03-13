@@ -27,10 +27,12 @@ pub trait RendererBuilderTrait<'a> {
     fn with_dimensions(self, dimensions: Self::Dimensions) -> Self;
     fn with_camera(self, camera: Self::Camera) -> Self;
     fn with_canvas(self, canvas: Self::Canvas) -> Self;
-    fn with_config(self, config: RendererConfiguration) -> Self;
 
     /// Build an instance of [RendererTrait].
     fn build(self) -> Self::Renderer;
+
+    /// Build an instance of [RenderTrait] using an existing [RendererConfiguration].
+    fn build_with_config(self, config: RendererConfiguration) -> Self::Renderer;
 }
 
 /// [RendererTrait] for rendering to display on some [SurfaceTrait].
