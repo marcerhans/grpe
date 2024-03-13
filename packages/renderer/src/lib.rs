@@ -6,10 +6,10 @@ pub trait VertexTrait<'a> {
     type DataRef;
 
     fn new(data: [Self::Data; 3]) -> Self;
-    fn x(&self) -> Self::DataRef;
-    fn y(&self) -> Self::DataRef;
-    fn z(&self) -> Self::DataRef;
-    fn slice(&self) -> &[Self::Data];
+    fn x(&'a self) -> Self::DataRef;
+    fn y(&'a self) -> Self::DataRef;
+    fn z(&'a self) -> Self::DataRef;
+    fn slice(&'a self) -> &[Self::Data];
 }
 
 pub trait SurfaceTrait {}

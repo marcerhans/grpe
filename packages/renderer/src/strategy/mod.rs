@@ -32,19 +32,19 @@ pub mod common {
             )
         }
 
-        fn x(&self) -> Self::DataRef {
+        fn x(&'a self) -> Self::DataRef {
             self.0.index(0, 0)
         }
 
-        fn y(&self) -> Self::DataRef {
+        fn y(&'a self) -> Self::DataRef {
             self.0.index(0, 1)
         }
 
-        fn z(&self) -> Self::DataRef {
+        fn z(&'a self) -> Self::DataRef {
             self.0.index(0, 2)
         }
 
-        fn slice(&self) -> &[Self::Data] {
+        fn slice(&'a self) -> &[Self::Data] {
             &self.0.data()
         }
     }
