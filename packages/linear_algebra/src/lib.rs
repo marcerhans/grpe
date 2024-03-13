@@ -24,6 +24,7 @@ pub mod matrix {
         fn zero() -> Self;
         fn one() -> Self;
 
+        /// Needed sine some types (like [f64]) do not implement the [Eq] trait.
         fn eqq(&self, rhs: &Self) -> bool {
             *self == *rhs
         }
