@@ -22,22 +22,23 @@ pub mod common {
     pub struct Vertex<'a, Data: DataTrait>(Matrix<Data>, PhantomData<&'a Data>);
 
     impl<'a, Data: DataTrait> VertexTrait<'a> for Vertex<'a, Data> {
-        type Output = &'a Data;
+        type Output = Data;
+        type OutputRef = &'a Data;
 
-        fn x(&self) -> Self::Output {
+        fn x(&self) -> Self::OutputRef {
             self.0.index(0, 0)
         }
 
-        fn y(&self) -> Self::Output {
+        fn y(&self) -> Self::OutputRef {
             self.0.index(0, 1)
         }
 
-        fn z(&self) -> Self::Output {
+        fn z(&self) -> Self::OutputRef {
             self.0.index(0, 2)
         }
 
         fn slice(&self) -> &[Self::Output] {
-            todo!()
+            &self.0.data()
         }
     }
 }

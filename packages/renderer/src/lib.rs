@@ -3,10 +3,11 @@ pub use strategy::renderer;
 
 pub trait VertexTrait<'a> {
     type Output;
+    type OutputRef;
 
-    fn x(&self) -> Self::Output;
-    fn y(&self) -> Self::Output;
-    fn z(&self) -> Self::Output;
+    fn x(&self) -> Self::OutputRef;
+    fn y(&self) -> Self::OutputRef;
+    fn z(&self) -> Self::OutputRef;
     fn slice(&self) -> &[Self::Output];
 }
 
