@@ -35,6 +35,7 @@ impl<'a, T> Terminal<'a, T> {
 impl<'a> RendererTrait<'a> for Terminal<'a, i64> {
     type Vertex = Vertex<'a, f64>;
     
+    
     fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn crate::SurfaceTrait {
         todo!()
     }
