@@ -19,7 +19,6 @@ pub mod common {
         fn slice(&'a self) -> &[Self::Data];
     }
     pub struct Vertex<'a, Data: DataTrait>(Matrix<Data>, PhantomData<&'a Data>);
-    pub type Camera<'a, Data: DataTrait> = Vertex<'a, Data>;
 
     impl<'a, Data: DataTrait> VertexTrait<'a> for Vertex<'a, Data> {
         type Data = Data;
@@ -49,7 +48,6 @@ pub mod common {
     pub trait SurfaceTrait {}
 
     pub struct Surface<'a, Data: DataTrait>(Matrix<Data>, PhantomData<&'a Data>);
-    pub type Canvas<'a, Data: DataTrait> = Surface<'a, Data>;
 
     impl<'a, Data: DataTrait> SurfaceTrait for Surface<'a, Data> {}
 

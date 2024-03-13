@@ -5,8 +5,8 @@ pub use strategy::{renderer, common::*};
 
 pub struct RendererConfiguration<'a> {
     dimensions: (usize, usize),
-    camera: Camera<'a, f64>,
-    canvas: Canvas<'a, f64>,
+    camera: Vertex<'a, f64>,
+    canvas: Surface<'a, f64>,
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
