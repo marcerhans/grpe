@@ -18,7 +18,8 @@ pub struct Terminal<'a, T> {
     _phantom_data: PhantomData<&'a T>
 }
 
-/// In order to achieve evenly sized 'pixels', the terminal is designed to use special
+/// A terminals blocks are usually not square, but rectangular. In order to achieve 
+/// evenly sized blocks, the terminal is designed to use special
 /// block characters (see [character]). This introduces some extra complexity, but the
 /// result with be worth it. Otherwise, the final image would be quite oblong. 
 impl<'a, T> Terminal<'a, T> {
