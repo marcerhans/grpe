@@ -33,7 +33,7 @@ pub trait RendererBuilderTrait<'a> {
     fn build(self) -> Self::Renderer;
 }
 
-/// [RendererTrait] for rendering to display.
+/// [RendererTrait] for rendering to display on some [SurfaceTrait].
 pub trait RendererTrait<'a> {
     type Vertex: VertexTrait<'a>;
 
@@ -43,7 +43,7 @@ pub trait RendererTrait<'a> {
     /// Rasterize [RendererTrait::project]ed vertices.
     fn rasterize(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
 
-    /// Do all steps needed, in correct order, to produce a fully rendered image.
+    /// Do all steps needed, in correct order, to produce a fully rendered image on some [SurfaceTrait].
     fn run_pipeline(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) {
         self.project(vertices);
         self.rasterize(vertices);
