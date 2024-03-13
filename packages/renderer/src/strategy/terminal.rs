@@ -19,32 +19,37 @@ pub struct TerminalBuilder<'a, Data>(PhantomData<&'a Data>);
 impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a, f64> {
     type Dimensions = (usize, usize);
     type Camera = Vertex<'a, f64>;
-    type Canvas;
+    type Canvas = Surface<'a, f64>;
     type Renderer = Terminal<'a, f64>;
-
+    
     fn man() -> &'static str {
         todo!()
     }
-
+    
     fn new() -> Self {
         todo!()
     }
-
-    fn dimensions(self, dimensions: Self::Dimensions) -> Self {
+    
+    fn with_dimensions(self, dimensions: Self::Dimensions) -> Self {
         todo!()
     }
-
-    fn camera(self, camera: Self::Camera) -> Self {
+    
+    fn with_camera(self, camera: Self::Camera) -> Self {
         todo!()
     }
-
-    fn canvas(self, canvas: Self::Canvas) -> Self {
+    
+    fn with_canvas(self, canvas: Self::Canvas) -> Self {
         todo!()
     }
-
+    
     fn build(self) -> Self::Renderer {
         todo!()
     }
+    
+    fn build_with_config(self, config: crate::RendererConfiguration) -> Self::Renderer {
+        todo!()
+    }
+
 }
 
 pub struct Terminal<'a, T> {
@@ -69,11 +74,19 @@ impl<'a, T> Terminal<'a, T> {
 impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
     type Vertex = Vertex<'a, f64>;
     
-    fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn crate::SurfaceTrait {
+    fn config(&self) -> crate::RendererConfiguration {
         todo!()
     }
     
-    fn rasterize(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn crate::SurfaceTrait {
+    fn set_config(&self) -> Result<(), ()> {
+        todo!()
+    }
+    
+    fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait {
+        todo!()
+    }
+    
+    fn rasterize(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait {
         todo!()
     }
 }
