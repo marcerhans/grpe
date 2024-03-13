@@ -25,17 +25,17 @@ pub mod common {
         type Output = &'a Data;
 
         fn x(&self) -> Self::Output {
-            self.0.index(0,0)
+            self.0.index(0, 0)
         }
 
         fn y(&self) -> Self::Output {
-            self.0.index(0,1)
+            self.0.index(0, 1)
         }
 
         fn z(&self) -> Self::Output {
-            self.0.index(0,2)
+            self.0.index(0, 2)
         }
-        
+
         fn slice(&self) -> &[Self::Output] {
             todo!()
         }
