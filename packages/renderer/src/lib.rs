@@ -3,6 +3,8 @@
 pub mod strategy;
 pub use strategy::{renderer, common::*};
 
+
+#[derive(Default)]
 pub struct RendererConfiguration<'a> {
     dimensions: (usize, usize),
     camera: Vertex<'a, f64>,
@@ -23,6 +25,9 @@ pub trait RendererBuilderTrait<'a> {
 
     /// Create new instance of the [RendererBuilderTrait].
     fn new() -> Self;
+
+    /// Create new instance of the [RendererBuilderTrait] with default values for each parameter.
+    fn default() -> Self;
 
     fn with_dimensions(self, dimensions: Self::Dimensions) -> Self;
     fn with_camera(self, camera: Self::Camera) -> Self;

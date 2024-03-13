@@ -54,7 +54,7 @@ pub mod matrix {
         }
     }
 
-    #[derive(Clone)]
+    #[derive(Default, Clone)]
     pub struct Matrix<Data: DataTrait> {
         data: Vec<Data>,
         rows: usize,

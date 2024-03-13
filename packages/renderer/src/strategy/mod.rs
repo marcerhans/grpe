@@ -18,6 +18,8 @@ pub mod common {
         fn z(&'a self) -> Self::DataRef;
         fn slice(&'a self) -> &[Self::Data];
     }
+
+    #[derive(Default)]
     pub struct Vertex<'a, Data: DataTrait>(Matrix<Data>, PhantomData<&'a Data>);
 
     impl<'a, Data: DataTrait> VertexTrait<'a> for Vertex<'a, Data> {
@@ -47,6 +49,7 @@ pub mod common {
 
     pub trait SurfaceTrait {}
 
+    #[derive(Default)]
     pub struct Surface<'a, Data: DataTrait>(Matrix<Data>, PhantomData<&'a Data>);
 
     impl<'a, Data: DataTrait> SurfaceTrait for Surface<'a, Data> {}
