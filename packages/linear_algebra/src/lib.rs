@@ -174,22 +174,16 @@ pub mod matrix {
         }
 
         pub fn swap_rows(&mut self, this: usize, that: usize) {
-            let mut buf;
-
             for column in 0..self.columns {
-                buf = self.index(this, column).clone();
-                *self.index_mut(this, column) = *self.index(that, column);
-                *self.index_mut(that, column) = buf;
+                self.data
+                    .swap(column + this * self.columns, column + that * self.columns);
             }
         }
 
         pub fn swap_columns(&mut self, this: usize, that: usize) {
-            let mut buf;
-
             for row in 0..self.rows {
-                buf = self.index(row, this).clone();
-                *self.index_mut(row, this) = *self.index(row, that);
-                *self.index_mut(row, that) = buf;
+                let row = row * self.columns;
+                self.data.swap(row + this, row + that);
             }
         }
 
@@ -607,7 +601,7 @@ pub mod matrix {
                     [9, 10, 11, 12],
                     [13, 14, 15, 16],
                 ]);
-                let check = Matrix::from_array([
+                let expected = Matrix::from_array([
                     [1, 2, 3, 4],
                     [9, 10, 11, 12],
                     [5, 6, 7, 8],
@@ -616,7 +610,10 @@ pub mod matrix {
 
                 matrix.swap_rows(1, 2);
 
-                assert!(matrix == check);
+                assert!(
+                    matrix == expected,
+                    "Expected: {expected:?}\nActual: {matrix:?}"
+                );
             }
 
             #[test]
@@ -627,7 +624,7 @@ pub mod matrix {
                     [9, 10, 11, 12],
                     [13, 14, 15, 16],
                 ]);
-                let check = Matrix::from_array([
+                let expected = Matrix::from_array([
                     [1, 3, 2, 4],
                     [5, 7, 6, 8],
                     [9, 11, 10, 12],
@@ -636,7 +633,10 @@ pub mod matrix {
 
                 matrix.swap_columns(1, 2);
 
-                assert!(matrix == check);
+                assert!(
+                    matrix == expected,
+                    "Expected: {expected:?}\nActual: {matrix:?}"
+                );
             }
         }
 
@@ -826,7 +826,9 @@ pub mod utility {
     /// Only solves n by n+1 matrices.
     ///
     /// Note: This probably currently only works with floating point data types.
-    pub fn gauss_elimination<Data: DataTrait>(mut matrix: &mut matrix::Matrix<Data>) -> Option<matrix::Matrix<Data>> {
+    pub fn gauss_elimination<Data: DataTrait>(
+        mut matrix: &mut matrix::Matrix<Data>,
+    ) -> Option<matrix::Matrix<Data>> {
         enum Direction {
             Down,
             Up,
@@ -848,7 +850,11 @@ pub mod utility {
         }
 
         /// Normalize the row for a given pivot coordinate.
-        fn normalize_row<Data: DataTrait>(matrix: &mut matrix::Matrix<Data>, row: usize, divisor_column: usize) {
+        fn normalize_row<Data: DataTrait>(
+            matrix: &mut matrix::Matrix<Data>,
+            row: usize,
+            divisor_column: usize,
+        ) {
             let divisor = matrix.index(row, divisor_column).clone();
 
             for column in 0..matrix.columns() {
@@ -875,7 +881,7 @@ pub mod utility {
 
                         for column in 0..matrix.columns() {
                             let tmp = matrix.index(pivot_row, column).clone();
-                            *matrix.index_mut(row, column) -=  tmp * pivot_factor;
+                            *matrix.index_mut(row, column) -= tmp * pivot_factor;
                         }
                     }
                 }
@@ -932,35 +938,35 @@ pub mod utility {
         None
     }
 
-//     pub fn rotate_x(matrix: &matrix::Matrix, radians: f64) -> matrix::Matrix {
-//         let rotation_matrix = matrix::macros::matrix![
-//             [1.0, 0.0, 0.0],
-//             [0.0, radians.cos(), -radians.sin()],
-//             [0.0, radians.sin(), radians.cos()],
-//         ];
+    //     pub fn rotate_x(matrix: &matrix::Matrix, radians: f64) -> matrix::Matrix {
+    //         let rotation_matrix = matrix::macros::matrix![
+    //             [1.0, 0.0, 0.0],
+    //             [0.0, radians.cos(), -radians.sin()],
+    //             [0.0, radians.sin(), radians.cos()],
+    //         ];
 
-//         matrix * &rotation_matrix
-//     }
+    //         matrix * &rotation_matrix
+    //     }
 
-//     pub fn rotate_y(matrix: &matrix::Matrix, radians: f64) -> matrix::Matrix {
-//         let rotation_matrix = matrix::macros::matrix![
-//             [radians.cos(), 0.0, radians.sin()],
-//             [0.0, 1.0, 0.0],
-//             [-radians.sin(), 0.0, radians.cos()],
-//         ];
+    //     pub fn rotate_y(matrix: &matrix::Matrix, radians: f64) -> matrix::Matrix {
+    //         let rotation_matrix = matrix::macros::matrix![
+    //             [radians.cos(), 0.0, radians.sin()],
+    //             [0.0, 1.0, 0.0],
+    //             [-radians.sin(), 0.0, radians.cos()],
+    //         ];
 
-//         matrix * &rotation_matrix
-//     }
+    //         matrix * &rotation_matrix
+    //     }
 
-//     pub fn rotate_z(matrix: &matrix::Matrix, radians: f64) -> matrix::Matrix {
-//         let rotation_matrix = matrix::macros::matrix![
-//             [radians.cos(), -radians.sin(), 0.0],
-//             [radians.sin(), radians.cos(), 0.0],
-//             [0.0, 0.0, 1.0],
-//         ];
+    //     pub fn rotate_z(matrix: &matrix::Matrix, radians: f64) -> matrix::Matrix {
+    //         let rotation_matrix = matrix::macros::matrix![
+    //             [radians.cos(), -radians.sin(), 0.0],
+    //             [radians.sin(), radians.cos(), 0.0],
+    //             [0.0, 0.0, 1.0],
+    //         ];
 
-//         matrix * &rotation_matrix
-//     }
+    //         matrix * &rotation_matrix
+    //     }
 
     #[cfg(test)]
     mod tests {
@@ -1047,7 +1053,10 @@ pub mod utility {
                 check(matrix, expected);
             }
 
-            fn check<Data: DataTrait>(matrix: matrix::Matrix<Data>, expected: matrix::Matrix<Data>) {
+            fn check<Data: DataTrait>(
+                matrix: matrix::Matrix<Data>,
+                expected: matrix::Matrix<Data>,
+            ) {
                 assert!(matrix == expected);
             }
         }
