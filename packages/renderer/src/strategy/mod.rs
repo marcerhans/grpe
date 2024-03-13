@@ -48,10 +48,10 @@ pub mod common {
 
     pub trait SurfaceTrait {}
 
-    pub struct Surface<'a, T: DataTrait>(Matrix<T>, PhantomData<&'a T>);
-    pub type Canvas<'a, T: DataTrait> = Surface<'a, T>;
+    pub struct Surface<'a, Data: DataTrait>(Matrix<Data>, PhantomData<&'a Data>);
+    pub type Canvas<'a, Data: DataTrait> = Surface<'a, Data>;
 
-    impl<'a, T: DataTrait> SurfaceTrait for Surface<'a, T> {}
+    impl<'a, Data: DataTrait> SurfaceTrait for Surface<'a, Data> {}
 
     pub trait DimensionsTrait {
         fn width(&self) -> usize;

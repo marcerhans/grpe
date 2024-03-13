@@ -14,7 +14,7 @@ mod character {
     pub static EMPTY: char = ' ';                   //
 }
 
-pub struct TerminalBuilder<'a, T>(PhantomData<&'a T>);
+pub struct TerminalBuilder<'a, Data>(PhantomData<&'a Data>);
 
 impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a, f64> {
     type Dimensions = (usize, usize);
