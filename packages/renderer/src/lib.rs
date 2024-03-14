@@ -54,14 +54,14 @@ pub trait RendererTrait<'a> {
     fn set_config(&mut self, config: RendererConfiguration<'a>) -> Result<(), ()>;
 
     /// Project vertices on to a [SurfaceTrait].
-    fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
+    fn project_on_canvas(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
 
     /// Rasterize [RendererTrait::project]ed vertices.
     fn rasterize(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
 
     /// Do all steps needed, in correct order, to produce a fully rendered image on some [SurfaceTrait].
     fn run_pipeline(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) {
-        self.project(vertices);
+        self.project_on_canvas(vertices);
         self.rasterize(vertices);
     }
 }

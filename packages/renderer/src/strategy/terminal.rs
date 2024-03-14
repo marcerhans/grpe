@@ -52,6 +52,7 @@ impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a> {
         Self::Renderer {
             config: self.config,
             buffer: Matrix::zeros_dyn(dim.width(), dim.height()),
+            center_offset: (dim.0 / 2, dim.1 / 2),
         }
     }
 
@@ -60,6 +61,7 @@ impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a> {
         Self::Renderer {
             config: config,
             buffer: Matrix::zeros_dyn(dim.width(), dim.height()),
+            center_offset: (dim.0 / 2, dim.1 / 2),
         }
     }
 }
@@ -67,6 +69,7 @@ impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a> {
 pub struct Terminal<'a, Data: DataTrait> {
     config: RendererConfiguration<'a>,
     buffer: Matrix<Data>,
+    center_offset: (usize, usize),
 }
 
 /// A terminals blocks are usually not square, but rectangular. In order to achieve
@@ -82,6 +85,16 @@ impl<'a, Data: DataTrait> Terminal<'a, Data> {
 
         character::LOWER
     }
+
+    /// Clear previously rendered frame.
+    fn clear(&self) {
+
+    }
+
+    /// Render to stdout.
+    fn render(&self) {
+
+    }
 }
 
 impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
@@ -96,7 +109,7 @@ impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
         Ok(())
     }
 
-    fn project(
+    fn project_on_canvas(
         &self,
         vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)],
     ) -> &dyn SurfaceTrait {
@@ -119,9 +132,14 @@ mod tests {
     fn main() {
         let renderer = TerminalBuilder::default().build();
 
-        loop {
-            // let points = 
-            // renderer.run_pipeline();
-        }
+        let vertex_triples = vec![
+            [
+                Vertex::new([0, 0, 0]),
+                Vertex::new([4, 0, 0]),
+                Vertex::new([4, 4, 0]),
+            ],
+            // [Vertex::new([]), Vertex::new([]), Vertex::new([])],
+        ];
+        // renderer.run_pipeline();
     }
 }

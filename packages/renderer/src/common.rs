@@ -3,42 +3,48 @@ use std::marker::PhantomData;
 
 use linear_algebra::matrix::{DataTrait, Matrix};
 
-pub trait VertexTrait<'a> {
+pub trait VertexTrait {
     type Data;
-    type DataRef;
 
     fn new(data: [Self::Data; 3]) -> Self;
-    fn x(&'a self) -> Self::DataRef;
-    fn y(&'a self) -> Self::DataRef;
-    fn z(&'a self) -> Self::DataRef;
-    fn slice(&'a self) -> &[Self::Data];
+    fn x(&self) -> &Self::Data;
+    fn y(&self) -> &Self::Data;
+    fn z(&self) -> &Self::Data;
+    fn slice(&self) -> &[Self::Data];
 }
 
 #[derive(Default, Clone)]
-pub struct Vertex<'a, Data: DataTrait>(PhantomData<&'a Data>, Matrix<Data>);
+pub struct Vertex<Data: DataTrait>(Matrix<Data>);
 
-impl<'a, Data: DataTrait> VertexTrait<'a> for Vertex<'a, Data> {
+impl<Data: DataTrait> VertexTrait for Vertex<Data> {
     type Data = Data;
-    type DataRef = &'a Data;
 
     fn new(data: [Self::Data; 3]) -> Self {
-        Self(PhantomData, Matrix::from_array([data; 1]))
+        Self(Matrix::from_array([data; 1]))
     }
 
-    fn x(&'a self) -> Self::DataRef {
+    fn x(&self) -> &Self::Data {
         self.1.index(0, 0)
     }
 
-    fn y(&'a self) -> Self::DataRef {
+    fn y(&self) -> &Self::Data {
         self.1.index(0, 1)
     }
 
-    fn z(&'a self) -> Self::DataRef {
+    fn z(&self) -> &Self::Data {
         self.1.index(0, 2)
     }
 
-    fn slice(&'a self) -> &[Self::Data] {
+    fn slice(&self) -> &[Self::Data] {
         &self.1.data()
+    }
+}
+
+impl<Data: DataTrait> Into<Matrix<Data>> for Vertex<Data> {
+    fn into(self) -> Matrix<Data> {
+        Matrix::from_array([
+            [*self.x(), *self.y(), *self.z()]
+        ])
     }
 }
 
