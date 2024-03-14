@@ -6,7 +6,7 @@ pub use strategy::renderer;
 pub mod common;
 pub use common::*;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct RendererConfiguration<'a> {
     dimensions: (usize, usize),
     camera: Vertex<'a, f64>,
@@ -46,12 +46,12 @@ pub trait RendererTrait<'a> {
     type Vertex: VertexTrait<'a>;
 
     /// Get [RendererConfiguration].
-    fn config(&self) -> RendererConfiguration;
+    fn config(&self) -> RendererConfiguration<'a>;
 
     /// Set a new config ([RendererConfiguration]) for the [RendererTrait].
     /// Useful if the dimensions of the canvas ([Surface]) changes in size, for example.
     /// Returns [Result::Ok] if configuration is valid for current renderer.
-    fn set_config(&self) -> Result<(), ()>;
+    fn set_config(&mut self, config: RendererConfiguration<'a>) -> Result<(), ()>;
 
     /// Project vertices on to a [SurfaceTrait].
     fn project(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;

@@ -89,12 +89,13 @@ impl<'a, Data: DataTrait> Terminal<'a, Data> {
 impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
     type Vertex = Vertex<'a, f64>;
 
-    fn config(&self) -> crate::RendererConfiguration {
-        todo!()
+    fn config(&self) -> crate::RendererConfiguration<'a> {
+        self.config.clone()
     }
 
-    fn set_config(&self) -> Result<(), ()> {
-        todo!()
+    fn set_config(&mut self, config: RendererConfiguration<'a>) -> Result<(), ()> {
+        self.config = config;
+        Ok(())
     }
 
     fn project(

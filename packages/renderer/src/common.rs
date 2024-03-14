@@ -14,7 +14,7 @@ pub trait VertexTrait<'a> {
     fn slice(&'a self) -> &[Self::Data];
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Vertex<'a, Data: DataTrait>(PhantomData<&'a Data>, Matrix<Data>);
 
 impl<'a, Data: DataTrait> VertexTrait<'a> for Vertex<'a, Data> {
@@ -44,7 +44,7 @@ impl<'a, Data: DataTrait> VertexTrait<'a> for Vertex<'a, Data> {
 
 pub trait SurfaceTrait {}
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Surface<'a, Data: DataTrait>(PhantomData<&'a Data>, Matrix<Data>);
 
 impl<'a, Data: DataTrait> SurfaceTrait for Surface<'a, Data> {}
