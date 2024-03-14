@@ -10,7 +10,9 @@ pub trait VertexTrait {
     fn x(&self) -> &Self::Data;
     fn y(&self) -> &Self::Data;
     fn z(&self) -> &Self::Data;
-    fn slice(&self) -> &[Self::Data];
+    fn x_mut(&mut self) -> &mut Self::Data;
+    fn y_mut(&mut self) -> &mut Self::Data;
+    fn z_mut(&mut self) -> &mut Self::Data;
 }
 
 #[derive(Default, Clone)]
@@ -35,8 +37,16 @@ impl<Data: DataTrait> VertexTrait for Vertex<Data> {
         self.0.index(0, 2)
     }
 
-    fn slice(&self) -> &[Self::Data] {
-        &self.0.data()
+    fn x_mut(&mut self) -> &mut Self::Data {
+        self.0.index_mut(0, 0)
+    }
+
+    fn y_mut(&mut self) -> &mut Self::Data {
+        self.0.index_mut(0, 1)
+    }
+
+    fn z_mut(&mut self) -> &mut Self::Data {
+        self.0.index_mut(0, 2)
     }
 }
 

@@ -76,7 +76,7 @@ pub struct Terminal<'a, Data: DataTrait> {
 /// evenly sized blocks, the terminal is designed to use special
 /// block characters (see [character]). This introduces some extra complexity, but the
 /// result with be worth it. Otherwise, the final image would be quite oblong.
-impl<'a, Data: DataTrait> Terminal<'a, Data> {
+impl<'a> Terminal<'a, f64> {
     /// Get appropriate character to use for given vertical position.
     fn character_at(y: usize) -> char {
         if y % 2 == 0 {
@@ -86,7 +86,12 @@ impl<'a, Data: DataTrait> Terminal<'a, Data> {
         character::LOWER
     }
 
-    // fn adjust_points(points: &[(Vertex<)])
+    fn adjust_points(&self, points: &mut [(Vertex<f64>, Vertex<f64>, Vertex<f64>)]) {
+        for (ref mut a, ref mut b, ref mut _c) in points.iter_mut() {
+            *a.x_mut() -= self.center_offset.0 as f64;
+            *b.x_mut() -= self.center_offset.0 as f64;
+        }
+    }
 
     /// Clear previously rendered frame.
     fn clear(&self) {
