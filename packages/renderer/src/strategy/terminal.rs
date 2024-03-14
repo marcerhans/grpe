@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use linear_algebra::matrix::{DataTrait, Matrix};
 
 use crate::{common::*, RendererBuilderTrait, RendererConfiguration, RendererTrait, SurfaceTrait};
@@ -110,5 +108,20 @@ impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
         vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)],
     ) -> &dyn SurfaceTrait {
         todo!()
+    }
+}
+
+/// These tests are not that thorough, just helpful testing/probing during development.
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn main() {
+        let renderer = TerminalBuilder::default().build();
+
+        loop {
+            // let points = 
+            // renderer.run_pipeline();
+        }
     }
 }
