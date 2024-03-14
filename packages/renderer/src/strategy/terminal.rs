@@ -87,21 +87,21 @@ impl<'a> Terminal<'a, f64> {
     }
 
     fn adjust_points(&self, points: &mut [(Vertex<f64>, Vertex<f64>, Vertex<f64>)]) {
-        for (ref mut a, ref mut b, ref mut _c) in points.iter_mut() {
+        for (ref mut a, ref mut b, ref mut c) in points.iter_mut() {
             *a.x_mut() -= self.center_offset.0 as f64;
+            *a.y_mut() -= self.center_offset.1 as f64;
             *b.x_mut() -= self.center_offset.0 as f64;
+            *b.y_mut() -= self.center_offset.1 as f64;
+            *c.x_mut() -= self.center_offset.0 as f64;
+            *c.y_mut() -= self.center_offset.1 as f64;
         }
     }
 
     /// Clear previously rendered frame.
-    fn clear(&self) {
-
-    }
+    fn clear(&self) {}
 
     /// Render to stdout.
-    fn render(&self) {
-
-    }
+    fn render(&self) {}
 }
 
 impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
@@ -138,14 +138,14 @@ mod tests {
 
     #[test]
     fn main() {
-        let renderer = TerminalBuilder::default().build();
+        let renderer = TerminalBuilder::default().with_dimensions((10, 10)).build();
 
         let mut vertex_triples = vec![
-            // [
-                (Vertex::new([0.0, 0.0, 0.0]),
+            (
+                Vertex::new([0.0, 0.0, 0.0]),
                 Vertex::new([4.0, 0.0, 0.0]),
-                Vertex::new([4.0, 4.0, 0.0])),
-            // ],
+                Vertex::new([4.0, 4.0, 0.0]),
+            ),
             // [Vertex::new([]), Vertex::new([]), Vertex::new([])],
         ];
 
