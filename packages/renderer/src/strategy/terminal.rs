@@ -18,7 +18,7 @@ pub struct TerminalBuilder<'a> {
 
 impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a> {
     type Dimensions = (usize, usize);
-    type Camera = Vertex<'a, f64>;
+    type Camera = Vertex<f64>;
     type Canvas = Surface<'a, f64>;
     type Renderer = Terminal<'a, f64>;
 
@@ -86,6 +86,8 @@ impl<'a, Data: DataTrait> Terminal<'a, Data> {
         character::LOWER
     }
 
+    // fn adjust_points(points: &[(Vertex<)])
+
     /// Clear previously rendered frame.
     fn clear(&self) {
 
@@ -98,7 +100,7 @@ impl<'a, Data: DataTrait> Terminal<'a, Data> {
 }
 
 impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
-    type Vertex = Vertex<'a, f64>;
+    type Vertex = Vertex<f64>;
 
     fn config(&self) -> crate::RendererConfiguration<'a> {
         self.config.clone()

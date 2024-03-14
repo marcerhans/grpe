@@ -24,19 +24,19 @@ impl<Data: DataTrait> VertexTrait for Vertex<Data> {
     }
 
     fn x(&self) -> &Self::Data {
-        self.1.index(0, 0)
+        self.0.index(0, 0)
     }
 
     fn y(&self) -> &Self::Data {
-        self.1.index(0, 1)
+        self.0.index(0, 1)
     }
 
     fn z(&self) -> &Self::Data {
-        self.1.index(0, 2)
+        self.0.index(0, 2)
     }
 
     fn slice(&self) -> &[Self::Data] {
-        &self.1.data()
+        &self.0.data()
     }
 }
 
