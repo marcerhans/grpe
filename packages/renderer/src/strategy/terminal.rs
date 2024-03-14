@@ -1,8 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{RendererBuilderTrait, RendererTrait, SurfaceTrait};
-
-use super::common::*;
+use crate::{common::*, RendererConfiguration, RendererBuilderTrait, RendererTrait, SurfaceTrait};
 
 mod character {
     pub static LINE_HORIZONTAL: char = '\u{254c}';  // ╌
@@ -14,9 +12,11 @@ mod character {
     pub static EMPTY: char = ' ';                   //
 }
 
-pub struct TerminalBuilder<'a, Data>(PhantomData<&'a Data>);
+pub struct TerminalBuilder<'a> {
+    config: RendererConfiguration<'a>,
+}
 
-impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a, f64> {
+impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a> {
     type Dimensions = (usize, usize);
     type Camera = Vertex<'a, f64>;
     type Canvas = Surface<'a, f64>;

@@ -23,6 +23,8 @@ pub trait RendererBuilderTrait<'a> {
     /// In order to instantiate this type, since the implementation may vary for different renderers,
     /// the implementation should provide a 'man' (manual/info) string for what info is needed to 
     /// initialize it.
+    /// 
+    /// TODO: There are better solutions, but this will do for now.
     fn man() -> &'static str;
 
     /// Create new instance of the [RendererBuilderTrait].
@@ -50,7 +52,7 @@ pub trait RendererTrait<'a> {
     fn config(&self) -> RendererConfiguration;
 
     /// Set a new config ([RendererConfiguration]) for the [RendererTrait].
-    /// Useful if the dimensions of the [Canvas] changes in size, for example.
+    /// Useful if the dimensions of the canvas ([Surface]) changes in size, for example.
     /// Returns [Result::Ok] if configuration is valid for current renderer.
     fn set_config(&self) -> Result<(), ()>;
 

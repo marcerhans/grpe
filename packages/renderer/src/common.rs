@@ -15,37 +15,37 @@ pub trait VertexTrait<'a> {
 }
 
 #[derive(Default)]
-pub struct Vertex<'a, Data: DataTrait>(Matrix<Data>, PhantomData<&'a Data>);
+pub struct Vertex<'a, Data: DataTrait>(PhantomData<&'a Data>, Matrix<Data>);
 
 impl<'a, Data: DataTrait> VertexTrait<'a> for Vertex<'a, Data> {
     type Data = Data;
     type DataRef = &'a Data;
 
     fn new(data: [Self::Data; 3]) -> Self {
-        Self(Matrix::from_array([data; 1]), PhantomData)
+        Self(PhantomData, Matrix::from_array([data; 1]))
     }
 
     fn x(&'a self) -> Self::DataRef {
-        self.0.index(0, 0)
+        self.1.index(0, 0)
     }
 
     fn y(&'a self) -> Self::DataRef {
-        self.0.index(0, 1)
+        self.1.index(0, 1)
     }
 
     fn z(&'a self) -> Self::DataRef {
-        self.0.index(0, 2)
+        self.1.index(0, 2)
     }
 
     fn slice(&'a self) -> &[Self::Data] {
-        &self.0.data()
+        &self.1.data()
     }
 }
 
 pub trait SurfaceTrait {}
 
 #[derive(Default)]
-pub struct Surface<'a, Data: DataTrait>(Matrix<Data>, PhantomData<&'a Data>);
+pub struct Surface<'a, Data: DataTrait>(PhantomData<&'a Data>, Matrix<Data>);
 
 impl<'a, Data: DataTrait> SurfaceTrait for Surface<'a, Data> {}
 
