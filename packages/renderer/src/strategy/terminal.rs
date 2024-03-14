@@ -139,14 +139,17 @@ mod tests {
     fn main() {
         let renderer = TerminalBuilder::default().build();
 
-        let vertex_triples = vec![
-            [
-                Vertex::new([0, 0, 0]),
-                Vertex::new([4, 0, 0]),
-                Vertex::new([4, 4, 0]),
-            ],
+        let mut vertex_triples = vec![
+            // [
+                (Vertex::new([0.0, 0.0, 0.0]),
+                Vertex::new([4.0, 0.0, 0.0]),
+                Vertex::new([4.0, 4.0, 0.0])),
+            // ],
             // [Vertex::new([]), Vertex::new([]), Vertex::new([])],
         ];
+
+        renderer.adjust_points(&mut vertex_triples);
+        println!("{:?}", vertex_triples);
         // renderer.run_pipeline();
     }
 }

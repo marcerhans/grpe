@@ -15,7 +15,7 @@ pub trait VertexTrait {
     fn z_mut(&mut self) -> &mut Self::Data;
 }
 
-#[derive(Default, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Vertex<Data: DataTrait>(Matrix<Data>);
 
 impl<Data: DataTrait> VertexTrait for Vertex<Data> {
