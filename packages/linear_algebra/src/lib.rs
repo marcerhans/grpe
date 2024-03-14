@@ -90,6 +90,14 @@ pub mod matrix {
             }
         }
 
+        pub fn zeros_dyn(rows: usize, columns: usize) -> Self {
+            Self {
+                data: vec![Data::zero(); rows * columns],
+                rows: rows,
+                columns: columns,
+            }
+        }
+
         pub fn identity<const ROWS: usize, const COLUMNS: usize>() -> Self {
             let mut identity = Self {
                 data: vec![Data::zero(); ROWS * COLUMNS],

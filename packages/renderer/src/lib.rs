@@ -27,9 +27,6 @@ pub trait RendererBuilderTrait<'a> {
     /// TODO: There are better solutions, but this will do for now.
     fn man() -> &'static str;
 
-    /// Create new instance of the [RendererBuilderTrait].
-    fn new() -> Self;
-
     /// Create new instance of the [RendererBuilderTrait] with default values for each parameter.
     fn default() -> Self;
 
@@ -41,7 +38,7 @@ pub trait RendererBuilderTrait<'a> {
     fn build(self) -> Self::Renderer;
 
     /// Build an instance of [RendererTrait] using an existing [RendererConfiguration].
-    fn build_with_config(self, config: RendererConfiguration) -> Self::Renderer;
+    fn build_with_config(self, config: RendererConfiguration<'a>) -> Self::Renderer;
 }
 
 /// [RendererTrait] for rendering to display on some [SurfaceTrait].
