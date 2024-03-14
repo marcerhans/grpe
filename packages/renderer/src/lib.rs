@@ -9,14 +9,14 @@ pub use common::*;
 #[derive(Default, Clone)]
 pub struct RendererConfiguration<'a> {
     dimensions: (usize, usize),
-    camera: Vertex<'a, f64>,
+    camera: Vertex<f64>,
     canvas: Surface<'a, f64>,
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
 pub trait RendererBuilderTrait<'a> {
     type Dimensions: DimensionsTrait;
-    type Camera: VertexTrait<'a>;
+    type Camera: VertexTrait;
     type Canvas: SurfaceTrait;
     type Renderer: RendererTrait<'a>;
 
@@ -43,7 +43,7 @@ pub trait RendererBuilderTrait<'a> {
 
 /// [RendererTrait] for rendering to display on some [SurfaceTrait].
 pub trait RendererTrait<'a> {
-    type Vertex: VertexTrait<'a>;
+    type Vertex: VertexTrait;
 
     /// Get [RendererConfiguration].
     fn config(&self) -> RendererConfiguration<'a>;
