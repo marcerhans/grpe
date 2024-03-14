@@ -136,6 +136,7 @@ impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
 mod tests {
     use super::*;
 
+    #[test]
     fn main() {
         let renderer = TerminalBuilder::default().build();
 
