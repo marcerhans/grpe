@@ -68,10 +68,10 @@ pub trait RendererTrait<'a, Data: DataTrait> {
     /// ```
     fn set_vertices_line_draw_order(&mut self, order: &[[usize]]);
 
-    /// Project vertices on to a [SurfaceTrait].
+    /// Project vertices ([Vertex]) on to a surface ([SurfaceTrait]).
     fn project_on_canvas(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
 
-    /// Rasterize [RendererTrait::project]ed vertices.
+    /// Rasterize previously projected vertices ([Vertex]).
     fn rasterize(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
 
     /// Do all steps needed, in correct order, to produce a fully rendered image on some [SurfaceTrait].
