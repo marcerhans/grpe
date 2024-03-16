@@ -191,6 +191,7 @@ mod tests {
         //     Project vertices onto surface (canvas) from #1
         //     Draw lines between the projected points on surface (canvas) defined by #2
         //     Adjust points coordinates (now present in canvas) for Terminal.
+        //     Convert canvas (matrix) to simple 2d vec buffer.
         //     Print to stdout (terminal)
     }
 
