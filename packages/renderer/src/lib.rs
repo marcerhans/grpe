@@ -54,15 +54,17 @@ pub trait RendererTrait<'a, Data: DataTrait> {
     /// Vertices ([Vertex]) are used as "anchors" from which lines can be drawn.
     fn set_vertices(&mut self, vertices: &[Vertex<Data>]);
 
-    /// Following examples instructs the renderer that a line should from the first vertex to the other.
-    /// I.e. the index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
+    /// Index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
+    /// 
+    /// # Example
+    /// Draw a line from (0,0) to (1,0) and from (0,0) to (0,1).
     /// 
     /// ```Rust
-    /// let vertices = vec![Vertex::new(0.0, 0.0, 0.0), Vertex::new(1.0, 1.0, 1.0)]
-    /// let draw_order = vec![0,1];
+    /// let vertices = vec![Vertex::new(0.0, 0.0, 0.0), Vertex::new(1.0, 0.0, 0.0), Vertex::new(0.0, 1.0, 0.0)]
+    /// let draw_order = vec![[0,1], [0,2]];
     /// 
     /// some_already_configured_renderer.set_vertices(&vertices);
-    /// some_already_configured_renderer.set_vertices_line_draw_order(&vertices);
+    /// some_already_configured_renderer.set_vertices_line_draw_order(&draw_order);
     /// ```
     fn set_vertices_line_draw_order(&mut self, order: &[[usize]]);
 
