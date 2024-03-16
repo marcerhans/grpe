@@ -76,7 +76,8 @@ impl<'a> Terminal<'a, f64> {
         character::LOWER
     }
 
-    fn adjust_points(&self, points: &mut [(Vertex<f64>, Vertex<f64>, Vertex<f64>)]) {
+    /// Center points so that, for example, vertex (0,0,0) appears in the middle of the terminal.
+    fn center_points(&self, points: &mut [(Vertex<f64>, Vertex<f64>, Vertex<f64>)]) {
         for (ref mut a, ref mut b, ref mut c) in points.iter_mut() {
             *a.x_mut() += self.center_offset.0 as f64;
             *a.y_mut() += self.center_offset.1 as f64;
@@ -140,7 +141,10 @@ impl<'a> RendererTrait<'a, f64> for Terminal<'a, f64> {
     }
 
     fn set_config(&mut self, config: RendererConfiguration<'a>) -> Result<(), &'static str> {
+        let dim = config.dimensions;
         self.config = config;
+        self.buffer = vec![vec![character::EMPTY; dim.1]; dim.0];
+        self.center_offset = ((dim.0 / 2) as isize, -((dim.1 / 2) as isize));
         Ok(())
     }
     
@@ -190,7 +194,7 @@ mod tests {
         ];
 
         renderer.render(&mut vertex_triples);
-        renderer.adjust_points(&mut vertex_triples);
+        renderer.center_points(&mut vertex_triples);
         // renderer.print(&vertex_triples);
         // renderer.run_pipeline();
     }
