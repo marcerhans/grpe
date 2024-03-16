@@ -1,6 +1,6 @@
 use linear_algebra::matrix::{DataTrait, Matrix};
 
-use crate::{common::*, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait, SurfaceTrait};
+use crate::{common::*, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait, SurfaceTrait, RenderOption};
 
 mod character {
     pub static LINE_HORIZONTAL: char = '\u{254c}'; // ╌
@@ -183,7 +183,7 @@ mod tests {
 
     #[test]
     fn main() {
-        let renderer = TerminalBuilder::default().with_dimensions((10, 10)).build();
+        let renderer = TerminalBuilder::default().with_dimensions((10, 10)).with_option(RenderOption::Vertices).build();
 
         let mut vertices = vec![
             Vertex::new([0.0, 2.0, 0.0]),
@@ -191,7 +191,7 @@ mod tests {
             Vertex::new([2.0, 0.0, 0.0]),
         ];
 
-        // renderer.render(&mut vertex_triples);
+        renderer.render();
         // renderer.center_points(&mut vertex_triples);
         // renderer.print(&vertex_triples);
         // renderer.run_pipeline();
