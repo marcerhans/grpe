@@ -10,10 +10,19 @@ pub use common::*;
 use linear_algebra::matrix::DataTrait;
 
 #[derive(Default, Clone)]
+pub enum RenderOption {
+    All,
+    #[default]
+    Line,
+    Vertices,
+}
+
+#[derive(Default, Clone)]
 pub struct RendererConfiguration<'a> {
     dimensions: (usize, usize),
     camera: Vertex<f64>,
     canvas: Surface<'a, f64>,
+    option: RenderOption,
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
@@ -33,6 +42,7 @@ pub trait RendererBuilderTrait<'a, Data: DataTrait>: Default {
     fn with_dimensions(self, dimensions: Self::Dimensions) -> Self;
     fn with_camera(self, camera: Self::Camera) -> Self;
     fn with_canvas(self, canvas: Self::Canvas) -> Self;
+    fn with_option(self, canvas: RenderOption) -> Self;
 
     /// Build an instance of [RendererTrait].
     fn build(self) -> Self::Renderer;

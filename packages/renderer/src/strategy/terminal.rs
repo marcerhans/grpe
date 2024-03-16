@@ -92,46 +92,46 @@ impl<'a> Terminal<'a, f64> {
     /// Clear previously rendered frame.
     fn clear(&self) {}
 
-    /// Render to stdout.
-    fn render(&self, points: &mut [(Vertex<f64>, Vertex<f64>, Vertex<f64>)]) {
-        let mut buffer = vec![vec![character::EMPTY; self.config.dimensions.1]; self.config.dimensions.0];
+    // /// Render to stdout.
+    // fn render(&self, points: &mut [(Vertex<f64>, Vertex<f64>, Vertex<f64>)]) {
+    //     let mut buffer = vec![vec![character::EMPTY; self.config.dimensions.1]; self.config.dimensions.0];
 
-        for (ref a, ref b, ref c) in points.iter() {
-            self.render_vertex(&mut buffer, a);
-            self.render_vertex(&mut buffer, b);
-            self.render_vertex(&mut buffer, c);
-            println!("{a:?},{b:?},{c:?}");
-        }
+    //     for (ref a, ref b, ref c) in points.iter() {
+    //         self.render_vertex(&mut buffer, a);
+    //         self.render_vertex(&mut buffer, b);
+    //         self.render_vertex(&mut buffer, c);
+    //         println!("{a:?},{b:?},{c:?}");
+    //     }
 
-        println!("{:?}", buffer);
+    //     println!("{:?}", buffer);
 
-        for characters in buffer.iter() {
-            for character in characters.iter() {
-                print!("{character}");
-            }
-            println!();
-        }
-    }
+    //     for characters in buffer.iter() {
+    //         for character in characters.iter() {
+    //             print!("{character}");
+    //         }
+    //         println!();
+    //     }
+    // }
 
-    fn render_vertex(&self, buffer: &mut Vec<Vec<char>>, vertex: &Vertex<f64>) {
-        let x = *vertex.x() as isize;
-        let y = *vertex.y() as isize;
-        let mut character = Self::character_at(y.abs() as usize);
+    // fn render_vertex(&self, buffer: &mut Vec<Vec<char>>, vertex: &Vertex<f64>) {
+    //     let x = *vertex.x() as isize;
+    //     let y = *vertex.y() as isize;
+    //     let mut character = Self::character_at(y.abs() as usize);
 
-        if y > 0 {
-            if buffer[y as usize - 1][x as usize] == character::UPPER && character == character::LOWER {
-                character = character::FULL;
-            }
-        }
+    //     if y > 0 {
+    //         if buffer[y as usize - 1][x as usize] == character::UPPER && character == character::LOWER {
+    //             character = character::FULL;
+    //         }
+    //     }
 
-        if y < self.config.dimensions.1 as isize - 1 {
-            if buffer[y as usize + 1][x as usize] == character::LOWER && character == character::UPPER {
-                character = character::FULL;
-            }
-        }
+    //     if y < self.config.dimensions.1 as isize - 1 {
+    //         if buffer[y as usize + 1][x as usize] == character::LOWER && character == character::UPPER {
+    //             character = character::FULL;
+    //         }
+    //     }
 
-        let _ = std::mem::replace(&mut buffer[y as usize][x as usize], character);
-    }
+    //     let _ = std::mem::replace(&mut buffer[y as usize][x as usize], character);
+    // }
 }
 
 impl<'a> RendererTrait<'a, f64> for Terminal<'a, f64> {
@@ -185,17 +185,14 @@ mod tests {
     fn main() {
         let renderer = TerminalBuilder::default().with_dimensions((10, 10)).build();
 
-        let mut vertex_triples = vec![
-            (
-                Vertex::new([0.0, 2.0, 0.0]),
-                Vertex::new([1.0, 0.0, 0.0]),
-                Vertex::new([2.0, 0.0, 0.0]),
-            ),
-            // [Vertex::new([]), Vertex::new([]), Vertex::new([])],
+        let mut vertices = vec![
+            Vertex::new([0.0, 2.0, 0.0]),
+            Vertex::new([1.0, 0.0, 0.0]),
+            Vertex::new([2.0, 0.0, 0.0]),
         ];
 
-        renderer.render(&mut vertex_triples);
-        renderer.center_points(&mut vertex_triples);
+        // renderer.render(&mut vertex_triples);
+        // renderer.center_points(&mut vertex_triples);
         // renderer.print(&vertex_triples);
         // renderer.run_pipeline();
     }
