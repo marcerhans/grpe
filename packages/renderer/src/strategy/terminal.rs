@@ -78,14 +78,10 @@ impl<'a> Terminal<'a, f64> {
 
     /// Center points so that, for example, vertex (0,0,0) appears in the middle of the terminal
     /// (which would be at (5,-5,0) after centering using a terminal with dimensions (9,9)).
-    fn center_points(&self, points: &mut [(Vertex<f64>, Vertex<f64>, Vertex<f64>)]) {
-        for (ref mut a, ref mut b, ref mut c) in points.iter_mut() {
-            *a.x_mut() += self.center_offset.0 as f64;
-            *a.y_mut() += self.center_offset.1 as f64;
-            *b.x_mut() += self.center_offset.0 as f64;
-            *b.y_mut() += self.center_offset.1 as f64;
-            *c.x_mut() += self.center_offset.0 as f64;
-            *c.y_mut() += self.center_offset.1 as f64;
+    fn center_points(&self, points: &mut [Vertex<f64>]) {
+        for ref mut vertex in points.iter_mut() {
+            *vertex.x_mut() += self.center_offset.0 as f64;
+            *vertex.y_mut() += self.center_offset.1 as f64;
         }
     }
 
@@ -158,6 +154,7 @@ impl<'a> RendererTrait<'a, f64> for Terminal<'a, f64> {
     }
     
     fn render(&self) {
+
         todo!()
     }
 
@@ -185,15 +182,12 @@ mod tests {
     fn main() {
         let renderer = TerminalBuilder::default().with_dimensions((10, 10)).with_option(RenderOption::Vertices).build();
 
-        let mut vertices = vec![
-            Vertex::new([0.0, 2.0, 0.0]),
-            Vertex::new([1.0, 0.0, 0.0]),
-            Vertex::new([2.0, 0.0, 0.0]),
-        ];
-
-        renderer.render();
-        // renderer.center_points(&mut vertex_triples);
-        // renderer.print(&vertex_triples);
-        // renderer.run_pipeline();
+        // 1. Create vertices
+        // 2. Define line order
+        // 3. Render()
+            // Project vertices onto surface (canvas) from #1
+            // Draw lines between the projected points on surface defined by #2
+            // Adjust points coordinates for Terminal.
+            // Print to stdout (terminal)
     }
 }
