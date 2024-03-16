@@ -1,11 +1,13 @@
-/// TODO: Currently (mostly) focuses on f64, and not general data types.
+/// Current implementation only supports a terminal (/text) output for rendering,
+/// and for simplicity only [f64] is used.
 
 pub mod strategy;
-use linear_algebra::matrix::DataTrait;
 pub use strategy::renderer;
 
 pub mod common;
 pub use common::*;
+
+use linear_algebra::matrix::DataTrait;
 
 #[derive(Default, Clone)]
 pub struct RendererConfiguration<'a> {
@@ -68,17 +70,21 @@ pub trait RendererTrait<'a, Data: DataTrait> {
     /// ```
     fn set_vertices_line_draw_order(&mut self, order: &[[usize]]);
 
-    /// Project vertices ([Vertex]) on to a surface ([SurfaceTrait]).
-    fn project_on_canvas(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
+    /// TODO: All rendering is gathered in this single render method,
+    /// but in future it should be split.
+    fn render(&self);
 
-    /// Rasterize previously projected vertices ([Vertex]).
-    fn rasterize(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
+    // /// Project vertices ([Vertex]) on to a surface ([SurfaceTrait]).
+    // fn project_on_canvas(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
 
-    /// Do all steps needed, in correct order, to produce a fully rendered image on some [SurfaceTrait].
-    fn run_pipeline(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) {
-        self.project_on_canvas(vertices);
-        self.rasterize(vertices);
-    }
+    // /// Rasterize previously projected vertices ([Vertex]).
+    // fn rasterize(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
+
+    // /// Do all steps needed, in correct order, to produce a fully rendered image on some [SurfaceTrait].
+    // fn run_pipeline(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) {
+    //     self.project_on_canvas(vertices);
+    //     self.rasterize(vertices);
+    // }
 }
 
 /// Hidden trait methods for [RendererTrait].

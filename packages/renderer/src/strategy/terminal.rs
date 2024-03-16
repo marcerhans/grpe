@@ -24,7 +24,7 @@ impl<'a> Default for TerminalBuilder<'a> {
     }
 }
 
-impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a> {
+impl<'a, Data: DataTrait> RendererBuilderTrait<'a, Data> for TerminalBuilder<'a> {
     type Dimensions = (usize, usize);
     type Camera = Vertex<f64>;
     type Canvas = Surface<'a, f64>;
@@ -131,7 +131,7 @@ impl<'a> Terminal<'a, f64> {
     }
 }
 
-impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
+impl<'a> RendererTrait<'a, f64> for Terminal<'a, f64> {
     type Vertex = Vertex<f64>;
 
     fn config(&self) -> crate::RendererConfiguration<'a> {
@@ -142,23 +142,22 @@ impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
         self.config = config;
         Ok(())
     }
-
-    fn project_on_canvas(
-        &self,
-        vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)],
-    ) -> &dyn SurfaceTrait {
+    
+    fn set_vertices(&mut self, vertices: &[Vertex<f64>]) {
+        todo!()
+    }
+    
+    fn set_vertices_line_draw_order(&mut self, order: &[[usize]]) {
+        todo!()
+    }
+    
+    fn render(&self) {
         todo!()
     }
 
-    fn rasterize(
-        &self,
-        vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)],
-    ) -> &dyn SurfaceTrait {
-        todo!()
-    }
 }
 
-impl<'a> __RendererTrait<'a> for Terminal<'a, f64> {
+impl<'a> __RendererTrait<'a, f64> for Terminal<'a, f64> {
     fn new(config: RendererConfiguration<'a>) -> Self {
         let dim = config.dimensions;
         Self {
