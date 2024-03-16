@@ -54,25 +54,13 @@ impl<Data: DataTrait> VertexTrait for Vertex<Data> {
 
 impl<Data: DataTrait> Into<Matrix<Data>> for Vertex<Data> {
     fn into(self) -> Matrix<Data> {
-        Matrix::from_array([
-            [*self.x(), *self.y(), *self.z()]
-        ])
+        Matrix::from_array([[*self.x(), *self.y(), *self.z()]])
     }
 }
 
 pub trait SurfaceTrait {}
 
 impl<Data: DataTrait> SurfaceTrait for Matrix<Data> {}
-
-struct __WrapperMatrix<Data: DataTrait>(Matrix<Data>);
-
-impl<Data: DataTrait, T> From<__WrapperMatrix<Data>> for Vec<Vec<T>> {
-    fn from(value: __WrapperMatrix<Data>) -> Self {
-        let v: Vec<Vec<T>> = vec![vec![]];
-        // IntoMatrixWrapper(Matrix::from_array([[1.0]]))
-        v
-    }
-}
 
 #[derive(Default, Clone)]
 pub struct Surface<'a, Data: DataTrait>(PhantomData<&'a Data>, Matrix<Data>);
