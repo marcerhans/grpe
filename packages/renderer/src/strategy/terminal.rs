@@ -83,11 +83,12 @@ impl<'a> Terminal<'a, f64> {
 
     /// Center points so that, for example, vertex (0,0,0) appears in the middle of the terminal
     /// (which would be at (5,-5,0) after centering using a terminal with dimensions (9,9)).
-    fn center_points(&self, points: &mut [Vertex<f64>]) {
-        for ref mut vertex in points.iter_mut() {
-            *vertex.x_mut() += self.center_offset.0 as f64;
-            *vertex.y_mut() += self.center_offset.1 as f64;
-        }
+    fn center_canvas_points(&self, canvas: &mut Matrix<f64>) {
+        // for ref mut vertex in points.iter_mut() {
+        //     *vertex.x_mut() += self.center_offset.0 as f64;
+        //     *vertex.y_mut() += self.center_offset.1 as f64;
+        // }
+        for 
     }
 
     /// Clear previously rendered frame.
@@ -184,16 +185,27 @@ mod tests {
     use super::*;
 
     #[test]
-    fn center_points() {
-        let renderer = TerminalBuilder::default().with_dimensions((10, 10)).with_option(RenderOption::Vertices).build();
-
-
+    fn main() {
         // 1. Create vertices
         // 2. Define line order
         // 3. Render()
-            // Project vertices onto surface (canvas) from #1
-            // Draw lines between the projected points on surface (canvas) defined by #2
-            // Adjust points coordinates (now present in canvas) for Terminal.
-            // Print to stdout (terminal)
+        //     Project vertices onto surface (canvas) from #1
+        //     Draw lines between the projected points on surface (canvas) defined by #2
+        //     Adjust points coordinates (now present in canvas) for Terminal.
+        //     Print to stdout (terminal)
+    }
+
+    #[test]
+    fn center_points() {
+        let renderer = TerminalBuilder::default().with_dimensions((10, 10)).build();
+
+        let test_surface = Matrix::from_array([
+            [0.0, 0.0, 0.0],
+            [1.0, 1.0, 1.0],
+            [2.0, 2.0, 2.0],
+            [1.0, 2.0, 3.0],
+        ]);
+
+        renderer.center_canvas_points(canvas)
     }
 }

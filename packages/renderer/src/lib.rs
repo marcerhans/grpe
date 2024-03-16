@@ -80,21 +80,8 @@ pub trait RendererTrait<'a, Data: DataTrait> {
     /// ```
     fn set_vertices_line_draw_order(&mut self, order: &[&[usize]]);
 
-    /// TODO: All rendering is gathered in this single render method,
-    /// but in future it should be split.
+    /// Do the render! What is rendered in the final artefact is decided the the [RenderOption]s.
     fn render(&self);
-
-    // /// Project vertices ([Vertex]) on to a surface ([SurfaceTrait]).
-    // fn project_on_canvas(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
-
-    // /// Rasterize previously projected vertices ([Vertex]).
-    // fn rasterize(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
-
-    // /// Do all steps needed, in correct order, to produce a fully rendered image on some [SurfaceTrait].
-    // fn run_pipeline(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) {
-    //     self.project_on_canvas(vertices);
-    //     self.rasterize(vertices);
-    // }
 }
 
 /// Hidden trait methods for [RendererTrait].
