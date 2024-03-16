@@ -187,12 +187,13 @@ mod tests {
     fn center_points() {
         let renderer = TerminalBuilder::default().with_dimensions((10, 10)).with_option(RenderOption::Vertices).build();
 
+
         // 1. Create vertices
         // 2. Define line order
         // 3. Render()
             // Project vertices onto surface (canvas) from #1
-            // Draw lines between the projected points on surface defined by #2
-            // Adjust points coordinates for Terminal.
+            // Draw lines between the projected points on surface (canvas) defined by #2
+            // Adjust points coordinates (now present in canvas) for Terminal.
             // Print to stdout (terminal)
     }
 }
