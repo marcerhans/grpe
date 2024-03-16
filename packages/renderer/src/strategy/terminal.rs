@@ -84,11 +84,10 @@ impl<'a> Terminal<'a, f64> {
     /// Center points so that, for example, vertex (0,0,0) appears in the middle of the terminal
     /// (which would be at (5,-5,0) after centering using a terminal with dimensions (9,9)).
     fn center_canvas_points(&self, canvas: &mut Matrix<f64>) {
-        // for ref mut vertex in points.iter_mut() {
-        //     *vertex.x_mut() += self.center_offset.0 as f64;
-        //     *vertex.y_mut() += self.center_offset.1 as f64;
-        // }
-        for 
+        for row in 0..canvas.rows() {
+            *canvas.index_mut(row, 0) += self.center_offset.0 as f64;
+            *canvas.index_mut(row, 1) += self.center_offset.1 as f64;
+        }
     }
 
     /// Clear previously rendered frame.
@@ -197,15 +196,42 @@ mod tests {
 
     #[test]
     fn center_points() {
-        let renderer = TerminalBuilder::default().with_dimensions((10, 10)).build();
+        let renderer = TerminalBuilder::default().with_dimensions((9,9)).build();
 
-        let test_surface = Matrix::from_array([
+        let mut test_surface = Matrix::from_array([
             [0.0, 0.0, 0.0],
             [1.0, 1.0, 1.0],
             [2.0, 2.0, 2.0],
             [1.0, 2.0, 3.0],
         ]);
 
-        renderer.center_canvas_points(canvas)
+        let expected = Matrix::from_array([
+            [5.0, -5.0, 0.0],
+            [6.0, -4.0, 1.0],
+            [7.0, -3.0, 2.0],
+            [6.0, -3.0, 3.0],
+        ]);
+
+        renderer.center_canvas_points(&mut test_surface);
+        assert!(test_surface == expected, "Result: {test_surface:?}\nExpected: {expected:?}");
+
+        let renderer = TerminalBuilder::default().with_dimensions((10,10)).build();
+
+        let mut test_surface = Matrix::from_array([
+            [0.0, 0.0, 0.0],
+            [1.0, 1.0, 1.0],
+            [2.0, 2.0, 2.0],
+            [1.0, 2.0, 3.0],
+        ]);
+
+        let expected = Matrix::from_array([
+            [5.0, -5.0, 0.0],
+            [6.0, -4.0, 1.0],
+            [7.0, -3.0, 2.0],
+            [6.0, -3.0, 3.0],
+        ]);
+
+        renderer.center_canvas_points(&mut test_surface);
+        assert!(test_surface == expected, "Result: {test_surface:?}\nExpected: {expected:?}");
     }
 }
