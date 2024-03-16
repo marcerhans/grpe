@@ -138,7 +138,7 @@ impl<'a> RendererTrait<'a, f64> for Terminal<'a, f64> {
         self.config.clone()
     }
 
-    fn set_config(&mut self, config: RendererConfiguration<'a>) -> Result<(), ()> {
+    fn set_config(&mut self, config: RendererConfiguration<'a>) -> Result<(), &'static str> {
         self.config = config;
         Ok(())
     }
@@ -147,7 +147,7 @@ impl<'a> RendererTrait<'a, f64> for Terminal<'a, f64> {
         todo!()
     }
     
-    fn set_vertices_line_draw_order(&mut self, order: &[[usize]]) {
+    fn set_vertices_line_draw_order(&mut self, order: &[&[usize]]) {
         todo!()
     }
     

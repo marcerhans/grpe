@@ -59,16 +59,16 @@ pub trait RendererTrait<'a, Data: DataTrait> {
     /// Index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
     /// 
     /// # Example
-    /// Draw a line from (0,0) to (1,0) and from (0,0) to (0,1).
+    /// Draw a line from (0,0) to (1,0) and from (0,0) to (0,1) to (1,0).
     /// 
     /// ```Rust
     /// let vertices = vec![Vertex::new(0.0, 0.0, 0.0), Vertex::new(1.0, 0.0, 0.0), Vertex::new(0.0, 1.0, 0.0)]
-    /// let draw_order = vec![[0,1], [0,2]];
+    /// let draw_order = vec![[0,1], [0,2,1]];
     /// 
     /// some_already_configured_renderer.set_vertices(&vertices);
     /// some_already_configured_renderer.set_vertices_line_draw_order(&draw_order);
     /// ```
-    fn set_vertices_line_draw_order(&mut self, order: &[[usize]]);
+    fn set_vertices_line_draw_order(&mut self, order: &[&[usize]]);
 
     /// TODO: All rendering is gathered in this single render method,
     /// but in future it should be split.
