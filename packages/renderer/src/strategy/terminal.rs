@@ -24,7 +24,7 @@ impl<'a> Default for TerminalBuilder<'a> {
     }
 }
 
-impl<'a, Data: DataTrait> RendererBuilderTrait<'a, Data> for TerminalBuilder<'a> {
+impl<'a> RendererBuilderTrait<'a, f64> for TerminalBuilder<'a> {
     type Dimensions = (usize, usize);
     type Camera = Vertex<f64>;
     type Canvas = Surface<'a, f64>;
@@ -60,7 +60,8 @@ impl<'a, Data: DataTrait> RendererBuilderTrait<'a, Data> for TerminalBuilder<'a>
 
 pub struct Terminal<'a, Data: DataTrait> {
     config: RendererConfiguration<'a>,
-    vertex_triples: Vec<[Vertex<Data>; 3]>,
+    vertices: Vec<Vertex<Data>>,
+    line_draw_order: Vec<usize>,
     buffer: Vec<Vec<char>>,
     center_offset: (isize, isize),
 }
@@ -162,7 +163,8 @@ impl<'a> __RendererTrait<'a, f64> for Terminal<'a, f64> {
         let dim = config.dimensions;
         Self {
             config,
-            vertex_triples: Vec::new(),
+            vertices: Vec::new(),
+            line_draw_order: Vec::new(),
             buffer: vec![vec![character::EMPTY; dim.1]; dim.0],
             center_offset: ((dim.0 / 2) as isize, -((dim.1 / 2) as isize)),
         }
