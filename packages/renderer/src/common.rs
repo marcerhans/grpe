@@ -64,6 +64,17 @@ pub trait SurfaceTrait {}
 
 impl<Data: DataTrait> SurfaceTrait for Matrix<Data> {}
 
+struct IntoMatrixWrapper<Data: DataTrait>(Matrix<Data>);
+
+impl<Data: DataTrait, T> From<IntoMatrixWrapper<Data>> for Vec<Vec<T>> {
+    fn from(value: IntoMatrixWrapper<Data>) -> Self {
+        let v: Vec<Vec<T>> = vec![vec![]];
+        // TODO: How does the Into trait get implemented automatically from From?
+        // IntoMatrixWrapper(Matrix::from_array([[1.0]]))
+        v
+    }
+}
+
 #[derive(Default, Clone)]
 pub struct Surface<'a, Data: DataTrait>(PhantomData<&'a Data>, Matrix<Data>);
 
