@@ -63,7 +63,7 @@ pub trait SurfaceTrait {}
 impl<Data: DataTrait> SurfaceTrait for Matrix<Data> {}
 
 #[derive(Default, Clone)]
-pub struct Surface<'a, Data: DataTrait>(PhantomData<&'a Data>, Matrix<Data>);
+pub struct Surface<'a, Data: DataTrait>(PhantomData<&'a Data>, pub(crate) Matrix<Data>);
 
 impl<'a, Data: DataTrait> SurfaceTrait for Surface<'a, Data> {}
 

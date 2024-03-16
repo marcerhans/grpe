@@ -63,30 +63,11 @@ impl<'a> RendererBuilderTrait<'a, f64> for TerminalBuilder<'a> {
     }
 }
 
-struct Buffer<T>(Vec<Vec<T>>);
-
-struct __WrapperMatrix<Data: DataTrait>(Matrix<Data>);
-
-impl<Data: DataTrait, T> From<__WrapperMatrix<Data>> for Buffer<T> {
-    fn from(value: __WrapperMatrix<Data>) -> Self {
-        let matrix = value.0;
-
-        // for matrix.data().chunks_exact_mut(3)
-        // let v: Vec<Vec<T>> = Vec::with_capacity(matrix.rows());
-
-        // for row in 0..matrix.rows() {
-        //     v[row].append(matrix.data()[row * matrix.columns()]);
-        // }
-
-        v
-    }
-}
-
 pub struct Terminal<'a, Data: DataTrait> {
     config: RendererConfiguration<'a>,
     vertices: Vec<Vertex<Data>>,
     line_draw_order: Vec<usize>,
-    buffer: Buffer<char>,
+    buffer: Vec<Vec<char>>,
     center_offset: (isize, isize),
 }
 
@@ -106,6 +87,16 @@ impl<'a> Terminal<'a, f64> {
         for row in 0..canvas.rows() {
             *canvas.index_mut(row, 0) += self.center_offset.0 as f64;
             *canvas.index_mut(row, 1) += self.center_offset.1 as f64;
+        }
+    }
+
+    /// Fetch 
+    /// TODO: This was hard :(
+    fn map_canvas_to_buffer(&self, canvas: &Matrix<f64>) {
+        for row in 0..canvas.rows() {
+            let (point_x, point_y) = (canvas.index(row,0),canvas.index(row,1));
+
+            if point_x > 
         }
     }
 
@@ -164,7 +155,7 @@ impl<'a> RendererTrait<'a, f64> for Terminal<'a, f64> {
     fn set_config(&mut self, config: RendererConfiguration<'a>) -> Result<(), &'static str> {
         let dim = config.dimensions;
         self.config = config;
-        self.buffer = Buffer(vec![vec![character::EMPTY; dim.1]; dim.0]);
+        self.buffer = vec![vec![character::EMPTY; dim.1]; dim.0];
         self.center_offset = ((dim.0 as f64 / 2.0).ceil() as isize, -((dim.1 as f64 / 2.0).ceil() as isize));
         Ok(())
     }
@@ -191,7 +182,7 @@ impl<'a> __RendererTrait<'a, f64> for Terminal<'a, f64> {
             config,
             vertices: Vec::new(),
             line_draw_order: Vec::new(),
-            buffer: Buffer(vec![vec![character::EMPTY; dim.1]; dim.0]),
+            buffer: vec![vec![character::EMPTY; dim.1]; dim.0],
             center_offset: ((dim.0 as f64 / 2.0).ceil() as isize, -((dim.1 as f64 / 2.0).ceil() as isize)),
         }
     }
