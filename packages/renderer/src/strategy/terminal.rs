@@ -76,7 +76,8 @@ impl<'a> Terminal<'a, f64> {
         character::LOWER
     }
 
-    /// Center points so that, for example, vertex (0,0,0) appears in the middle of the terminal.
+    /// Center points so that, for example, vertex (0,0,0) appears in the middle of the terminal
+    /// (which would be at (5,-5,0) after centering using a terminal with dimensions (9,9)).
     fn center_points(&self, points: &mut [(Vertex<f64>, Vertex<f64>, Vertex<f64>)]) {
         for (ref mut a, ref mut b, ref mut c) in points.iter_mut() {
             *a.x_mut() += self.center_offset.0 as f64;
@@ -144,7 +145,7 @@ impl<'a> RendererTrait<'a, f64> for Terminal<'a, f64> {
         let dim = config.dimensions;
         self.config = config;
         self.buffer = vec![vec![character::EMPTY; dim.1]; dim.0];
-        self.center_offset = ((dim.0 / 2) as isize, -((dim.1 / 2) as isize));
+        self.center_offset = ((dim.0 as f64 / 2.0).ceil() as isize, -((dim.1 as f64 / 2.0).ceil() as isize));
         Ok(())
     }
     
@@ -170,7 +171,7 @@ impl<'a> __RendererTrait<'a, f64> for Terminal<'a, f64> {
             vertices: Vec::new(),
             line_draw_order: Vec::new(),
             buffer: vec![vec![character::EMPTY; dim.1]; dim.0],
-            center_offset: ((dim.0 / 2) as isize, -((dim.1 / 2) as isize)),
+            center_offset: ((dim.0 as f64 / 2.0).ceil() as isize, -((dim.1 as f64 / 2.0).ceil() as isize)),
         }
     }
 }
