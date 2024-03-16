@@ -1,6 +1,6 @@
 use linear_algebra::matrix::{DataTrait, Matrix};
 
-use crate::{common::*, RendererBuilderTrait, RendererConfiguration, RendererTrait, SurfaceTrait};
+use crate::{common::*, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait, SurfaceTrait};
 
 mod character {
     pub static LINE_HORIZONTAL: char = '\u{254c}'; // ╌
@@ -9,11 +9,19 @@ mod character {
     pub static UPPER: char = '\u{2580}'; // ▀
     pub static LOWER: char = '\u{2584}'; // ▄
     pub static FULL: char = '\u{2588}'; // █
-    pub static EMPTY: char = ' '; //
+    pub static EMPTY: char = '+'; //
 }
 
 pub struct TerminalBuilder<'a> {
     config: RendererConfiguration<'a>,
+}
+
+impl<'a> Default for TerminalBuilder<'a> {
+    fn default() -> Self {
+        Self {
+            config: RendererConfiguration::default(),
+        }
+    }
 }
 
 impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a> {
@@ -24,12 +32,6 @@ impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a> {
 
     fn man() -> &'static str {
         todo!()
-    }
-
-    fn default() -> Self {
-        Self {
-            config: RendererConfiguration::default(),
-        }
     }
 
     fn with_dimensions(mut self, dimensions: Self::Dimensions) -> Self {
@@ -48,34 +50,21 @@ impl<'a> RendererBuilderTrait<'a> for TerminalBuilder<'a> {
     }
 
     fn build(self) -> Self::Renderer {
-        let dim = self.config.dimensions;
-        Self::Renderer {
-            config: self.config,
-            buffer: Matrix::zeros_dyn(dim.width(), dim.height()),
-            center_offset: (dim.0 / 2, dim.1 / 2),
-        }
+        Self::Renderer::new(self.config)
     }
 
     fn build_with_config(self, config: crate::RendererConfiguration<'a>) -> Self::Renderer {
-        let dim = config.dimensions;
-        Self::Renderer {
-            config: config,
-            buffer: Matrix::zeros_dyn(dim.width(), dim.height()),
-            center_offset: (dim.0 / 2, dim.1 / 2),
-        }
+        Self::Renderer::new(self.config)
     }
 }
 
 pub struct Terminal<'a, Data: DataTrait> {
     config: RendererConfiguration<'a>,
-    buffer: Matrix<Data>,
-    center_offset: (usize, usize),
+    vertex_triples: Vec<[Vertex<Data>; 3]>,
+    buffer: Vec<Vec<char>>,
+    center_offset: (isize, isize),
 }
 
-/// A terminals blocks are usually not square, but rectangular. In order to achieve
-/// evenly sized blocks, the terminal is designed to use special
-/// block characters (see [character]). This introduces some extra complexity, but the
-/// result with be worth it. Otherwise, the final image would be quite oblong.
 impl<'a> Terminal<'a, f64> {
     /// Get appropriate character to use for given vertical position.
     fn character_at(y: usize) -> char {
@@ -88,12 +77,12 @@ impl<'a> Terminal<'a, f64> {
 
     fn adjust_points(&self, points: &mut [(Vertex<f64>, Vertex<f64>, Vertex<f64>)]) {
         for (ref mut a, ref mut b, ref mut c) in points.iter_mut() {
-            *a.x_mut() -= self.center_offset.0 as f64;
-            *a.y_mut() -= self.center_offset.1 as f64;
-            *b.x_mut() -= self.center_offset.0 as f64;
-            *b.y_mut() -= self.center_offset.1 as f64;
-            *c.x_mut() -= self.center_offset.0 as f64;
-            *c.y_mut() -= self.center_offset.1 as f64;
+            *a.x_mut() += self.center_offset.0 as f64;
+            *a.y_mut() += self.center_offset.1 as f64;
+            *b.x_mut() += self.center_offset.0 as f64;
+            *b.y_mut() += self.center_offset.1 as f64;
+            *c.x_mut() += self.center_offset.0 as f64;
+            *c.y_mut() += self.center_offset.1 as f64;
         }
     }
 
@@ -102,13 +91,16 @@ impl<'a> Terminal<'a, f64> {
 
     /// Render to stdout.
     fn render(&self, points: &mut [(Vertex<f64>, Vertex<f64>, Vertex<f64>)]) {
-        let mut buffer = vec![vec![' '; self.config.dimensions.1]; self.config.dimensions.0];
+        let mut buffer = vec![vec![character::EMPTY; self.config.dimensions.1]; self.config.dimensions.0];
 
         for (ref a, ref b, ref c) in points.iter() {
             self.render_vertex(&mut buffer, a);
             self.render_vertex(&mut buffer, b);
             self.render_vertex(&mut buffer, c);
+            println!("{a:?},{b:?},{c:?}");
         }
+
+        println!("{:?}", buffer);
 
         for characters in buffer.iter() {
             for character in characters.iter() {
@@ -119,23 +111,23 @@ impl<'a> Terminal<'a, f64> {
     }
 
     fn render_vertex(&self, buffer: &mut Vec<Vec<char>>, vertex: &Vertex<f64>) {
-        let x = *vertex.x() as usize;
-        let y = *vertex.y() as usize;
-        let mut character = Self::character_at(y);
+        let x = *vertex.x() as isize;
+        let y = *vertex.y() as isize;
+        let mut character = Self::character_at(y.abs() as usize);
 
         if y > 0 {
-            if buffer[y - 1][x] == character::UPPER && character == character::LOWER {
+            if buffer[y as usize - 1][x as usize] == character::UPPER && character == character::LOWER {
                 character = character::FULL;
             }
         }
 
-        if y < self.config.dimensions.1 - 1 {
-            if buffer[y + 1][x] == character::LOWER && character == character::UPPER {
+        if y < self.config.dimensions.1 as isize - 1 {
+            if buffer[y as usize + 1][x as usize] == character::LOWER && character == character::UPPER {
                 character = character::FULL;
             }
         }
 
-        let _ = std::mem::replace(&mut buffer[y][x], character);
+        let _ = std::mem::replace(&mut buffer[y as usize][x as usize], character);
     }
 }
 
@@ -166,6 +158,18 @@ impl<'a> RendererTrait<'a> for Terminal<'a, f64> {
     }
 }
 
+impl<'a> __RendererTrait<'a> for Terminal<'a, f64> {
+    fn new(config: RendererConfiguration<'a>) -> Self {
+        let dim = config.dimensions;
+        Self {
+            config,
+            vertex_triples: Vec::new(),
+            buffer: vec![vec![character::EMPTY; dim.1]; dim.0],
+            center_offset: ((dim.0 / 2) as isize, -((dim.1 / 2) as isize)),
+        }
+    }
+}
+
 /// These tests are not that thorough, just helpful testing/probing during development.
 #[cfg(test)]
 mod tests {
@@ -177,15 +181,16 @@ mod tests {
 
         let mut vertex_triples = vec![
             (
-                Vertex::new([0.0, 0.0, 0.0]),
-                Vertex::new([4.0, 0.0, 0.0]),
-                Vertex::new([4.0, 4.0, 0.0]),
+                Vertex::new([0.0, 2.0, 0.0]),
+                Vertex::new([1.0, 0.0, 0.0]),
+                Vertex::new([2.0, 0.0, 0.0]),
             ),
             // [Vertex::new([]), Vertex::new([]), Vertex::new([])],
         ];
 
-        renderer.adjust_points(&mut vertex_triples);
         renderer.render(&mut vertex_triples);
+        renderer.adjust_points(&mut vertex_triples);
+        // renderer.print(&vertex_triples);
         // renderer.run_pipeline();
     }
 }

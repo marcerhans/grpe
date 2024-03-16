@@ -1,6 +1,7 @@
 /// TODO: Currently (mostly) focuses on f64, and not general data types.
 
 pub mod strategy;
+use linear_algebra::matrix::DataTrait;
 pub use strategy::renderer;
 
 pub mod common;
@@ -14,11 +15,11 @@ pub struct RendererConfiguration<'a> {
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
-pub trait RendererBuilderTrait<'a> {
+pub trait RendererBuilderTrait<'a, Data: DataTrait>: Default {
     type Dimensions: DimensionsTrait;
     type Camera: VertexTrait;
     type Canvas: SurfaceTrait;
-    type Renderer: RendererTrait<'a>;
+    type Renderer: RendererTrait<'a, Data>;
 
     /// In order to instantiate this type, since the implementation may vary for different renderers,
     /// the implementation should provide a 'man' (manual/info) string for what info is needed to 
@@ -26,9 +27,6 @@ pub trait RendererBuilderTrait<'a> {
     /// 
     /// TODO: There are better solutions, but this will do for now.
     fn man() -> &'static str;
-
-    /// Create new instance of the [RendererBuilderTrait] with default values for each parameter.
-    fn default() -> Self;
 
     fn with_dimensions(self, dimensions: Self::Dimensions) -> Self;
     fn with_camera(self, camera: Self::Camera) -> Self;
@@ -42,7 +40,7 @@ pub trait RendererBuilderTrait<'a> {
 }
 
 /// [RendererTrait] for rendering to display on some [SurfaceTrait].
-pub trait RendererTrait<'a> {
+pub trait RendererTrait<'a, Data: DataTrait> {
     type Vertex: VertexTrait;
 
     /// Get [RendererConfiguration].
@@ -51,7 +49,22 @@ pub trait RendererTrait<'a> {
     /// Set a new config ([RendererConfiguration]) for the [RendererTrait].
     /// Useful if the dimensions of the canvas ([Surface]) changes in size, for example.
     /// Returns [Result::Ok] if configuration is valid for current renderer.
-    fn set_config(&mut self, config: RendererConfiguration<'a>) -> Result<(), ()>;
+    fn set_config(&mut self, config: RendererConfiguration<'a>) -> Result<(), &'static str>;
+
+    /// Vertices ([Vertex]) are used as "anchors" from which lines can be drawn.
+    fn set_vertices(&mut self, vertices: &[Vertex<Data>]);
+
+    /// Following examples instructs the renderer that a line should from the first vertex to the other.
+    /// I.e. the index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
+    /// 
+    /// ```Rust
+    /// let vertices = vec![Vertex::new(0.0, 0.0, 0.0), Vertex::new(1.0, 1.0, 1.0)]
+    /// let draw_order = vec![0,1];
+    /// 
+    /// some_already_configured_renderer.set_vertices(&vertices);
+    /// some_already_configured_renderer.set_vertices_line_draw_order(&vertices);
+    /// ```
+    fn set_vertices_line_draw_order(&mut self, order: &[[usize]]);
 
     /// Project vertices on to a [SurfaceTrait].
     fn project_on_canvas(&self, vertices: &[(Self::Vertex, Self::Vertex, Self::Vertex)]) -> &dyn SurfaceTrait;
@@ -64,4 +77,10 @@ pub trait RendererTrait<'a> {
         self.project_on_canvas(vertices);
         self.rasterize(vertices);
     }
+}
+
+/// Hidden trait methods for [RendererTrait].
+trait __RendererTrait<'a, Data: DataTrait>: RendererTrait<'a, Data> {
+    /// Create new instance.
+    fn new(config: RendererConfiguration<'a>) -> Self;
 }

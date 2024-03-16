@@ -7,9 +7,11 @@ pub trait VertexTrait {
     type Data;
 
     fn new(data: [Self::Data; 3]) -> Self;
+
     fn x(&self) -> &Self::Data;
     fn y(&self) -> &Self::Data;
     fn z(&self) -> &Self::Data;
+
     fn x_mut(&mut self) -> &mut Self::Data;
     fn y_mut(&mut self) -> &mut Self::Data;
     fn z_mut(&mut self) -> &mut Self::Data;
@@ -59,6 +61,8 @@ impl<Data: DataTrait> Into<Matrix<Data>> for Vertex<Data> {
 }
 
 pub trait SurfaceTrait {}
+
+impl<Data: DataTrait> SurfaceTrait for Matrix<Data> {}
 
 #[derive(Default, Clone)]
 pub struct Surface<'a, Data: DataTrait>(PhantomData<&'a Data>, Matrix<Data>);
