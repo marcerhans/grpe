@@ -49,6 +49,11 @@ impl<'a> RendererBuilderTrait<'a, f64> for TerminalBuilder<'a> {
         self
     }
 
+    fn with_option(mut self, option: RenderOption) -> Self {
+        self.config.option = option;
+        self
+    }
+
     fn build(self) -> Self::Renderer {
         Self::Renderer::new(self.config)
     }
@@ -179,7 +184,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn main() {
+    fn center_points() {
         let renderer = TerminalBuilder::default().with_dimensions((10, 10)).with_option(RenderOption::Vertices).build();
 
         // 1. Create vertices

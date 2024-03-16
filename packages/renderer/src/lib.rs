@@ -42,7 +42,7 @@ pub trait RendererBuilderTrait<'a, Data: DataTrait>: Default {
     fn with_dimensions(self, dimensions: Self::Dimensions) -> Self;
     fn with_camera(self, camera: Self::Camera) -> Self;
     fn with_canvas(self, canvas: Self::Canvas) -> Self;
-    fn with_option(self, canvas: RenderOption) -> Self;
+    fn with_option(self, option: RenderOption) -> Self;
 
     /// Build an instance of [RendererTrait].
     fn build(self) -> Self::Renderer;
