@@ -168,8 +168,13 @@ impl __RendererTrait<f64> for Terminal<f64> {
         let fov = config.camera.fov().clone();
         
         // Determine viewport (camera) and viewpoint position to achieve desired fov.
-        todo!()
+        todo!("DO THIS NEXT!");
         let viewpoint = {
+
+        }
+
+        let viewport = {
+
         }
 
         Self {
@@ -177,11 +182,7 @@ impl __RendererTrait<f64> for Terminal<f64> {
             vertices: Default::default(),
             line_draw_order: Default::default(),
             viewpoint,
-            viewport: Matrix::from_array([
-                [position.0, position.1, position.2],
-                [1.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0],
-            ]),
+            viewport,
             buffer: vec![vec![character::EMPTY; resolution.width()]; resolution.height()],
             center_offset: ((resolution.0 as f64 / 2.0).ceil() as isize, -((resolution.1 as f64 / 2.0).ceil() as isize)),
         }
