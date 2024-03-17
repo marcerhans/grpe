@@ -49,7 +49,7 @@ impl RendererBuilderTrait<f64> for TerminalBuilder {
     }
 
     fn build_with_config(self, config: crate::RendererConfiguration) -> Self::Renderer {
-        Self::Renderer::new(self.config)
+        Self::Renderer::new(config)
     }
 }
 
