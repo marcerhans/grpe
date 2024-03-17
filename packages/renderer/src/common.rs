@@ -98,14 +98,16 @@ pub struct Camera<T: MatrixDataTrait> {
     resolution: (usize, usize),
     position: (T, T, T),
     direction: (T, T, T),
+    fov: usize,
 }
 
 impl<T: MatrixDataTrait> Camera<T> {
-    pub fn new(resolution: (usize, usize), position: (T, T, T), direction: (T, T, T)) -> Self {
+    pub fn new(resolution: (usize, usize), position: (T, T, T), direction: (T, T, T), fov: usize) -> Self {
         Self {
             resolution,
             position,
             direction,
+            fov,
         }
     }
 
@@ -120,6 +122,10 @@ impl<T: MatrixDataTrait> Camera<T> {
     pub fn direction(&self) -> &(T, T, T) {
         &self.direction
     }
+    
+    pub fn fov(&self) -> &usize {
+        &self.fov
+    }
 }
 
 impl Default for Camera<f64> {
@@ -128,6 +134,7 @@ impl Default for Camera<f64> {
             resolution: (100, 100),
             position: (0.0, 0.0, -10.0),
             direction: (0.0, 0.0, 1.0),
+            fov: 90,
         }
     }
 }

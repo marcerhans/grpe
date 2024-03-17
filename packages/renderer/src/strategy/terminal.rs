@@ -159,17 +159,22 @@ impl RendererTrait<f64> for Terminal<f64> {
 }
 
 impl __RendererTrait<f64> for Terminal<f64> {
-    // TODO: Fix the canvas so that it is based of config (camera) rather than just (1.0, 0.0, 0.0) and (0.0, 1.0, 0.0).
+    // TODO: Fix the canvas both parameters and position.
     fn new(config: RendererConfiguration) -> Self {
-        let camera_position = config.camera.position().clone();
         let resolution = config.camera.resolution().clone();
+        let position = config.camera.position().clone();
+        let direction = config.camera.direction().clone();
+        let fov = config.camera.fov().clone();
+        
+        // Determine camera/canvas position to achieve desired fov.
+        todo!("DO THIS NEXT!");
 
         Self {
             config,
             vertices: Default::default(),
             line_draw_order: Default::default(),
             canvas: Matrix::from_array([
-                [camera_position.0, camera_position.1, camera_position.2],
+                [position.0, position.1, position.2],
                 [1.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0],
             ]),
