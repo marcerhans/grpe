@@ -57,7 +57,8 @@ pub struct Terminal<T: MatrixDataTrait> {
     config: RendererConfiguration,
     vertices: Vec<Matrix<T>>,
     line_draw_order: Vec<usize>,
-    canvas: Matrix<T>,
+    viewpoint: (T, T, T),
+    viewport: Matrix<T>,
     buffer: Vec<Vec<char>>,
     center_offset: (isize, isize),
 }
@@ -74,15 +75,15 @@ impl Terminal<f64> {
 
     /// Center points so that, for example, vertex (0,0,0) appears in the middle of the terminal
     /// (which would be at (5,-5,0) after centering using a terminal with dimensions (9,9)).
-    fn center_canvas_points(&self, canvas: &mut Matrix<f64>) {
-        for row in 0..canvas.rows() {
-            *canvas.index_mut(row, 0) += self.center_offset.0 as f64;
-            *canvas.index_mut(row, 1) += self.center_offset.1 as f64;
+    fn center_viewport_points(&self, viewport: &mut Matrix<f64>) {
+        for row in 0..viewport.rows() {
+            *viewport.index_mut(row, 0) += self.center_offset.0 as f64;
+            *viewport.index_mut(row, 1) += self.center_offset.1 as f64;
         }
     }
 
-    /// Maps canvas data to buffer by using the parameters of the [PlaneTrait].
-    fn map_canvas_to_buffer(&self, canvas: &dyn PlaneTrait<f64>) {}
+    /// Maps viewport data to buffer by using the parameters of the [PlaneTrait].
+    fn map_viewport_to_buffer(&self, viewport: &dyn PlaneTrait<f64>) {}
 
     /// Clear previously rendered frame.
     fn clear(&self) {}
@@ -159,21 +160,24 @@ impl RendererTrait<f64> for Terminal<f64> {
 }
 
 impl __RendererTrait<f64> for Terminal<f64> {
-    // TODO: Fix the canvas both parameters and position.
+    // TODO: Fix the viewport both parameters and position.
     fn new(config: RendererConfiguration) -> Self {
         let resolution = config.camera.resolution().clone();
         let position = config.camera.position().clone();
         let direction = config.camera.direction().clone();
         let fov = config.camera.fov().clone();
         
-        // Determine camera/canvas position to achieve desired fov.
-        todo!("DO THIS NEXT!");
+        // Determine viewport (camera) and viewpoint position to achieve desired fov.
+        todo!()
+        let viewpoint = {
+        }
 
         Self {
             config,
             vertices: Default::default(),
             line_draw_order: Default::default(),
-            canvas: Matrix::from_array([
+            viewpoint,
+            viewport: Matrix::from_array([
                 [position.0, position.1, position.2],
                 [1.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0],
@@ -194,10 +198,10 @@ mod tests {
         // 1. Create vertices
         // 2. Define line order
         // 3. Render()
-        //     Project vertices onto surface (canvas) from #1
-        //     Draw lines between the projected points on surface (canvas) defined by #2
-        //     Adjust points coordinates (now present in canvas) for Terminal.
-        //     Map canvas (matrix) to simple 2d vec buffer.
+        //     Project vertices onto surface (viewport) from #1
+        //     Draw lines between the projected points on surface (viewport) defined by #2
+        //     Adjust points coordinates (now present in viewport) for Terminal.
+        //     Map viewport (matrix) to simple 2d vec buffer.
         //     Print to stdout (terminal)
     }
 
@@ -219,7 +223,7 @@ mod tests {
         //     [6.0, -3.0, 3.0],
         // ]);
 
-        // renderer.center_canvas_points(&mut test_surface);
+        // renderer.center_viewport_points(&mut test_surface);
         // assert!(test_surface == expected, "Result: {test_surface:?}\nExpected: {expected:?}");
 
         // let renderer = TerminalBuilder::default().with_dimensions((10,10)).build();
@@ -238,7 +242,7 @@ mod tests {
         //     [6.0, -3.0, 3.0],
         // ]);
 
-        // renderer.center_canvas_points(&mut test_surface);
+        // renderer.center_viewport_points(&mut test_surface);
         // assert!(test_surface == expected, "Result: {test_surface:?}\nExpected: {expected:?}");
     }
 }
