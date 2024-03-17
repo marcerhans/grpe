@@ -26,8 +26,8 @@ pub struct RendererConfiguration {
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
-pub trait RendererBuilderTrait<'a, T: MatrixDataTrait>: Default {
-    type Renderer: RendererTrait<'a, T>;
+pub trait RendererBuilderTrait<T: MatrixDataTrait>: Default {
+    type Renderer: RendererTrait<T>;
 
     /// In order to instantiate this type, since the implementation may vary for different renderers,
     /// the implementation should provide a 'man' (manual/info) string for what info is needed to 
@@ -47,7 +47,7 @@ pub trait RendererBuilderTrait<'a, T: MatrixDataTrait>: Default {
 }
 
 /// [RendererTrait] for rendering to display on some [PlaneTrait].
-pub trait RendererTrait<'a, T: MatrixDataTrait> {
+pub trait RendererTrait<T: MatrixDataTrait> {
     type Vertex: VertexTrait<T = T>;
 
     /// Get [RendererConfiguration].
@@ -80,7 +80,7 @@ pub trait RendererTrait<'a, T: MatrixDataTrait> {
 }
 
 /// Hidden trait methods for [RendererTrait].
-trait __RendererTrait<'a, T: MatrixDataTrait>: RendererTrait<'a, T> {
+trait __RendererTrait<T: MatrixDataTrait>: RendererTrait<T> {
     /// Create new instance.
     fn new(config: RendererConfiguration) -> Self;
 }
