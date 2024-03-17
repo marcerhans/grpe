@@ -1,6 +1,4 @@
 /// Common traits and structures.
-use std::marker::PhantomData;
-
 use linear_algebra::matrix::{DataTrait, Matrix};
 
 pub trait VertexTrait {
@@ -58,14 +56,25 @@ impl<Data: DataTrait> Into<Matrix<Data>> for Vertex<Data> {
     }
 }
 
-pub trait SurfaceTrait {}
+pub trait PlaneTrait<Data> {
+    fn point(&self) -> &[Data];
+    fn parameter_a(&self) -> &[Data];
+    fn parameter_b(&self) -> &[Data];
+}
 
-impl<Data: DataTrait> SurfaceTrait for Matrix<Data> {}
+impl<Data: DataTrait> PlaneTrait<Data> for Matrix<Data> {
+    fn point(&self) -> &[Data] {
+        self.row(0)
+    }
 
-#[derive(Default, Clone)]
-pub struct Surface<'a, Data: DataTrait>(PhantomData<&'a Data>, pub(crate) Matrix<Data>);
+    fn parameter_a(&self) -> &[Data] {
+        self.row(1)
+    }
 
-impl<'a, Data: DataTrait> SurfaceTrait for Surface<'a, Data> {}
+    fn parameter_b(&self) -> &[Data] {
+        self.row(2)
+    }
+}
 
 pub trait DimensionsTrait {
     fn width(&self) -> usize;
@@ -79,5 +88,31 @@ impl DimensionsTrait for (usize, usize) {
 
     fn height(&self) -> usize {
         self.1
+    }
+}
+
+pub struct Camera<Data: DataTrait> {
+    resolution: (usize, usize),
+    position: (Data, Data, Data),
+    direction: (Data, Data, Data),
+}
+
+impl<Data: DataTrait> Camera<Data> {
+    fn new(resolution: (usize, usize), position: (Data, Data, Data), direction: (Data, Data, Data)) -> Self {
+        Self {
+            resolution,
+            position,
+            direction,
+        }
+    }
+}
+
+impl<Data: DataTrait> Default for Camera<Data> {
+    fn default() -> Self {
+        Self {
+            resolution: (100, 100),
+            position: (0, 0, -10),
+            direction: (0, 0, 1),
+        }
     }
 }

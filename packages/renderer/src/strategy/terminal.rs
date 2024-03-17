@@ -1,6 +1,6 @@
 use linear_algebra::matrix::{DataTrait, Matrix};
 
-use crate::{common::*, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait, SurfaceTrait, RenderOption};
+use crate::{common::*, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait, PlaneTrait, RenderOption};
 
 mod character {
     pub static LINE_HORIZONTAL: char = '\u{254c}'; // ╌
@@ -12,11 +12,11 @@ mod character {
     pub static EMPTY: char = '+'; //
 }
 
-pub struct TerminalBuilder<'a> {
-    config: RendererConfiguration<'a>,
+pub struct TerminalBuilder {
+    config: RendererConfiguration,
 }
 
-impl<'a> Default for TerminalBuilder<'a> {
+impl<'a> Default for TerminalBuilder {
     fn default() -> Self {
         Self {
             config: RendererConfiguration::default(),
@@ -24,10 +24,10 @@ impl<'a> Default for TerminalBuilder<'a> {
     }
 }
 
-impl<'a> RendererBuilderTrait<'a, f64> for TerminalBuilder<'a> {
+impl<'a> RendererBuilderTrait<'a, f64> for TerminalBuilder {
     type Dimensions = (usize, usize);
     type Camera = Vertex<f64>;
-    type Canvas = Surface<'a, f64>;
+    type Canvas = Matrix<f64>;
     type Renderer = Terminal<'a, f64>;
 
     fn man() -> &'static str {
@@ -58,13 +58,13 @@ impl<'a> RendererBuilderTrait<'a, f64> for TerminalBuilder<'a> {
         Self::Renderer::new(self.config)
     }
 
-    fn build_with_config(self, config: crate::RendererConfiguration<'a>) -> Self::Renderer {
+    fn build_with_config(self, config: crate::RendererConfiguration) -> Self::Renderer {
         Self::Renderer::new(self.config)
     }
 }
 
 pub struct Terminal<'a, Data: DataTrait> {
-    config: RendererConfiguration<'a>,
+    config: RendererConfiguration,
     vertices: Vec<Vertex<Data>>,
     line_draw_order: Vec<usize>,
     buffer: Vec<Vec<char>>,
@@ -90,14 +90,9 @@ impl<'a> Terminal<'a, f64> {
         }
     }
 
-    /// Fetch 
-    /// TODO: This was hard :(
-    fn map_canvas_to_buffer(&self, canvas: &Matrix<f64>) {
-        for row in 0..canvas.rows() {
-            let (point_x, point_y) = (canvas.index(row,0),canvas.index(row,1));
+    /// Maps canvas data to buffer by using the parameters of the [PlaneTrait].
+    fn map_canvas_to_buffer(&self, canvas: &dyn PlaneTrait<f64>) {
 
-            if point_x > 
-        }
     }
 
     /// Clear previously rendered frame.
@@ -148,11 +143,11 @@ impl<'a> Terminal<'a, f64> {
 impl<'a> RendererTrait<'a, f64> for Terminal<'a, f64> {
     type Vertex = Vertex<f64>;
 
-    fn config(&self) -> crate::RendererConfiguration<'a> {
+    fn config(&self) -> crate::RendererConfiguration {
         self.config.clone()
     }
 
-    fn set_config(&mut self, config: RendererConfiguration<'a>) -> Result<(), &'static str> {
+    fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str> {
         let dim = config.dimensions;
         self.config = config;
         self.buffer = vec![vec![character::EMPTY; dim.1]; dim.0];
