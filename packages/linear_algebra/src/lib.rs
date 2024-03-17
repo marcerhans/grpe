@@ -4,7 +4,7 @@ pub mod matrix {
         ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Range, Sub, SubAssign},
     };
 
-    pub trait DataTrait:
+    pub trait MatrixDataTrait:
         Add<Output = Self>
         + AddAssign
         + Sub<Output = Self>
@@ -30,7 +30,7 @@ pub mod matrix {
         }
     }
 
-    impl DataTrait for i64 {
+    impl MatrixDataTrait for i64 {
         fn zero() -> Self {
             0
         }
@@ -40,7 +40,7 @@ pub mod matrix {
         }
     }
 
-    impl DataTrait for f64 {
+    impl MatrixDataTrait for f64 {
         fn zero() -> Self {
             0.0
         }
@@ -55,13 +55,13 @@ pub mod matrix {
     }
 
     #[derive(Default, Clone)]
-    pub struct Matrix<Data: DataTrait> {
+    pub struct Matrix<Data: MatrixDataTrait> {
         data: Vec<Data>,
         rows: usize,
         columns: usize,
     }
 
-    impl<Data: DataTrait> Matrix<Data> {
+    impl<Data: MatrixDataTrait> Matrix<Data> {
         pub fn from_array<const ROWS: usize, const COLUMNS: usize>(
             data: [[Data; COLUMNS]; ROWS],
         ) -> Self {
@@ -224,7 +224,7 @@ pub mod matrix {
         }
     }
 
-    impl<Data: DataTrait> std::fmt::Debug for Matrix<Data> {
+    impl<Data: MatrixDataTrait> std::fmt::Debug for Matrix<Data> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             let mut fmt_vec = Vec::with_capacity(self.rows);
 
@@ -246,7 +246,7 @@ pub mod matrix {
         }
     }
 
-    impl<Data: DataTrait> PartialEq for Matrix<Data> {
+    impl<Data: MatrixDataTrait> PartialEq for Matrix<Data> {
         fn eq(&self, other: &Self) -> bool {
             if self.rows != other.rows || self.columns != other.columns {
                 return false;
@@ -262,7 +262,7 @@ pub mod matrix {
         }
     }
 
-    impl<Data: DataTrait> Neg for &Matrix<Data> {
+    impl<Data: MatrixDataTrait> Neg for &Matrix<Data> {
         type Output = Matrix<Data>;
 
         fn neg(self) -> Self::Output {
@@ -276,7 +276,7 @@ pub mod matrix {
         }
     }
 
-    impl<Data: DataTrait> Add for &Matrix<Data> {
+    impl<Data: MatrixDataTrait> Add for &Matrix<Data> {
         type Output = Matrix<Data>;
 
         fn add(self, rhs: Self) -> Self::Output {
@@ -294,7 +294,7 @@ pub mod matrix {
         }
     }
 
-    impl<Data: DataTrait> AddAssign<&Matrix<Data>> for Matrix<Data> {
+    impl<Data: MatrixDataTrait> AddAssign<&Matrix<Data>> for Matrix<Data> {
         fn add_assign(&mut self, rhs: &Matrix<Data>) {
             if self.rows != rhs.rows || self.columns != rhs.columns {
                 panic!("Addition cannot be performed on matrices of different dimensions.")
@@ -306,7 +306,7 @@ pub mod matrix {
         }
     }
 
-    impl<Data: DataTrait> Sub for &Matrix<Data> {
+    impl<Data: MatrixDataTrait> Sub for &Matrix<Data> {
         type Output = Matrix<Data>;
 
         fn sub(self, rhs: Self) -> Self::Output {
@@ -324,7 +324,7 @@ pub mod matrix {
         }
     }
 
-    impl<Data: DataTrait> SubAssign<&Matrix<Data>> for Matrix<Data> {
+    impl<Data: MatrixDataTrait> SubAssign<&Matrix<Data>> for Matrix<Data> {
         fn sub_assign(&mut self, rhs: &Matrix<Data>) {
             if self.rows != rhs.rows || self.columns != rhs.columns {
                 panic!("Subtraction cannot be performed on matrices of different dimensions.")
@@ -336,7 +336,7 @@ pub mod matrix {
         }
     }
 
-    impl<Data: DataTrait> Mul for &Matrix<Data> {
+    impl<Data: MatrixDataTrait> Mul for &Matrix<Data> {
         type Output = Matrix<Data>;
 
         fn mul(self, rhs: Self) -> Self::Output {
@@ -828,7 +828,7 @@ pub mod matrix {
 }
 
 pub mod utility {
-    use self::matrix::DataTrait;
+    use self::matrix::MatrixDataTrait;
 
     use super::*;
 
@@ -837,7 +837,7 @@ pub mod utility {
     /// Only solves n by n+1 matrices.
     ///
     /// Note: This probably currently only works with floating point data types.
-    pub fn gauss_elimination<Data: DataTrait>(
+    pub fn gauss_elimination<Data: MatrixDataTrait>(
         mut matrix: &mut matrix::Matrix<Data>,
     ) -> Option<matrix::Matrix<Data>> {
         enum Direction {
@@ -846,7 +846,7 @@ pub mod utility {
         }
 
         /// Find a 'pivotable' point in a row given a column.
-        fn find_next_pivot_row<Data: DataTrait>(
+        fn find_next_pivot_row<Data: MatrixDataTrait>(
             matrix: &mut matrix::Matrix<Data>,
             start_row: usize,
             column: usize,
@@ -861,7 +861,7 @@ pub mod utility {
         }
 
         /// Normalize the row for a given pivot coordinate.
-        fn normalize_row<Data: DataTrait>(
+        fn normalize_row<Data: MatrixDataTrait>(
             matrix: &mut matrix::Matrix<Data>,
             row: usize,
             divisor_column: usize,
@@ -874,7 +874,7 @@ pub mod utility {
         }
 
         /// Eliminate all rows based on pivot.
-        fn eliminate_columns<Data: DataTrait>(
+        fn eliminate_columns<Data: MatrixDataTrait>(
             matrix: &mut matrix::Matrix<Data>,
             pivot_row: usize,
             pivot_column: usize,
@@ -1064,7 +1064,7 @@ pub mod utility {
                 check(matrix, expected);
             }
 
-            fn check<Data: DataTrait>(
+            fn check<Data: MatrixDataTrait>(
                 matrix: matrix::Matrix<Data>,
                 expected: matrix::Matrix<Data>,
             ) {

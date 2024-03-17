@@ -1,24 +1,27 @@
 /// Common traits and structures.
-use linear_algebra::matrix::{DataTrait, Matrix};
+use linear_algebra::matrix::{MatrixDataTrait, Matrix};
 
 pub trait VertexTrait {
-    type Data;
+    type Data: MatrixDataTrait;
 
     fn new(data: [Self::Data; 3]) -> Self;
 
     fn x(&self) -> &Self::Data;
     fn y(&self) -> &Self::Data;
     fn z(&self) -> &Self::Data;
+    fn matrix(&self) -> &Matrix<Self::Data>;
 
     fn x_mut(&mut self) -> &mut Self::Data;
     fn y_mut(&mut self) -> &mut Self::Data;
     fn z_mut(&mut self) -> &mut Self::Data;
+    fn matrix_mut(&mut self) -> &mut Matrix<Self::Data>;
 }
 
-#[derive(Debug, Default, Clone)]
-pub struct Vertex<Data: DataTrait>(Matrix<Data>);
+// #[derive(Debug, Default, Clone)]
+// pub struct Vertex<Data: DataTrait>(Matrix<Data>);
 
-impl<Data: DataTrait> VertexTrait for Vertex<Data> {
+// impl<Data: DataTrait> VertexTrait for Vertex<Data> {
+impl<Data: MatrixDataTrait> VertexTrait for Matrix<Data> {
     type Data = Data;
 
     fn new(data: [Self::Data; 3]) -> Self {
@@ -37,6 +40,10 @@ impl<Data: DataTrait> VertexTrait for Vertex<Data> {
         self.0.index(0, 2)
     }
 
+    fn matrix(&self) -> &Self::Data {
+        &self.0
+    }
+
     fn x_mut(&mut self) -> &mut Self::Data {
         self.0.index_mut(0, 0)
     }
@@ -48,13 +55,17 @@ impl<Data: DataTrait> VertexTrait for Vertex<Data> {
     fn z_mut(&mut self) -> &mut Self::Data {
         self.0.index_mut(0, 2)
     }
-}
 
-impl<Data: DataTrait> Into<Matrix<Data>> for Vertex<Data> {
-    fn into(self) -> Matrix<Data> {
-        Matrix::from_array([[*self.x(), *self.y(), *self.z()]])
+    fn matrix_mut(&mut self) -> &mut Matrix<Data> {
+        &mut self.0
     }
 }
+
+// impl<Data: DataTrait> Into<Matrix<Data>> for Vertex<Data> {
+//     fn into(self) -> Matrix<Data> {
+//         Matrix::from_array([[*self.x(), *self.y(), *self.z()]])
+//     }
+// }
 
 pub trait PlaneTrait<Data> {
     fn point(&self) -> &[Data];
@@ -62,7 +73,7 @@ pub trait PlaneTrait<Data> {
     fn parameter_b(&self) -> &[Data];
 }
 
-impl<Data: DataTrait> PlaneTrait<Data> for Matrix<Data> {
+impl<Data: MatrixDataTrait> PlaneTrait<Data> for Matrix<Data> {
     fn point(&self) -> &[Data] {
         self.row(0)
     }
@@ -91,13 +102,13 @@ impl DimensionsTrait for (usize, usize) {
     }
 }
 
-pub struct Camera<Data: DataTrait> {
+pub struct Camera<Data: MatrixDataTrait> {
     resolution: (usize, usize),
     position: (Data, Data, Data),
     direction: (Data, Data, Data),
 }
 
-impl<Data: DataTrait> Camera<Data> {
+impl<Data: MatrixDataTrait> Camera<Data> {
     fn new(resolution: (usize, usize), position: (Data, Data, Data), direction: (Data, Data, Data)) -> Self {
         Self {
             resolution,
@@ -107,7 +118,7 @@ impl<Data: DataTrait> Camera<Data> {
     }
 }
 
-impl<Data: DataTrait> Default for Camera<Data> {
+impl<Data: MatrixDataTrait> Default for Camera<Data> {
     fn default() -> Self {
         Self {
             resolution: (100, 100),

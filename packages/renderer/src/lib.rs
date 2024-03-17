@@ -9,7 +9,7 @@ pub use strategy::renderer;
 pub mod common;
 pub use common::*;
 
-use linear_algebra::matrix::DataTrait;
+use linear_algebra::matrix::MatrixDataTrait;
 
 #[derive(Default, Clone)]
 pub enum RenderOption {
@@ -26,7 +26,7 @@ pub struct RendererConfiguration {
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
-pub trait RendererBuilderTrait<'a, Data: DataTrait>: Default {
+pub trait RendererBuilderTrait<'a, Data: MatrixDataTrait>: Default {
     type Renderer: RendererTrait<'a, Data>;
 
     /// In order to instantiate this type, since the implementation may vary for different renderers,
@@ -47,8 +47,8 @@ pub trait RendererBuilderTrait<'a, Data: DataTrait>: Default {
 }
 
 /// [RendererTrait] for rendering to display on some [PlaneTrait].
-pub trait RendererTrait<'a, Data: DataTrait> {
-    type Vertex: VertexTrait;
+pub trait RendererTrait<'a, Data: MatrixDataTrait> {
+    type Vertex: VertexTrait<Data = Data>;
 
     /// Get [RendererConfiguration].
     fn config(&self) -> RendererConfiguration;
@@ -58,8 +58,8 @@ pub trait RendererTrait<'a, Data: DataTrait> {
     /// Returns [Result::Ok] if configuration is valid for current renderer.
     fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str>;
 
-    /// Vertices ([Vertex]) are used as "anchors" from which lines can be drawn.
-    fn set_vertices(&mut self, vertices: &[Vertex<Data>]);
+    /// Vertices ([VertexTrait]) are used as "anchors" from which lines can be drawn.
+    fn set_vertices(&mut self, vertices: &[Self::Vertex]);
 
     /// Index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
     /// 
@@ -80,7 +80,7 @@ pub trait RendererTrait<'a, Data: DataTrait> {
 }
 
 /// Hidden trait methods for [RendererTrait].
-trait __RendererTrait<'a, Data: DataTrait>: RendererTrait<'a, Data> {
+trait __RendererTrait<'a, Data: MatrixDataTrait>: RendererTrait<'a, Data> {
     /// Create new instance.
     fn new(config: RendererConfiguration) -> Self;
 }

@@ -1,4 +1,4 @@
-use linear_algebra::matrix::{DataTrait, Matrix};
+use linear_algebra::matrix::{MatrixDataTrait, Matrix};
 
 use crate::{common::*, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait, PlaneTrait, RenderOption};
 
@@ -63,7 +63,7 @@ impl<'a> RendererBuilderTrait<'a, f64> for TerminalBuilder {
     }
 }
 
-pub struct Terminal<'a, Data: DataTrait> {
+pub struct Terminal<'a, Data: MatrixDataTrait> {
     config: RendererConfiguration,
     vertices: Vec<Vertex<Data>>,
     line_draw_order: Vec<usize>,
