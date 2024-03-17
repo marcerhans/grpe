@@ -168,7 +168,7 @@ impl __RendererTrait<f64> for Terminal<f64> {
         //     buffer: vec![vec![character::EMPTY; dim.1]; dim.0],
         //     center_offset: ((dim.0 as f64 / 2.0).ceil() as isize, -((dim.1 as f64 / 2.0).ceil() as isize)),
         // }
-        todo!()
+        todo!("TODO: DO THIS NEXT!!!")
     }
 }
 
