@@ -21,8 +21,8 @@ pub enum RenderOption {
 
 #[derive(Default, Clone)]
 pub struct RendererConfiguration {
-    camera: Camera<f64>,
-    option: RenderOption,
+    pub camera: Camera<f64>,
+    pub option: RenderOption,
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).

@@ -1,6 +1,9 @@
-use linear_algebra::matrix::{MatrixDataTrait, Matrix};
+use linear_algebra::matrix::{Matrix, MatrixDataTrait};
 
-use crate::{common::*, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait, PlaneTrait, RenderOption};
+use crate::{
+    common::*, PlaneTrait, RenderOption, RendererBuilderTrait, RendererConfiguration,
+    RendererTrait, __RendererTrait,
+};
 
 mod character {
     pub static LINE_HORIZONTAL: char = '\u{254c}'; // ╌
@@ -79,9 +82,7 @@ impl Terminal<f64> {
     }
 
     /// Maps canvas data to buffer by using the parameters of the [PlaneTrait].
-    fn map_canvas_to_buffer(&self, canvas: &dyn PlaneTrait<f64>) {
-
-    }
+    fn map_canvas_to_buffer(&self, canvas: &dyn PlaneTrait<f64>) {}
 
     /// Clear previously rendered frame.
     fn clear(&self) {}
@@ -143,32 +144,37 @@ impl RendererTrait<f64> for Terminal<f64> {
         // Ok(())
         todo!()
     }
-    
+
     fn set_vertices(&mut self, vertices: &[Self::Vertex]) {
         todo!()
     }
-    
+
     fn set_vertices_line_draw_order(&mut self, order: &[&[usize]]) {
         todo!()
     }
-    
+
     fn render(&self) {
         todo!()
     }
-
 }
 
 impl __RendererTrait<f64> for Terminal<f64> {
+    // TODO: Fix the canvas so that it is based of config (camera) rather than just (1.0, 0.0, 0.0) and (0.0, 1.0, 0.0).
     fn new(config: RendererConfiguration) -> Self {
-        // let dim = config.dimensions;
-        // Self {
-        //     config,
-        //     vertices: Vec::new(),
-        //     line_draw_order: Vec::new(),
-        //     buffer: vec![vec![character::EMPTY; dim.1]; dim.0],
-        //     center_offset: ((dim.0 as f64 / 2.0).ceil() as isize, -((dim.1 as f64 / 2.0).ceil() as isize)),
-        // }
-        todo!("TODO: DO THIS NEXT!!!")
+        let camera_position = config.camera.position().clone();
+        let resolution = config.camera.resolution().clone();
+        Self {
+            config,
+            vertices: Default::default(),
+            line_draw_order: Default::default(),
+            canvas: Matrix::from_array([
+                [camera_position.0, camera_position.1, camera_position.2],
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+            ]),
+            buffer: vec![vec![character::EMPTY; resolution.width()]; resolution.height()],
+            center_offset: todo!(),
+        }
     }
 }
 
@@ -191,7 +197,7 @@ mod tests {
 
     #[test]
     fn center_points() {
-        // let renderer = TerminalBuilder::default().with_dimensions((9,9)).build();
+        let renderer = TerminalBuilder::default().build();
 
         // let mut test_surface = Matrix::from_array([
         //     [0.0, 0.0, 0.0],

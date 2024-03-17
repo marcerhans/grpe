@@ -101,12 +101,24 @@ pub struct Camera<T: MatrixDataTrait> {
 }
 
 impl<T: MatrixDataTrait> Camera<T> {
-    fn new(resolution: (usize, usize), position: (T, T, T), direction: (T, T, T)) -> Self {
+    pub fn new(resolution: (usize, usize), position: (T, T, T), direction: (T, T, T)) -> Self {
         Self {
             resolution,
             position,
             direction,
         }
+    }
+
+    pub fn resolution(&self) -> &(usize, usize) {
+        &self.resolution
+    }
+
+    pub fn position(&self) -> &(T, T, T) {
+        &self.position
+    }
+
+    pub fn direction(&self) -> &(T, T, T) {
+        &self.direction
     }
 }
 
