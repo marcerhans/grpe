@@ -17,10 +17,6 @@ pub trait VertexTrait {
     fn matrix_mut(&mut self) -> &mut Matrix<Self::T>;
 }
 
-// #[derive(Debug, Default, Clone)]
-// pub struct Vertex<Data: DataTrait>(Matrix<Data>);
-
-// impl<Data: DataTrait> VertexTrait for Vertex<Data> {
 impl<T: MatrixDataTrait> VertexTrait for Matrix<T> {
     type T = T;
 
@@ -60,12 +56,6 @@ impl<T: MatrixDataTrait> VertexTrait for Matrix<T> {
         &mut self.0
     }
 }
-
-// impl<Data: DataTrait> Into<Matrix<Data>> for Vertex<Data> {
-//     fn into(self) -> Matrix<Data> {
-//         Matrix::from_array([[*self.x(), *self.y(), *self.z()]])
-//     }
-// }
 
 pub trait PlaneTrait<T> {
     fn point(&self) -> &[T];
