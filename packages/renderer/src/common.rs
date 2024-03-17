@@ -2,61 +2,61 @@
 use linear_algebra::matrix::{MatrixDataTrait, Matrix};
 
 pub trait VertexTrait {
-    type Data: MatrixDataTrait;
+    type T: MatrixDataTrait;
 
-    fn new(data: [Self::Data; 3]) -> Self;
+    fn new(data: [Self::T; 3]) -> Self;
 
-    fn x(&self) -> &Self::Data;
-    fn y(&self) -> &Self::Data;
-    fn z(&self) -> &Self::Data;
-    fn matrix(&self) -> &Matrix<Self::Data>;
+    fn x(&self) -> &Self::T;
+    fn y(&self) -> &Self::T;
+    fn z(&self) -> &Self::T;
+    fn matrix(&self) -> &Matrix<Self::T>;
 
-    fn x_mut(&mut self) -> &mut Self::Data;
-    fn y_mut(&mut self) -> &mut Self::Data;
-    fn z_mut(&mut self) -> &mut Self::Data;
-    fn matrix_mut(&mut self) -> &mut Matrix<Self::Data>;
+    fn x_mut(&mut self) -> &mut Self::T;
+    fn y_mut(&mut self) -> &mut Self::T;
+    fn z_mut(&mut self) -> &mut Self::T;
+    fn matrix_mut(&mut self) -> &mut Matrix<Self::T>;
 }
 
 // #[derive(Debug, Default, Clone)]
 // pub struct Vertex<Data: DataTrait>(Matrix<Data>);
 
 // impl<Data: DataTrait> VertexTrait for Vertex<Data> {
-impl<Data: MatrixDataTrait> VertexTrait for Matrix<Data> {
-    type Data = Data;
+impl<T: MatrixDataTrait> VertexTrait for Matrix<T> {
+    type T = T;
 
-    fn new(data: [Self::Data; 3]) -> Self {
+    fn new(data: [Self::T; 3]) -> Self {
         Self(Matrix::from_array([data; 1]))
     }
 
-    fn x(&self) -> &Self::Data {
+    fn x(&self) -> &Self::T {
         self.0.index(0, 0)
     }
 
-    fn y(&self) -> &Self::Data {
+    fn y(&self) -> &Self::T {
         self.0.index(0, 1)
     }
 
-    fn z(&self) -> &Self::Data {
+    fn z(&self) -> &Self::T {
         self.0.index(0, 2)
     }
 
-    fn matrix(&self) -> &Self::Data {
+    fn matrix(&self) -> &Self::T {
         &self.0
     }
 
-    fn x_mut(&mut self) -> &mut Self::Data {
+    fn x_mut(&mut self) -> &mut Self::T {
         self.0.index_mut(0, 0)
     }
 
-    fn y_mut(&mut self) -> &mut Self::Data {
+    fn y_mut(&mut self) -> &mut Self::T {
         self.0.index_mut(0, 1)
     }
 
-    fn z_mut(&mut self) -> &mut Self::Data {
+    fn z_mut(&mut self) -> &mut Self::T {
         self.0.index_mut(0, 2)
     }
 
-    fn matrix_mut(&mut self) -> &mut Matrix<Data> {
+    fn matrix_mut(&mut self) -> &mut Matrix<T> {
         &mut self.0
     }
 }
@@ -67,22 +67,22 @@ impl<Data: MatrixDataTrait> VertexTrait for Matrix<Data> {
 //     }
 // }
 
-pub trait PlaneTrait<Data> {
-    fn point(&self) -> &[Data];
-    fn parameter_a(&self) -> &[Data];
-    fn parameter_b(&self) -> &[Data];
+pub trait PlaneTrait<T> {
+    fn point(&self) -> &[T];
+    fn parameter_a(&self) -> &[T];
+    fn parameter_b(&self) -> &[T];
 }
 
-impl<Data: MatrixDataTrait> PlaneTrait<Data> for Matrix<Data> {
-    fn point(&self) -> &[Data] {
+impl<T: MatrixDataTrait> PlaneTrait<T> for Matrix<T> {
+    fn point(&self) -> &[T] {
         self.row(0)
     }
 
-    fn parameter_a(&self) -> &[Data] {
+    fn parameter_a(&self) -> &[T] {
         self.row(1)
     }
 
-    fn parameter_b(&self) -> &[Data] {
+    fn parameter_b(&self) -> &[T] {
         self.row(2)
     }
 }
@@ -102,14 +102,14 @@ impl DimensionsTrait for (usize, usize) {
     }
 }
 
-pub struct Camera<Data: MatrixDataTrait> {
+pub struct Camera<T: MatrixDataTrait> {
     resolution: (usize, usize),
-    position: (Data, Data, Data),
-    direction: (Data, Data, Data),
+    position: (T, T, T),
+    direction: (T, T, T),
 }
 
-impl<Data: MatrixDataTrait> Camera<Data> {
-    fn new(resolution: (usize, usize), position: (Data, Data, Data), direction: (Data, Data, Data)) -> Self {
+impl<T: MatrixDataTrait> Camera<T> {
+    fn new(resolution: (usize, usize), position: (T, T, T), direction: (T, T, T)) -> Self {
         Self {
             resolution,
             position,
@@ -118,7 +118,7 @@ impl<Data: MatrixDataTrait> Camera<Data> {
     }
 }
 
-impl<Data: MatrixDataTrait> Default for Camera<Data> {
+impl<T: MatrixDataTrait> Default for Camera<T> {
     fn default() -> Self {
         Self {
             resolution: (100, 100),

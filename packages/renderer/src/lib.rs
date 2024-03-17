@@ -26,8 +26,8 @@ pub struct RendererConfiguration {
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
-pub trait RendererBuilderTrait<'a, Data: MatrixDataTrait>: Default {
-    type Renderer: RendererTrait<'a, Data>;
+pub trait RendererBuilderTrait<'a, T: MatrixDataTrait>: Default {
+    type Renderer: RendererTrait<'a, T>;
 
     /// In order to instantiate this type, since the implementation may vary for different renderers,
     /// the implementation should provide a 'man' (manual/info) string for what info is needed to 
@@ -36,7 +36,7 @@ pub trait RendererBuilderTrait<'a, Data: MatrixDataTrait>: Default {
     /// TODO: There are better solutions, but this will do for now.
     fn man() -> &'static str;
 
-    fn with_camera(self, camera: Camera<Data>) -> Self;
+    fn with_camera(self, camera: Camera<T>) -> Self;
     fn with_option(self, option: RenderOption) -> Self;
 
     /// Build an instance of [RendererTrait].
@@ -47,8 +47,8 @@ pub trait RendererBuilderTrait<'a, Data: MatrixDataTrait>: Default {
 }
 
 /// [RendererTrait] for rendering to display on some [PlaneTrait].
-pub trait RendererTrait<'a, Data: MatrixDataTrait> {
-    type Vertex: VertexTrait<Data = Data>;
+pub trait RendererTrait<'a, T: MatrixDataTrait> {
+    type Vertex: VertexTrait<T = T>;
 
     /// Get [RendererConfiguration].
     fn config(&self) -> RendererConfiguration;
@@ -80,7 +80,7 @@ pub trait RendererTrait<'a, Data: MatrixDataTrait> {
 }
 
 /// Hidden trait methods for [RendererTrait].
-trait __RendererTrait<'a, Data: MatrixDataTrait>: RendererTrait<'a, Data> {
+trait __RendererTrait<'a, T: MatrixDataTrait>: RendererTrait<'a, T> {
     /// Create new instance.
     fn new(config: RendererConfiguration) -> Self;
 }
