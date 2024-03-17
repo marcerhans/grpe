@@ -21,39 +21,39 @@ impl<T: MatrixDataTrait> VertexTrait for Matrix<T> {
     type T = T;
 
     fn new(data: [Self::T; 3]) -> Self {
-        Self(Matrix::from_array([data; 1]))
+        Matrix::from_array([data; 1])
     }
 
     fn x(&self) -> &Self::T {
-        self.0.index(0, 0)
+        self.index(0, 0)
     }
 
     fn y(&self) -> &Self::T {
-        self.0.index(0, 1)
+        self.index(0, 1)
     }
 
     fn z(&self) -> &Self::T {
-        self.0.index(0, 2)
+        self.index(0, 2)
     }
 
-    fn matrix(&self) -> &Self::T {
-        &self.0
+    fn matrix(&self) -> &Self {
+        self
     }
 
     fn x_mut(&mut self) -> &mut Self::T {
-        self.0.index_mut(0, 0)
+        self.index_mut(0, 0)
     }
 
     fn y_mut(&mut self) -> &mut Self::T {
-        self.0.index_mut(0, 1)
+        self.index_mut(0, 1)
     }
 
     fn z_mut(&mut self) -> &mut Self::T {
-        self.0.index_mut(0, 2)
+        self.index_mut(0, 2)
     }
 
-    fn matrix_mut(&mut self) -> &mut Matrix<T> {
-        &mut self.0
+    fn matrix_mut(&mut self) -> &mut Self {
+        self
     }
 }
 
@@ -63,17 +63,18 @@ pub trait PlaneTrait<T> {
     fn parameter_b(&self) -> &[T];
 }
 
+/// TODO: A bit ugly, because it is dependent on how matrix is implemented.
 impl<T: MatrixDataTrait> PlaneTrait<T> for Matrix<T> {
     fn point(&self) -> &[T] {
-        self.row(0)
+        &self.data()[0..3]
     }
 
     fn parameter_a(&self) -> &[T] {
-        self.row(1)
+        &self.data()[3..6]
     }
 
     fn parameter_b(&self) -> &[T] {
-        self.row(2)
+        &self.data()[6..9]
     }
 }
 
@@ -92,6 +93,7 @@ impl DimensionsTrait for (usize, usize) {
     }
 }
 
+#[derive(Clone)]
 pub struct Camera<T: MatrixDataTrait> {
     resolution: (usize, usize),
     position: (T, T, T),
@@ -108,12 +110,12 @@ impl<T: MatrixDataTrait> Camera<T> {
     }
 }
 
-impl<T: MatrixDataTrait> Default for Camera<T> {
+impl Default for Camera<f64> {
     fn default() -> Self {
         Self {
             resolution: (100, 100),
-            position: (0, 0, -10),
-            direction: (0, 0, 1),
+            position: (0.0, 0.0, -10.0),
+            direction: (0.0, 0.0, 1.0),
         }
     }
 }
