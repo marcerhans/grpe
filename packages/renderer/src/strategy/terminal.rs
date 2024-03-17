@@ -1,7 +1,7 @@
 use linear_algebra::matrix::{Matrix, MatrixDataTrait};
 
 use crate::{
-    common::*, PlaneTrait, RenderOption, RendererBuilderTrait, RendererConfiguration,
+    common::*, Camera, RenderOption, RendererBuilderTrait, RendererConfiguration,
     RendererTrait, __RendererTrait,
 };
 
@@ -181,8 +181,8 @@ impl __RendererTrait<f64> for Terminal<f64> {
             config,
             vertices: Default::default(),
             line_draw_order: Default::default(),
-            viewpoint,
-            viewport,
+            viewpoint: todo!(),
+            viewport: todo!(),
             buffer: vec![vec![character::EMPTY; resolution.width()]; resolution.height()],
             center_offset: ((resolution.0 as f64 / 2.0).ceil() as isize, -((resolution.1 as f64 / 2.0).ceil() as isize)),
         }

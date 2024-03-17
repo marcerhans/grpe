@@ -6,10 +6,55 @@
 pub mod strategy;
 pub use strategy::renderer;
 
-pub mod common;
-pub use common::*;
+mod common;
 
 use linear_algebra::matrix::MatrixDataTrait;
+
+#[derive(Clone)]
+pub struct Camera<T: MatrixDataTrait> {
+    resolution: (usize, usize),
+    position: (T, T, T),
+    direction: (T, T, T),
+    fov: usize,
+}
+
+impl<T: MatrixDataTrait> Camera<T> {
+    pub fn new(resolution: (usize, usize), position: (T, T, T), direction: (T, T, T), fov: usize) -> Self {
+        Self {
+            resolution,
+            position,
+            direction,
+            fov,
+        }
+    }
+
+    pub fn resolution(&self) -> &(usize, usize) {
+        &self.resolution
+    }
+
+    pub fn position(&self) -> &(T, T, T) {
+        &self.position
+    }
+
+    pub fn direction(&self) -> &(T, T, T) {
+        &self.direction
+    }
+    
+    pub fn fov(&self) -> &usize {
+        &self.fov
+    }
+}
+
+impl Default for Camera<f64> {
+    fn default() -> Self {
+        Self {
+            resolution: (100, 100),
+            position: (0.0, 0.0, -10.0),
+            direction: (0.0, 0.0, 1.0),
+            fov: 90,
+        }
+    }
+}
 
 #[derive(Default, Clone)]
 pub enum RenderOption {
@@ -48,7 +93,7 @@ pub trait RendererBuilderTrait<T: MatrixDataTrait>: Default {
 
 /// [RendererTrait] for rendering to display on some [PlaneTrait].
 pub trait RendererTrait<T: MatrixDataTrait> {
-    type Vertex: VertexTrait<T = T>;
+    type Vertex;
 
     /// Get [RendererConfiguration].
     fn config(&self) -> RendererConfiguration;
