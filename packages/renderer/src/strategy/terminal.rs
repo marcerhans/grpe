@@ -25,27 +25,14 @@ impl<'a> Default for TerminalBuilder {
 }
 
 impl<'a> RendererBuilderTrait<'a, f64> for TerminalBuilder {
-    type Dimensions = (usize, usize);
-    type Camera = Vertex<f64>;
-    type Canvas = Matrix<f64>;
     type Renderer = Terminal<'a, f64>;
 
     fn man() -> &'static str {
         todo!()
     }
 
-    fn with_dimensions(mut self, dimensions: Self::Dimensions) -> Self {
-        self.config.dimensions = dimensions;
-        self
-    }
-
-    fn with_camera(mut self, camera: Self::Camera) -> Self {
+    fn with_camera(mut self, camera: Camera<f64>) -> Self {
         self.config.camera = camera;
-        self
-    }
-
-    fn with_canvas(mut self, canvas: Self::Canvas) -> Self {
-        self.config.canvas = canvas;
         self
     }
 
@@ -63,9 +50,9 @@ impl<'a> RendererBuilderTrait<'a, f64> for TerminalBuilder {
     }
 }
 
-pub struct Terminal<'a, Data: MatrixDataTrait> {
+pub struct Terminal<'a, T: MatrixDataTrait> {
     config: RendererConfiguration,
-    vertices: Vec<Vertex<Data>>,
+    vertices: Vec<Matrix<T>>,
     line_draw_order: Vec<usize>,
     buffer: Vec<Vec<char>>,
     center_offset: (isize, isize),
