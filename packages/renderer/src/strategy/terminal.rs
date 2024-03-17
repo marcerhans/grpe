@@ -163,6 +163,7 @@ impl __RendererTrait<f64> for Terminal<f64> {
     fn new(config: RendererConfiguration) -> Self {
         let camera_position = config.camera.position().clone();
         let resolution = config.camera.resolution().clone();
+
         Self {
             config,
             vertices: Default::default(),
@@ -173,7 +174,7 @@ impl __RendererTrait<f64> for Terminal<f64> {
                 [0.0, 1.0, 0.0],
             ]),
             buffer: vec![vec![character::EMPTY; resolution.width()]; resolution.height()],
-            center_offset: todo!(),
+            center_offset: ((resolution.0 as f64 / 2.0).ceil() as isize, -((resolution.1 as f64 / 2.0).ceil() as isize)),
         }
     }
 }
