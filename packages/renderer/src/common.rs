@@ -9,12 +9,10 @@ pub trait VertexTrait {
     fn x(&self) -> &Self::T;
     fn y(&self) -> &Self::T;
     fn z(&self) -> &Self::T;
-    fn matrix(&self) -> &Matrix<Self::T>;
 
     fn x_mut(&mut self) -> &mut Self::T;
     fn y_mut(&mut self) -> &mut Self::T;
     fn z_mut(&mut self) -> &mut Self::T;
-    fn matrix_mut(&mut self) -> &mut Matrix<Self::T>;
 }
 
 impl<T: MatrixDataTrait> VertexTrait for Matrix<T> {
@@ -36,10 +34,6 @@ impl<T: MatrixDataTrait> VertexTrait for Matrix<T> {
         self.index(0, 2)
     }
 
-    fn matrix(&self) -> &Self {
-        self
-    }
-
     fn x_mut(&mut self) -> &mut Self::T {
         self.index_mut(0, 0)
     }
@@ -50,10 +44,6 @@ impl<T: MatrixDataTrait> VertexTrait for Matrix<T> {
 
     fn z_mut(&mut self) -> &mut Self::T {
         self.index_mut(0, 2)
-    }
-
-    fn matrix_mut(&mut self) -> &mut Self {
-        self
     }
 }
 

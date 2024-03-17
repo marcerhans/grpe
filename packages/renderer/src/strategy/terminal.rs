@@ -57,7 +57,7 @@ pub struct Terminal<T: MatrixDataTrait> {
     config: RendererConfiguration,
     vertices: Vec<Matrix<T>>,
     line_draw_order: Vec<usize>,
-    viewpoint: (T, T, T),
+    viewpoint: Matrix<T>,
     viewport: Matrix<T>,
     buffer: Vec<Vec<char>>,
     center_offset: (isize, isize),
@@ -170,12 +170,12 @@ impl __RendererTrait<f64> for Terminal<f64> {
         // Determine viewport (camera) and viewpoint position to achieve desired fov.
         todo!("DO THIS NEXT!");
         let viewpoint = {
-
-        }
+            
+        };
 
         let viewport = {
 
-        }
+        };
 
         Self {
             config,
