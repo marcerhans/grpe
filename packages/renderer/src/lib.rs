@@ -91,7 +91,7 @@ pub trait RendererBuilderTrait<T: MatrixDataTrait>: Default {
     fn build_with_config(self, config: RendererConfiguration) -> Self::Renderer;
 }
 
-/// [RendererTrait] for rendering to display on some [PlaneTrait].
+/// [RendererTrait] for rendering to display.
 pub trait RendererTrait<T: MatrixDataTrait> {
     type Vertex;
 
