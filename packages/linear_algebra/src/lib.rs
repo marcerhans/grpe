@@ -864,6 +864,8 @@ pub mod utility {
     /// Only solves n by n+1 matrices.
     ///
     /// Note: This probably currently only works with floating point data types.
+    /// 
+    /// TODO: What the heck does this actually return? BAD CODE! BAD!
     pub fn gauss_elimination<Data: MatrixDataTrait>(
         mut matrix: &mut matrix::Matrix<Data>,
     ) -> Option<matrix::Matrix<Data>> {

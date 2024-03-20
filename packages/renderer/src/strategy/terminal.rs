@@ -1,8 +1,11 @@
-use linear_algebra::matrix::{Matrix, MatrixDataTrait};
+use linear_algebra::{
+    matrix::{Matrix, MatrixDataTrait},
+    utility::gauss_elimination,
+};
 
 use crate::{
-    common::*, Camera, RenderOption, RendererBuilderTrait, RendererConfiguration,
-    RendererTrait, __RendererTrait,
+    common::*, Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait,
+    __RendererTrait,
 };
 
 mod character {
@@ -83,7 +86,32 @@ impl Terminal<f64> {
     }
 
     /// Maps viewport data to buffer by using the parameters of the [PlaneTrait].
-    fn map_viewport_to_buffer(&self, viewport: &dyn PlaneTrait<f64>) {}
+    fn map_viewport_to_buffer(&mut self) {
+        for vertex in self.vertices.iter() {
+            let mut eq_system = self.viewport.clone();
+
+            eq_system.push_row(vertex.clone());
+
+            for column in 0..vertex.columns() {
+                *eq_system.index_mut(3, column) -= *eq_system.index(0, column);
+            }
+
+            eq_system.pop_row(0);
+            eq_system = eq_system.transpose();
+            eq_system.pop_row(2);
+            let _ = gauss_elimination(&mut eq_system);
+
+            println!("{eq_system:?}");
+            let parameters = eq_system;
+            let parameter_x = *parameters.index(0,2);
+            let parameter_y = *parameters.index(1,2);
+
+            let x = self.viewport.index(1, 0) * parameter_x;
+            let y = self.viewport.index(2,1) * parameter_y;
+
+            self.buffer[y as usize][x as usize] = 'x';
+        }
+    }
 
     /// Clear previously rendered frame.
     fn clear(&self) {}
@@ -147,7 +175,7 @@ impl RendererTrait<f64> for Terminal<f64> {
     }
 
     fn set_vertices(&mut self, vertices: &[Self::Vertex]) {
-        todo!()
+        self.vertices.extend_from_slice(vertices)
     }
 
     fn set_vertices_line_draw_order(&mut self, order: &[&[usize]]) {
@@ -166,22 +194,13 @@ impl __RendererTrait<f64> for Terminal<f64> {
         let position = config.camera.position().clone();
         let direction = config.camera.direction().clone();
         let fov = config.camera.fov().clone();
-        
+
         // TODO: Determine viewport (camera) and viewpoint position to achieve desired fov
         // TODO: Just use something for now...
-        let viewpoint = {
-            Matrix::<f64>::from_array([
-                [-10.0, 0.0, 0.0]
-            ])
-        };
+        let viewpoint = { Matrix::<f64>::from_array([[0.0, 0.0, -10.0]]) };
 
-        let viewport = {
-            Matrix::<f64>::from_array([
-                [0.0, 0.0, 0.0],
-                [1.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0],
-            ])
-        };
+        let viewport =
+            { Matrix::<f64>::from_array([[0.0, 0.0, -5.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]) };
 
         Self {
             config,
@@ -190,7 +209,10 @@ impl __RendererTrait<f64> for Terminal<f64> {
             viewpoint,
             viewport,
             buffer: vec![vec![character::EMPTY; resolution.width()]; resolution.height()],
-            center_offset: ((resolution.0 as f64 / 2.0).ceil() as isize, -((resolution.1 as f64 / 2.0).ceil() as isize)),
+            center_offset: (
+                (resolution.0 as f64 / 2.0).ceil() as isize,
+                -((resolution.1 as f64 / 2.0).ceil() as isize),
+            ),
         }
     }
 }
@@ -251,5 +273,20 @@ mod tests {
 
         // renderer.center_viewport_points(&mut test_surface);
         // assert!(test_surface == expected, "Result: {test_surface:?}\nExpected: {expected:?}");
+    }
+
+    #[test]
+    fn map_viewport_to_buffer() {
+        let mut renderer = TerminalBuilder::default().build();
+        renderer.set_vertices(&[Matrix::from_array([[2.0, 3.0, 0.0]])]);
+        renderer.map_viewport_to_buffer();
+
+        // let expected = vec![vec![
+
+        // ]];
+
+        println!("{:?}", renderer.buffer);
+
+        // assert!(renderer.buffer == expected);
     }
 }
