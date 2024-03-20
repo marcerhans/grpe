@@ -222,6 +222,16 @@ pub mod matrix {
             self.data.append(&mut matrix.data);
             self.rows += 1;
         }
+
+        pub fn pop_row(&mut self, row: usize) {
+            if self.rows == 0 {
+                panic!("Cannot pop row from empty matrix.");
+            }
+
+            let start = row * self.columns;
+            self.data.drain(start..(start + self.columns));
+            self.rows -= 1;
+        }
     }
 
     impl<Data: MatrixDataTrait> std::fmt::Debug for Matrix<Data> {
@@ -714,6 +724,23 @@ pub mod matrix {
             }
         }
 
+        mod test_pop_row {
+            use super::*;
+
+            #[test]
+            fn pop_row() {
+                let mut matrix = Matrix::from_array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]);
+                let check = Matrix::from_array([
+                    [1, 2, 3, 4],
+                    [9, 10, 11, 12],
+                ]);
+
+                matrix.pop_row(1);
+
+                assert!(matrix == check, "{matrix:?}");
+            }
+        }
+
         mod test_partial_eq {
             use super::*;
 
@@ -852,7 +879,7 @@ pub mod utility {
             column: usize,
         ) -> Option<usize> {
             for row in start_row..matrix.rows() {
-                if *matrix.index(row, column) > Data::zero() {
+                if *matrix.index(row, column) != Data::zero() {
                     return Some(row);
                 }
             }
