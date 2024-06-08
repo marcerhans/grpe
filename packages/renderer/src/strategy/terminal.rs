@@ -60,8 +60,13 @@ pub struct Terminal<T: MatrixDataTrait> {
     config: RendererConfiguration,
     vertices: Vec<Matrix<T>>,
     line_draw_order: Vec<usize>,
+
+    /// Simple point in (x,y,z) space.
     viewpoint: Matrix<T>,
+
+    /// 3x3 matrix representinga plane using a parametric form containting the rows (plane, parameter a, parameter b).
     viewport: Matrix<T>,
+
     buffer: Vec<Vec<char>>,
     center_offset: (isize, isize),
 }
@@ -74,15 +79,6 @@ impl Terminal<f64> {
         }
 
         character::LOWER
-    }
-
-    /// Center points so that, for example, vertex (0,0,0) appears in the middle of the terminal
-    /// (which would be at (5,-5,0) after centering using a terminal with dimensions (9,9)).
-    fn center_viewport_points(&self, viewport: &mut Matrix<f64>) {
-        for row in 0..viewport.rows() {
-            *viewport.index_mut(row, 0) += self.center_offset.0 as f64;
-            *viewport.index_mut(row, 1) += self.center_offset.1 as f64;
-        }
     }
 
     /// Maps viewport data to buffer by using the parameters of the [PlaneTrait].
@@ -101,15 +97,29 @@ impl Terminal<f64> {
             eq_system.pop_row(2);
             let _ = gauss_elimination(&mut eq_system);
 
-            println!("{eq_system:?}");
             let parameters = eq_system;
-            let parameter_x = *parameters.index(0,2);
-            let parameter_y = *parameters.index(1,2);
+            let parameter_x = *parameters.index(0, 2);
+            let parameter_y = *parameters.index(1, 2);
 
             let x = self.viewport.index(1, 0) * parameter_x;
-            let y = self.viewport.index(2,1) * parameter_y;
+            let y = self.viewport.index(2, 1) * parameter_y;
 
             self.buffer[y as usize][x as usize] = 'x';
+        }
+    }
+
+    fn write_buffer_to_stdout(&mut self) {
+        /// Center points so that, for example, vertex (0,0,0) appears in the middle of the terminal
+        /// (which would be at (5,-5,0) after centering using a terminal with dimensions (9,9)).
+        fn center_viewport_points(viewport: &mut Matrix<f64>) {
+            // for row in 0..viewport.rows() {
+            //     *viewport.index_mut(row, 0) += self.center_offset.0 as f64;
+            //     *viewport.index_mut(row, 1) += self.center_offset.1 as f64;
+            // }
+        }
+
+        for c in self.buffer.iter() {
+
         }
     }
 
@@ -179,6 +189,7 @@ impl RendererTrait<f64> for Terminal<f64> {
     }
 
     fn set_vertices_line_draw_order(&mut self, order: &[&[usize]]) {
+        // self.line_draw_order = order.iter().as_ref().fla
         todo!()
     }
 
@@ -190,17 +201,21 @@ impl RendererTrait<f64> for Terminal<f64> {
 impl __RendererTrait<f64> for Terminal<f64> {
     // TODO: Fix the viewport both parameters and position.
     fn new(config: RendererConfiguration) -> Self {
-        let resolution = config.camera.resolution().clone();
-        let position = config.camera.position().clone();
-        let direction = config.camera.direction().clone();
-        let fov = config.camera.fov().clone();
+        let cam_resolution = config.camera.resolution().clone();
+        let cam_position = config.camera.position().clone();
+        let cam_direction = config.camera.direction().clone();
+        let cam_fov = config.camera.fov().clone();
+
+        let viewport_position = cam_position;
+        // let (viewport_parameter_a, viewport_parameter_b) = {
+        // }
+
+        let viewport =
+            Matrix::<f64>::from_array([[0.0, 0.0, -5.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]);
 
         // TODO: Determine viewport (camera) and viewpoint position to achieve desired fov
         // TODO: Just use something for now...
         let viewpoint = { Matrix::<f64>::from_array([[0.0, 0.0, -10.0]]) };
-
-        let viewport =
-            { Matrix::<f64>::from_array([[0.0, 0.0, -5.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]) };
 
         Self {
             config,
@@ -208,10 +223,10 @@ impl __RendererTrait<f64> for Terminal<f64> {
             line_draw_order: Default::default(),
             viewpoint,
             viewport,
-            buffer: vec![vec![character::EMPTY; resolution.width()]; resolution.height()],
+            buffer: vec![vec![character::EMPTY; cam_resolution.width()]; cam_resolution.height()],
             center_offset: (
-                (resolution.0 as f64 / 2.0).ceil() as isize,
-                -((resolution.1 as f64 / 2.0).ceil() as isize),
+                (cam_resolution.width() as f64 / 2.0).ceil() as isize,
+                -((cam_resolution.height() as f64 / 2.0).ceil() as isize),
             ),
         }
     }
@@ -232,61 +247,40 @@ mod tests {
         //     Adjust points coordinates (now present in viewport) for Terminal.
         //     Map viewport (matrix) to simple 2d vec buffer.
         //     Print to stdout (terminal)
+
+        let mut renderer = TerminalBuilder::default().build();
+
+        renderer.set_vertices(&[Matrix::from_array([[0.0, 0.0, 0.0]])]);
+        renderer.map_viewport_to_buffer();
+        renderer.write_buffer_to_stdout();
     }
 
     #[test]
     fn center_points() {
-        let renderer = TerminalBuilder::default().build();
+        let mut renderer = TerminalBuilder::default().build();
 
-        // let mut test_surface = Matrix::from_array([
-        //     [0.0, 0.0, 0.0],
-        //     [1.0, 1.0, 1.0],
-        //     [2.0, 2.0, 2.0],
-        //     [1.0, 2.0, 3.0],
-        // ]);
+        renderer.set_vertices(&[Matrix::from_array([[0.0, 0.0, 0.0]])]);
 
-        // let expected = Matrix::from_array([
-        //     [5.0, -5.0, 0.0],
-        //     [6.0, -4.0, 1.0],
-        //     [7.0, -3.0, 2.0],
-        //     [6.0, -3.0, 3.0],
-        // ]);
-
-        // renderer.center_viewport_points(&mut test_surface);
-        // assert!(test_surface == expected, "Result: {test_surface:?}\nExpected: {expected:?}");
-
-        // let renderer = TerminalBuilder::default().with_dimensions((10,10)).build();
-
-        // let mut test_surface = Matrix::from_array([
-        //     [0.0, 0.0, 0.0],
-        //     [1.0, 1.0, 1.0],
-        //     [2.0, 2.0, 2.0],
-        //     [1.0, 2.0, 3.0],
-        // ]);
-
-        // let expected = Matrix::from_array([
-        //     [5.0, -5.0, 0.0],
-        //     [6.0, -4.0, 1.0],
-        //     [7.0, -3.0, 2.0],
-        //     [6.0, -3.0, 3.0],
-        // ]);
-
-        // renderer.center_viewport_points(&mut test_surface);
-        // assert!(test_surface == expected, "Result: {test_surface:?}\nExpected: {expected:?}");
+        renderer.render();
     }
 
     #[test]
     fn map_viewport_to_buffer() {
         let mut renderer = TerminalBuilder::default().build();
-        renderer.set_vertices(&[Matrix::from_array([[2.0, 3.0, 0.0]])]);
+        renderer.set_vertices(&[Matrix::from_array([[1.0, 2.0, 0.0]])]);
         renderer.map_viewport_to_buffer();
 
-        // let expected = vec![vec![
+        let expected = vec![
+            [character::EMPTY, character::EMPTY, character::EMPTY],
+            [character::EMPTY, character::EMPTY, 'x'],
+            [character::EMPTY, character::EMPTY, character::EMPTY],
+        ];
 
-        // ]];
-
-        println!("{:?}", renderer.buffer);
-
-        // assert!(renderer.buffer == expected);
+        assert!(
+            renderer.buffer == expected,
+            "Expected: {:?}\nActual: {:?}",
+            expected,
+            renderer.buffer
+        );
     }
 }

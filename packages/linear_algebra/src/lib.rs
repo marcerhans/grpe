@@ -142,6 +142,10 @@ pub mod matrix {
             }
         }
 
+        pub fn cross_product(&self, other: &Matrix<Data>) {
+            todo!();
+        }
+
         pub fn slice(&self, range_row: Range<usize>, range_column: Range<usize>) -> Vec<&Data> {
             let range_row_len = range_row.len();
             let range_column_len = range_column.len();
@@ -855,9 +859,20 @@ pub mod matrix {
 }
 
 pub mod utility {
-    use self::matrix::MatrixDataTrait;
+    use super::{*, matrix::MatrixDataTrait};
 
-    use super::*;
+    /// Functions to help with linear planes.
+    pub mod plane {
+        use super::*;
+
+        pub fn normal_to_parametric_form<Data: MatrixDataTrait>(matrix: &mut matrix::Matrix<Data>) {
+            todo!()
+        }
+
+        pub fn parametric_to_normal_form<Data: MatrixDataTrait>(matrix: &mut matrix::Matrix<Data>) {
+            todo!()
+        }
+    }
 
     /// Last column in matrix is seen as the sum of the values to the left,
     /// where the values to the left are parametric.
