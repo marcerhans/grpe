@@ -8,22 +8,22 @@ pub use strategy::renderer;
 
 mod common;
 
-use linear_algebra::matrix::MatrixDataTrait;
+use linear_algebra::matrix::{Matrix, MatrixDataTrait};
 
 #[derive(Clone)]
 pub struct Camera<T: MatrixDataTrait> {
     resolution: (usize, usize),
-    position: (T, T, T),
-    direction: (T, T, T),
+    position: Matrix<T>,
+    direction: Matrix<T>,
     fov: usize,
 }
 
 impl<T: MatrixDataTrait> Camera<T> {
-    pub fn new(resolution: (usize, usize), position: (T, T, T), direction: (T, T, T), fov: usize) -> Self {
+    pub fn new(resolution: (usize, usize), position: &[T; 3], direction: &[T; 3], fov: usize) -> Self {
         Self {
             resolution,
-            position,
-            direction,
+            position: Matrix::from_slice(&[position]),
+            direction: Matrix::from_slice(&[direction]),
             fov,
         }
     }
@@ -32,11 +32,11 @@ impl<T: MatrixDataTrait> Camera<T> {
         &self.resolution
     }
 
-    pub fn position(&self) -> &(T, T, T) {
+    pub fn position(&self) -> &Matrix<T> {
         &self.position
     }
 
-    pub fn direction(&self) -> &(T, T, T) {
+    pub fn direction(&self) -> &Matrix<T> {
         &self.direction
     }
     
@@ -49,8 +49,8 @@ impl Default for Camera<f64> {
     fn default() -> Self {
         Self {
             resolution: (5, 5),
-            position: (0.0, 0.0, -10.0),
-            direction: (0.0, 0.0, 1.0),
+            position: Matrix::from_array([[0.0, 0.0, -10.0]]),
+            direction: Matrix::from_array([[0.0, 0.0, 1.0]]),
             fov: 90,
         }
     }
@@ -103,7 +103,7 @@ pub trait RendererTrait<T: MatrixDataTrait> {
     /// Returns [Result::Ok] if configuration is valid for current renderer.
     fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str>;
 
-    /// Vertices ([VertexTrait]) are used as "anchors" from which lines can be drawn.
+    /// Vertices ([VertexTrait]) are used as "anchors"/"points in space" from which lines can be drawn.
     fn set_vertices(&mut self, vertices: &[Self::Vertex]);
 
     /// Index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
@@ -112,7 +112,7 @@ pub trait RendererTrait<T: MatrixDataTrait> {
     /// Draw a line from (0,0) to (1,0) and from (0,0) to (0,1) to (1,0).
     /// 
     /// ```Rust
-    /// let vertices = vec![Vertex::new(0.0, 0.0, 0.0), Vertex::new(1.0, 0.0, 0.0), Vertex::new(0.0, 1.0, 0.0)]
+    /// let vertices = vec![Vertex::from_array([[0.0, 0.0, 0.0]]), Vertex::from_array([[1.0, 0.0, 0.0]]), Vertex::from_array([[0.0, 1.0, 0.0]])]
     /// let draw_order = vec![[0,1], [0,2,1]];
     /// 
     /// some_already_configured_renderer.set_vertices(&vertices);

@@ -3,7 +3,7 @@ use linear_algebra::matrix::{MatrixDataTrait, Matrix};
 
 pub type Vertex<T> = Matrix<T>;
 
-pub trait Point<T: MatrixDataTrait> {
+pub trait PointTrait<T: MatrixDataTrait> {
     fn new(data: [T; 3]) -> Self;
 
     fn x(&self) -> &T;
@@ -15,7 +15,7 @@ pub trait Point<T: MatrixDataTrait> {
     fn z_mut(&mut self) -> &mut T;
 }
 
-impl<T: MatrixDataTrait> Point<T> for Matrix<T> {
+impl<T: MatrixDataTrait> PointTrait<T> for Matrix<T> {
     fn new(data: [T; 3]) -> Self {
         Matrix::from_array([data; 1])
     }
