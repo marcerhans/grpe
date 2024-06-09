@@ -57,19 +57,52 @@ impl RendererBuilderTrait<f64> for TerminalBuilder {
 }
 
 struct DerivedConfiguration<T: MatrixDataTrait> {
+    /// Position
     viewpoint: Matrix<T>,
+
+    /// The viewport is a plane described by a parametric form, where each row describes:
+    /// - Position
+    /// - Parameter vector A
+    /// - Parameter vector B
     viewport: Matrix<T>,
 }
 
-impl<T: MatrixDataTrait> DerivedConfiguration<T> {
+impl DerivedConfiguration<f64> {
     /// Derived configuration determining the [Self::viewpoint] and [Self::viewport]
     /// based on given configuration. Mainly determined by the cameras position and FOV.
     fn new<'a>(config: &RendererConfiguration) -> Self {
+        let position = config.camera.position();
+        let direction = config.camera.direction();
+        let fov = config.camera.fov();
+
+        // let viewport = Matrix::from_array([
+        //     [*position.index(0, 0), *position.index(0, 1), *position.index(0, 2)],
+
+        // ]);
+
         // let viewpoint = 
 
         // Self {
 
         // }
+
+        todo!()
+    }
+
+    /// Rotation of camera is not implemented yet, assume rotation is 0 degrees.
+    fn normal_to_parametric_form(normal: &Matrix<f64>, origin: &Matrix<f64>) -> Matrix<f64> {
+        let vx = Matrix::from_array([
+            [1.0, 0.0, 0.0],
+        ]);
+        let vz = Matrix::from_array([
+            [0.0, 1.0, 0.0],
+        ]);
+
+        // let v;
+
+        // Use any vector that is not parallel to the normal.
+        // We decide to use the unit vector along the x-axis,
+        // otherwise the y-axis if the x-axis is parallel
 
         todo!()
     }

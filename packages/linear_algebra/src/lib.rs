@@ -136,6 +136,24 @@ pub mod matrix {
             transpose
         }
 
+        pub fn cross3(&mut self, other: &Matrix<Data>) -> Matrix<Data> {
+            if self.rows != other.rows() || self.columns != other.columns() {
+                panic!("Dimensions do not match")
+            }
+
+            if self.rows != 1 || self.columns != 3 {
+                panic!("Only implemented for 3d")
+            }
+
+            let mut ret = Matrix::zeros::<1, 3>();
+
+            *ret.index_mut(0,0) = *self.index(0, 1) * *other.index(0, 2) - *self.index(0, 2) * *other.index(0, 1);
+            *ret.index_mut(0,1) = *self.index(0, 2) * *other.index(0, 0) - *self.index(0, 0) * *other.index(0, 2);
+            *ret.index_mut(0,2) = *self.index(0, 0) * *other.index(0, 1) - *self.index(0, 1) * *other.index(0, 0);
+
+            return ret;
+        }
+
         pub fn scalar(&mut self, scalar: Data) {
             for val in self.data.iter_mut() {
                 *val *= scalar;
@@ -559,6 +577,20 @@ pub mod matrix {
                 matrix.scalar(2);
 
                 assert!(matrix == Matrix::from_array([[2, 4, 6], [8, 10, 12],]))
+            }
+        }
+
+        mod test_cross {
+            use super::*;
+
+            #[test]
+            fn cross3() {
+                let mut a = Matrix::from_array([[1, 2, 3]]);
+                let b = Matrix::from_array([[4, 5, 6]]);
+
+                let c = a.cross3(&b);
+
+                assert!(c == Matrix::from_array([[-3, 6, -3]]))
             }
         }
 
