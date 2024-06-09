@@ -1,8 +1,6 @@
 /// Common traits and structures.
 use linear_algebra::matrix::{MatrixDataTrait, Matrix};
 
-pub type Vertex<T> = Matrix<T>;
-
 pub trait PointTrait<T: MatrixDataTrait> {
     fn new(data: [T; 3]) -> Self;
 
