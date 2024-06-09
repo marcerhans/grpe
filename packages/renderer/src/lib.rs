@@ -99,7 +99,7 @@ pub trait RendererTrait<T: MatrixDataTrait> {
     fn config(&self) -> RendererConfiguration;
 
     /// Set a new config ([RendererConfiguration]) for the [RendererTrait].
-    /// Useful if the dimensions of the viewport ([Plane]) changes in size, for example.
+    /// Useful if the dimensions of the viewport ([common::PlaneTrait]) changes in size, for example.
     /// Returns [Result::Ok] if configuration is valid for current renderer.
     fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str>;
 
