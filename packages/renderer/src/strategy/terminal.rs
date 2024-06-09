@@ -62,7 +62,11 @@ struct DerivedConfiguration<T: MatrixDataTrait> {
 }
 
 impl<T: MatrixDataTrait> DerivedConfiguration<T> {
+    /// Derived configuration determining the [Self::viewpoint] and [Self::viewport]
+    /// based on given configuration. Mainly determined by the cameras position and FOV.
     fn new<'a>(config: &RendererConfiguration) -> Self {
+        // let viewpoint = 
+
         // Self {
 
         // }
@@ -200,7 +204,6 @@ impl RendererTrait<f64> for Terminal<f64> {
 }
 
 impl __RendererTrait<f64> for Terminal<f64> {
-    // TODO: Fix the viewport both parameters and position.
     fn new(config: RendererConfiguration) -> Self {
         Self {
             buffer: vec![vec![character::EMPTY; config.camera.resolution().width()]; config.camera.resolution().height()],
