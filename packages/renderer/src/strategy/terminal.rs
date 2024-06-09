@@ -98,7 +98,13 @@ impl DerivedConfiguration<f64> {
             [0.0, 1.0, 0.0],
         ]);
 
-        // let v;
+        let v;
+
+        if normal.cross3(&vx) != Matrix::zeros::<1, 3>() {
+            v = vx;
+        } else {
+            v = vz;
+        }
 
         // Use any vector that is not parallel to the normal.
         // We decide to use the unit vector along the x-axis,

@@ -136,7 +136,7 @@ pub mod matrix {
             transpose
         }
 
-        pub fn cross3(&mut self, other: &Matrix<Data>) -> Matrix<Data> {
+        pub fn cross3(&self, other: &Matrix<Data>) -> Matrix<Data> {
             if self.rows != other.rows() || self.columns != other.columns() {
                 panic!("Dimensions do not match")
             }
