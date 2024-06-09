@@ -94,7 +94,7 @@ impl DerivedConfiguration<f64> {
         let vx = Matrix::from_array([
             [1.0, 0.0, 0.0],
         ]);
-        let vz = Matrix::from_array([
+        let vy = Matrix::from_array([
             [0.0, 1.0, 0.0],
         ]);
 
@@ -103,7 +103,7 @@ impl DerivedConfiguration<f64> {
         if normal.cross3(&vx) != Matrix::zeros::<1, 3>() {
             v = vx;
         } else {
-            v = vz;
+            v = vy;
         }
 
         // Use any vector that is not parallel to the normal.
