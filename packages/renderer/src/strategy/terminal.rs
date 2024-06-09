@@ -91,6 +91,9 @@ impl DerivedConfiguration<f64> {
 
     /// Rotation of camera is not implemented yet, assume rotation is 0 degrees.
     fn normal_to_parametric_form(normal: &Matrix<f64>, origin: &Matrix<f64>) -> Matrix<f64> {
+        // Use any vector that is not parallel to the normal.
+        // We decide to use the unit vector along the x-axis,
+        // otherwise the y-axis if the x-axis is parallel
         let vx = Matrix::from_array([
             [1.0, 0.0, 0.0],
         ]);
@@ -106,9 +109,7 @@ impl DerivedConfiguration<f64> {
             v = vy;
         }
 
-        // Use any vector that is not parallel to the normal.
-        // We decide to use the unit vector along the x-axis,
-        // otherwise the y-axis if the x-axis is parallel
+        let ret = Matrix::zeros::<1, 3>();
 
         todo!()
     }

@@ -28,6 +28,8 @@ pub mod matrix {
         fn eqq(&self, rhs: &Self) -> bool {
             *self == *rhs
         }
+
+        fn sqrt(&self) -> Self;
     }
 
     impl MatrixDataTrait for i64 {
@@ -37,6 +39,10 @@ pub mod matrix {
 
         fn one() -> Self {
             1
+        }
+
+        fn sqrt(&self) -> Self {
+            (*self as f64).sqrt() as Self
         }
     }
 
@@ -51,6 +57,10 @@ pub mod matrix {
 
         fn eqq(&self, rhs: &Self) -> bool {
             self - rhs < Self::EPSILON
+        }
+
+        fn sqrt(&self) -> Self {
+            (*self as f64).sqrt()
         }
     }
 
@@ -134,6 +144,16 @@ pub mod matrix {
             }
 
             transpose
+        }
+
+        pub fn length(&self) -> Data {
+            let mut len = Data::zero();
+
+            for value in self.data.iter() {
+                len += (*value) * (*value);
+            }
+
+            len.sqrt()
         }
 
         pub fn cross3(&self, other: &Matrix<Data>) -> Matrix<Data> {
@@ -577,6 +597,19 @@ pub mod matrix {
                 matrix.scalar(2);
 
                 assert!(matrix == Matrix::from_array([[2, 4, 6], [8, 10, 12],]))
+            }
+        }
+
+        mod test_length {
+            use super::*;
+
+            #[test]
+            fn length() {
+                let a = Matrix::from_array([[2, 2, 4, 1]]);
+                assert!(a.length() == 5);
+
+                let b = Matrix::from_array([[4.0, 1.0, 2.0, 2.0]]);
+                assert!(b.length() == 5.0);
             }
         }
 
