@@ -56,12 +56,26 @@ impl RendererBuilderTrait<f64> for TerminalBuilder {
     }
 }
 
-pub struct Terminal<T: MatrixDataTrait> {
-    config: RendererConfiguration,
-    vertices: Vec<Matrix<T>>,
-    line_draw_order: Vec<usize>,
+struct DerivedConfiguration<T: MatrixDataTrait> {
     viewpoint: Matrix<T>,
     viewport: Matrix<T>,
+}
+
+impl<T: MatrixDataTrait> DerivedConfiguration<T> {
+    fn new<'a>(config: &RendererConfiguration) -> Self {
+        // Self {
+
+        // }
+
+        todo!()
+    }
+}
+
+pub struct Terminal<T: MatrixDataTrait> {
+    config: RendererConfiguration,
+    config_derived: DerivedConfiguration<T>,
+    vertices: Vec<Matrix<T>>,
+    line_draw_order: Vec<usize>,
     buffer: Vec<Vec<char>>,
     center_offset: (i64, i64),
 }
@@ -89,7 +103,7 @@ impl Terminal<f64> {
     /// Maps viewport data to buffer by using the parameters of the [PlaneTrait].
     fn map_viewport_to_buffer(&mut self) {
         for vertex in self.vertices.iter() {
-            let mut eq_system = self.viewport.clone();
+            let mut eq_system = self.config_derived.viewport.clone();
 
             eq_system.push_row(vertex.clone());
 
@@ -107,8 +121,8 @@ impl Terminal<f64> {
             let parameter_x = *parameters.index(0,2);
             let parameter_y = *parameters.index(1,2);
 
-            let x = self.viewport.index(1, 0) * parameter_x;
-            let y = self.viewport.index(2,1) * parameter_y;
+            let x = self.config_derived.viewport.index(1, 0) * parameter_x;
+            let y = self.config_derived.viewport.index(2,1) * parameter_y;
 
             self.buffer[y as usize][x as usize] = 'x';
         }
@@ -167,12 +181,9 @@ impl RendererTrait<f64> for Terminal<f64> {
     }
 
     fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str> {
-        // let dim = config.dimensions;
-        // self.config = config;
-        // self.buffer = vec![vec![character::EMPTY; dim.1]; dim.0];
-        // self.center_offset = ((dim.0 as f64 / 2.0).ceil() as isize, -((dim.1 as f64 / 2.0).ceil() as isize));
-        // Ok(())
-        todo!()
+        self.config = config;
+        self.config_derived = DerivedConfiguration::<f64>::new(&self.config);
+        Ok(()) // TODO: when does this fail again?
     }
 
     fn set_vertices(&mut self, vertices: &[Self::Vertex]) {
@@ -180,7 +191,7 @@ impl RendererTrait<f64> for Terminal<f64> {
     }
 
     fn set_vertices_line_draw_order(&mut self, order: &[&[usize]]) {
-        todo!()
+        self.line_draw_order = order.iter().cloned().flatten().cloned().collect();
     }
 
     fn render(&self) {
@@ -191,29 +202,16 @@ impl RendererTrait<f64> for Terminal<f64> {
 impl __RendererTrait<f64> for Terminal<f64> {
     // TODO: Fix the viewport both parameters and position.
     fn new(config: RendererConfiguration) -> Self {
-        let resolution = config.camera.resolution().clone();
-        let position = config.camera.position().clone();
-        let direction = config.camera.direction().clone();
-        let fov = config.camera.fov().clone();
-
-        // TODO: Determine viewport (camera) and viewpoint position to achieve desired fov
-        // TODO: Just use something for now...
-        let viewpoint = { Matrix::<f64>::from_array([[0.0, 0.0, -10.0]]) };
-
-        let viewport =
-            { Matrix::<f64>::from_array([[0.0, 0.0, -5.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]) };
-
         Self {
+            buffer: vec![vec![character::EMPTY; config.camera.resolution().width()]; config.camera.resolution().height()],
+            center_offset: (
+                (config.camera.resolution().0 as f64 / 2.0).ceil() as i64,
+                -((config.camera.resolution().1 as f64 / 2.0).ceil() as i64),
+            ),
+            config_derived: DerivedConfiguration::<f64>::new(&config),
             config,
             vertices: Default::default(),
             line_draw_order: Default::default(),
-            viewpoint,
-            viewport,
-            buffer: vec![vec![character::EMPTY; resolution.width()]; resolution.height()],
-            center_offset: (
-                (resolution.0 as f64 / 2.0).ceil() as i64,
-                -((resolution.1 as f64 / 2.0).ceil() as i64),
-            ),
         }
     }
 }
