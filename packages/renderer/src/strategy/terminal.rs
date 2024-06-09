@@ -63,7 +63,7 @@ pub struct Terminal<T: MatrixDataTrait> {
     viewpoint: Matrix<T>,
     viewport: Matrix<T>,
     buffer: Vec<Vec<char>>,
-    center_offset: (isize, isize),
+    center_offset: (i64, i64),
 }
 
 impl Terminal<f64> {
