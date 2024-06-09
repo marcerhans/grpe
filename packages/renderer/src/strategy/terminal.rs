@@ -76,12 +76,13 @@ impl Terminal<f64> {
         character::LOWER
     }
 
-    /// Center points so that, for example, vertex (0,0,0) appears in the middle of the terminal
+    /// Center points such that, for example, vertex (0,0,0) appears in the middle of the terminal
     /// (which would be at (5,-5,0) after centering using a terminal with dimensions (9,9)).
-    fn center_viewport_points(&self, viewport: &mut Matrix<f64>) {
+    /// This is due to the origin of a terminal being at the top left.
+    fn center_viewport_points(center_offset: &(i64, i64), viewport: &mut Matrix<f64>) {
         for row in 0..viewport.rows() {
-            *viewport.index_mut(row, 0) += self.center_offset.0 as f64;
-            *viewport.index_mut(row, 1) += self.center_offset.1 as f64;
+            *viewport.index_mut(row, 0) += center_offset.0 as f64;
+            *viewport.index_mut(row, 1) += center_offset.1 as f64;
         }
     }
 
@@ -210,8 +211,8 @@ impl __RendererTrait<f64> for Terminal<f64> {
             viewport,
             buffer: vec![vec![character::EMPTY; resolution.width()]; resolution.height()],
             center_offset: (
-                (resolution.0 as f64 / 2.0).ceil() as isize,
-                -((resolution.1 as f64 / 2.0).ceil() as isize),
+                (resolution.0 as f64 / 2.0).ceil() as i64,
+                -((resolution.1 as f64 / 2.0).ceil() as i64),
             ),
         }
     }
