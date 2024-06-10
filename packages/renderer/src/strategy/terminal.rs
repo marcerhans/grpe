@@ -254,6 +254,11 @@ impl RendererTrait<f64> for Terminal<f64> {
     }
 
     fn render(&self) {
+        //     Project vertices onto surface (viewport) from #1
+        //     Draw lines between the projected points on surface (viewport) defined by #2
+        //     Adjust points coordinates (now present in viewport) for Terminal.
+        //     Map viewport (matrix) to simple 2d vec buffer.
+        //     Print to stdout (terminal)
         todo!()
     }
 }
@@ -297,13 +302,21 @@ mod tests {
     #[test]
     fn main() {
         // 1. Create vertices
+        let vertices = [Matrix::from_array([
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [1.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0]
+        ])];
+
         // 2. Define line order
+        let line_draw_order = vec![vec![0,1], vec![0,2]];
+
         // 3. Render()
-        //     Project vertices onto surface (viewport) from #1
-        //     Draw lines between the projected points on surface (viewport) defined by #2
-        //     Adjust points coordinates (now present in viewport) for Terminal.
-        //     Map viewport (matrix) to simple 2d vec buffer.
-        //     Print to stdout (terminal)
+        let mut renderer = TerminalBuilder::default().build();
+        renderer.set_vertices(&vertices);
+        renderer.set_vertices_line_draw_order(&line_draw_order.iter().map(|v| v.as_slice()).collect::<Vec<&[usize]>>());
+        renderer.render();
     }
 
     #[test]
