@@ -259,6 +259,7 @@ impl RendererTrait<f64> for Terminal<f64> {
         //     Adjust points coordinates (now present in viewport) for Terminal.
         //     Map viewport (matrix) to simple 2d vec buffer.
         //     Print to stdout (terminal)
+        
         todo!()
     }
 }
