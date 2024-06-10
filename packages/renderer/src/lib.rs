@@ -50,7 +50,7 @@ impl Default for Camera<f64> {
         Self {
             resolution: (5, 5),
             position: Matrix::from_array([[0.0, 0.0, -10.0]]),
-            direction: Matrix::from_array([[0.0, 0.0, 1.0]]),
+            direction: Matrix::from_array([[0.0, 1.0, 0.0]]),
             fov: 90,
         }
     }

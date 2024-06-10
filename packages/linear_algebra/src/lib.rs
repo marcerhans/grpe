@@ -56,7 +56,7 @@ pub mod matrix {
         }
 
         fn eqq(&self, rhs: &Self) -> bool {
-            self - rhs < Self::EPSILON
+            (self - rhs).abs() < Self::EPSILON
         }
 
         fn sqrt(&self) -> Self {
@@ -156,6 +156,7 @@ pub mod matrix {
             len.sqrt()
         }
 
+        /// "Up" is z, "Forward" is y, "Right" is x.
         pub fn cross3(&self, other: &Matrix<Data>) -> Matrix<Data> {
             if self.rows != other.rows() || self.columns != other.columns() {
                 panic!("Dimensions do not match")
@@ -168,7 +169,7 @@ pub mod matrix {
             let mut ret = Matrix::zeros::<1, 3>();
 
             *ret.index_mut(0,0) = *self.index(0, 1) * *other.index(0, 2) - *self.index(0, 2) * *other.index(0, 1);
-            *ret.index_mut(0,1) = *self.index(0, 2) * *other.index(0, 0) - *self.index(0, 0) * *other.index(0, 2);
+            *ret.index_mut(0,1) = -(*self.index(0, 0) * *other.index(0, 2) - *self.index(0, 2) * *other.index(0, 0));
             *ret.index_mut(0,2) = *self.index(0, 0) * *other.index(0, 1) - *self.index(0, 1) * *other.index(0, 0);
 
             return ret;
@@ -618,12 +619,20 @@ pub mod matrix {
 
             #[test]
             fn cross3() {
-                let mut a = Matrix::from_array([[1, 2, 3]]);
-                let b = Matrix::from_array([[4, 5, 6]]);
-
+                let mut a = Matrix::from_array([[1, 0, 0]]);
+                let b = Matrix::from_array([[0, 1, 0]]);
                 let c = a.cross3(&b);
+                assert!(c == Matrix::from_array([[0, 0, 1]]), "Actual {:?}", c.data());
 
-                assert!(c == Matrix::from_array([[-3, 6, -3]]))
+                let mut a = Matrix::from_array([[0, 1, 0]]);
+                let b = Matrix::from_array([[0, 0, 1]]);
+                let c = a.cross3(&b);
+                assert!(c == Matrix::from_array([[1, 0, 0]]), "Actual {:?}", c.data());
+
+                let mut a = Matrix::from_array([[0, 0, 1]]);
+                let b = Matrix::from_array([[1, 0, 0]]);
+                let c = a.cross3(&b);
+                assert!(c == Matrix::from_array([[0, 1, 0]]), "Actual {:?}", c.data());
             }
         }
 

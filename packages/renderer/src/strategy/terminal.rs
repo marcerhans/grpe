@@ -90,6 +90,8 @@ impl DerivedConfiguration<f64> {
     }
 
     /// Rotation of camera is not implemented yet, assume rotation is 0 degrees.
+    /// TODO: THIS ONLY WORKS IF THE CAMERA DOES NOT ROTATE MORE THAN 90 DEGREES!...
+    /// Trigger warning: bad
     fn normal_to_parametric_form(normal: &Matrix<f64>, origin: &Matrix<f64>) -> Matrix<f64> {
         // Use any vector that is not parallel to the normal.
         // We decide to use the unit vector along the x-axis,
@@ -98,7 +100,7 @@ impl DerivedConfiguration<f64> {
             [1.0, 0.0, 0.0],
         ]);
         let vy = Matrix::from_array([
-            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
         ]);
 
         let v;
@@ -109,9 +111,17 @@ impl DerivedConfiguration<f64> {
             v = vy;
         }
 
-        let ret = Matrix::zeros::<1, 3>();
+        let mut up = v.cross3(&normal);
+        up.scalar(1.0 / up.length()); // normalize
 
-        todo!()
+        let mut right = normal.cross3(&up);
+        right.scalar(1.0 / right.length()); // normalize
+
+        Matrix::from_array([
+            [*origin.index(0, 0), *origin.index(0, 1), *origin.index(0, 2)],
+            [*right.index(0, 0), *right.index(0, 1), *right.index(0, 2)],
+            [*up.index(0, 0), *up.index(0, 1), *up.index(0, 2)],
+        ])
     }
 }
 
@@ -263,6 +273,21 @@ impl __RendererTrait<f64> for Terminal<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn normal_to_parametric_form() {
+        let config = RendererConfiguration::default();
+        let parametric = DerivedConfiguration::normal_to_parametric_form(&config.camera.direction, &config.camera.position);
+
+        let a = parametric.slice(0..1, 0..3).into_iter().cloned().collect::<Vec<f64>>();
+        assert!(a == vec![0.0, 0.0, -10.0], "Actual: {:?}", a);
+
+        let a = parametric.slice(1..2, 0..3).into_iter().cloned().collect::<Vec<f64>>();
+        assert!(a == vec![1.0, 0.0, 0.0], "Actual: {:?}", a);
+
+        let a = parametric.slice(2..3, 0..3).into_iter().cloned().collect::<Vec<f64>>();
+        assert!(a == vec![0.0, 0.0, 1.0], "Actual: {:?}", a);
+    }
 
     #[test]
     fn main() {
