@@ -75,18 +75,23 @@ impl DerivedConfiguration<f64> {
         let direction = config.camera.direction();
         let fov = config.camera.fov();
 
-        // let viewport = Matrix::from_array([
-        //     [*position.index(0, 0), *position.index(0, 1), *position.index(0, 2)],
+        let parametric_form = DerivedConfiguration::normal_to_parametric_form(direction, position);
 
-        // ]);
+        let viewport = Matrix::from_slice::<3, 3>(&[
+            &parametric_form.data()[0..3].try_into().unwrap(),
+            &parametric_form.data()[3..6].try_into().unwrap(),
+            &parametric_form.data()[6..9].try_into().unwrap(),
+        ]);
 
-        // let viewpoint = 
+        // TODO: Fix for FOV later :) Just use static value for now. 10 "units" back based on normal and center of viewport.
+        let mut direction = direction.clone();
+        direction.scalar(10.0);
+        let viewpoint =  position - &direction;
 
-        // Self {
-
-        // }
-
-        todo!()
+        Self {
+            viewpoint,
+            viewport,
+        }
     }
 
     /// Rotation of camera is not implemented yet, assume rotation is 0 degrees.
