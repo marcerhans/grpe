@@ -85,8 +85,6 @@ impl DimensionsTrait for (usize, usize) {
 /// |plane_y_0| + plane_t|y| + plane_s|y| = |line_y_0| + line_t|y|
 /// |plane_z_0|          |z|          |z|   |line_z_0|         |z|
 pub fn intersect_plane_line(plane: &Matrix<f64>, line: &Matrix<f64>) -> Matrix<f64> {
-    let mut intersection_point = Matrix::<f64>::zeros::<3, 4>();
-
     let plane_origin = plane.slice(0..1, 0..3);
     let plane_t_vec = plane.slice(1..2, 0..3);
     let plane_s_vec = plane.slice(2..3, 0..3);
@@ -95,22 +93,16 @@ pub fn intersect_plane_line(plane: &Matrix<f64>, line: &Matrix<f64>) -> Matrix<f
     let line_t_vec = line.slice(1..2, 0..3);
 
     let origin = [
-        [line_origin[0] - plane_origin[0]],
-        [line_origin[1] - plane_origin[1]],
-        [line_origin[2] - plane_origin[2]],
+        line_origin[0] - plane_origin[0],
+        line_origin[1] - plane_origin[1],
+        line_origin[2] - plane_origin[2],
     ];
 
-    let t_vec = [
-        plane_t_vec[0] - line_t_vec[0],
-        plane_t_vec[1] - line_t_vec[1],
-        plane_t_vec[2] - line_t_vec[2],
-    ];
-
-    let s_vec = [
-        plane_s_vec[0],
-        plane_s_vec[1],
-        plane_s_vec[2],
-    ];
+    let mut intersection_point = Matrix::<f64>::from_array([
+        [*plane_t_vec[0], *plane_s_vec[0], -*line_t_vec[0], origin[0]],
+        [*plane_t_vec[1], *plane_s_vec[1], -*line_t_vec[1], origin[1]],
+        [*plane_t_vec[2], *plane_s_vec[2], -*line_t_vec[2], origin[2]],
+    ]);
 
     gauss_elimination(&mut intersection_point);
     intersection_point

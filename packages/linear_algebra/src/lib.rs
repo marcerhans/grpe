@@ -987,7 +987,7 @@ pub mod utility {
             match direction {
                 Direction::Down => {
                     for row in start_row..matrix.rows() {
-                        if *matrix.index(row, pivot_column) < Data::zero() {
+                        if matrix.index(row, pivot_column).eqq(&Data::zero()) {
                             continue;
                         }
 
@@ -1001,7 +1001,7 @@ pub mod utility {
                 }
                 Direction::Up => {
                     for row in (0..start_row).rev() {
-                        if *matrix.index(row, pivot_column) < Data::zero() {
+                        if matrix.index(row, pivot_column).eqq(&Data::zero()) {
                             continue;
                         }
 
