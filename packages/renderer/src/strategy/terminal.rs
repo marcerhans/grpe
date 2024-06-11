@@ -78,9 +78,9 @@ impl DerivedConfiguration<f64> {
         let parametric_form = DerivedConfiguration::normal_to_parametric_form(direction, position);
 
         let viewport = Matrix::from_slice::<3, 3>(&[
-            &parametric_form.data()[0..3].try_into().unwrap(),
-            &parametric_form.data()[3..6].try_into().unwrap(),
-            &parametric_form.data()[6..9].try_into().unwrap(),
+            &parametric_form.data()[0..3].try_into().unwrap(), // Point
+            &parametric_form.data()[3..6].try_into().unwrap(), // Parameter a
+            &parametric_form.data()[6..9].try_into().unwrap(), // Parameter b
         ]);
 
         // TODO: Fix for FOV later :) Just use static value for now. 10 "units" back based on normal and center of viewport.
@@ -254,12 +254,15 @@ impl RendererTrait<f64> for Terminal<f64> {
     }
 
     fn render(&self) {
-        //     Project vertices onto surface (viewport) from #1
+        //     Project vertices onto surface (viewport)
+        
+
+
         //     Draw lines between the projected points on surface (viewport) defined by #2
         //     Adjust points coordinates (now present in viewport) for Terminal.
         //     Map viewport (matrix) to simple 2d vec buffer.
         //     Print to stdout (terminal)
-        
+
         todo!()
     }
 }
