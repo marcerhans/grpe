@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{borrow::BorrowMut, cell::RefCell};
 
 use linear_algebra::{
     matrix::{Matrix, MatrixDataTrait},
@@ -162,8 +162,14 @@ impl Terminal<f64> {
         *point.index_mut(0, 2) += center_offset.1 as f64;
     }
 
-    /// Clear previously rendered frame.
-    fn clear(&self) {}
+    /// Clear previously rendered buffer.
+    fn clear(&self) {
+        for v in self.buffer.borrow_mut().iter_mut() {
+            for c in v.iter_mut() {
+                *c = character::FULL_EMPTY;
+            }
+        }
+    }
 
     fn render_vertex(&self, buffer: &mut Vec<Vec<char>>, vertex: &Matrix<f64>) {
         let x = *vertex.x() as isize;
@@ -204,7 +210,7 @@ impl RendererTrait<f64> for Terminal<f64> {
     }
 
     fn set_vertices(&mut self, vertices: &[Self::Vertex]) {
-        self.vertices.extend_from_slice(vertices)
+        self.vertices = vertices.to_owned();
     }
 
     fn set_vertices_line_draw_order(&mut self, order: &[&[usize]]) {
@@ -212,8 +218,6 @@ impl RendererTrait<f64> for Terminal<f64> {
     }
 
     fn render(&self) {
-        println!("viewport{:?}", self.config_derived.viewport);
-
         for vertex in &self.vertices {
             let parameter = Matrix::from_array([
                 [
@@ -223,19 +227,12 @@ impl RendererTrait<f64> for Terminal<f64> {
                 ]
             ]);
 
-            println!("vertex{:?}", vertex);
-            println!("viewpoint{:?}", self.config_derived.viewpoint);
-            println!("parameter{:?}", parameter);
-
             let viewpoint_to_vertex_line = Matrix::from_array([
                 [*self.config_derived.viewpoint.index(0, 0),*self.config_derived.viewpoint.index(0, 1),*self.config_derived.viewpoint.index(0, 2)],
                 [*parameter.index(0, 0), *parameter.index(0, 1), *parameter.index(0, 2)]
             ]);
 
-            println!("viewpoint_to_vertex_line{:?}", viewpoint_to_vertex_line);
-
             let intersection = intersect_plane_line(&self.config_derived.viewport, &viewpoint_to_vertex_line);
-            println!("intersection1{:?}", intersection);
             let mut intersection = Matrix::from_array([
                 [
                     *self.config_derived.viewpoint.index(0, 0) + *parameter.index(0, 0) * *intersection.index(0, 11),
@@ -244,10 +241,7 @@ impl RendererTrait<f64> for Terminal<f64> {
                 ]
             ]);
             
-            println!("intersection {:?}", intersection);
             Terminal::adjust_point_to_terminal(&self.center_offset, &mut intersection);
-            println!("offset {:?}", self.center_offset);
-            println!("adjusted {:?}", intersection);
             self.render_vertex(&mut self.buffer.borrow_mut(), &intersection);
         }
 
@@ -257,6 +251,8 @@ impl RendererTrait<f64> for Terminal<f64> {
             }
             print!("\n");
         }
+
+        self.clear();
     }
 }
 
@@ -279,6 +275,8 @@ impl __RendererTrait<f64> for Terminal<f64> {
 /// These tests are not that thorough, just helpful testing/probing during development.
 #[cfg(test)]
 mod tests {
+    use std::{thread, time::Duration};
+
     use super::*;
 
     #[test]
@@ -309,19 +307,19 @@ mod tests {
     #[test]
     fn main() {
         // 1. Create vertices
-        let vertices = [
+        let mut vertices = [
             Matrix::from_array([
                 [0.0, 0.0, 0.0],
             ]),
-            Matrix::from_array([
-                [1.0, 0.0, 0.0],
-            ]),
-            Matrix::from_array([
-                [3.0, 0.0, 1.0],
-            ]),
-            Matrix::from_array([
-                [0.0, 0.0, 1.0]
-            ])
+            // Matrix::from_array([
+            //     [1.0, 0.0, 0.0],
+            // ]),
+            // Matrix::from_array([
+            //     [3.0, 0.0, 1.0],
+            // ]),
+            // Matrix::from_array([
+            //     [0.0, 0.0, 1.0]
+            // ])
         ];
 
         // 2. Define line order
@@ -329,9 +327,14 @@ mod tests {
 
         // 3. Render()
         let mut renderer = TerminalBuilder::default().build();
-        renderer.set_vertices(&vertices);
-        renderer.set_vertices_line_draw_order(&line_draw_order.iter().map(|v| v.as_slice()).collect::<Vec<&[usize]>>());
-        renderer.render();
+        // renderer.set_vertices_line_draw_order(&line_draw_order.iter().map(|v| v.as_slice()).collect::<Vec<&[usize]>>());
+
+        loop {
+            thread::sleep(Duration::from_millis(500));
+            *vertices[0].index_mut(0, 2) += 1.0;
+            renderer.set_vertices(&vertices);
+            renderer.render();
+        }
     }
 
     #[test]

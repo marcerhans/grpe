@@ -20,7 +20,7 @@ version = "0.1.0"
 
 [workspace.dependencies]
 linear_algebra = { path = "packages/linear_algebra", version = "*" }
-terminal = { path = "packages/terminal", version = "*" }
+renderer = { path = "packages/renderer", version = "*" }
 log = { path = "packages/log", version = "*" }
 io = { path = "packages/io", version = "*" }
 
@@ -31,6 +31,6 @@ edition.workspace = true
 
 [dependencies]
 linear_algebra.workspace = true
-terminal.workspace = true
+renderer.workspace = true
 log.workspace = true
 io.workspace = true
