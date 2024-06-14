@@ -23,5 +23,7 @@ fn main() {
         renderer.set_vertices(&vertices);
         renderer.render();
         *vertices[0].index_mut(0, 0) += 2.0;
+        // *vertices[0].index_mut(0, 1) += 5.0;
+        *vertices[0].index_mut(0, 2) += 1.0;
     }
 }

@@ -166,9 +166,12 @@ impl Terminal<f64> {
     fn clear(&self) {
         for v in self.buffer.borrow_mut().iter_mut() {
             for c in v.iter_mut() {
-                *c = character::FULL_EMPTY;
+                *c = character::EMPTY;
             }
         }
+
+        print!("\x1B[2J");
+        print!("\x1B[H");
     }
 
     fn render_vertex(&self, buffer: &mut Vec<Vec<char>>, vertex: &Matrix<f64>) {
@@ -259,7 +262,7 @@ impl RendererTrait<f64> for Terminal<f64> {
 impl __RendererTrait<f64> for Terminal<f64> {
     fn new(config: RendererConfiguration) -> Self {
         Self {
-            buffer: RefCell::new(vec![vec![character::FULL_EMPTY; config.camera.resolution().width()]; config.camera.resolution().height() / 2]),
+            buffer: RefCell::new(vec![vec![character::EMPTY; config.camera.resolution().width()]; config.camera.resolution().height() / 2]),
             center_offset: (
                 (config.camera.resolution().0 as f64 / 2.0) as i64 - 1,
                 (config.camera.resolution().1 as f64 / 2.0) as i64 - 1,
