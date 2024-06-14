@@ -12,10 +12,10 @@ use linear_algebra::matrix::{Matrix, MatrixDataTrait};
 
 #[derive(Clone)]
 pub struct Camera<T: MatrixDataTrait> {
-    resolution: (usize, usize),
-    position: Matrix<T>,
-    direction: Matrix<T>,
-    fov: usize,
+    pub resolution: (usize, usize),
+    pub position: Matrix<T>,
+    pub direction: Matrix<T>,
+    pub fov: usize,
 }
 
 impl<T: MatrixDataTrait> Camera<T> {

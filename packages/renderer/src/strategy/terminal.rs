@@ -90,7 +90,7 @@ impl DerivedConfiguration<f64> {
 
         // TODO: Fix for FOV later :) Just use static value for now. 10 "units" back based on normal and center of viewport.
         let mut direction = direction.clone();
-        direction.scalar(-10.0);
+        direction.scalar(-2.0);
         let viewpoint =  position - &direction;
 
         Self {
