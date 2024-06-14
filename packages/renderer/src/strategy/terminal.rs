@@ -20,6 +20,7 @@ mod character {
     pub static UPPER_EMPTY: char = '\u{1FB8E}'; // 🮎
     pub static LOWER_EMPTY: char = '\u{1FB8F}'; // 🮏
     pub static FULL_EMPTY: char = '\u{2592}'; // ▒
+    pub static EMPTY: char = ' '; // ▒
 }
 
 pub struct TerminalBuilder {
@@ -166,26 +167,26 @@ impl Terminal<f64> {
 
     fn render_vertex(&self, buffer: &mut Vec<Vec<char>>, vertex: &Matrix<f64>) {
         let x = *vertex.x() as isize;
-        let z = *vertex.z() as isize;
-        let mut character = Self::character_at(z.abs() as usize);
-        let z = z - *vertex.z() as isize % 2;
+        let mut z = *vertex.z() as isize;
 
-        if z > 0 {
-            if buffer[z as usize - 1][x as usize] == character::UPPER && character == character::LOWER {
-                character = character::FULL;
-            }
+        if !(z >= 0 && z < self.config.camera.resolution.1 as isize) || 
+            !(x >= 0 && x < self.config.camera.resolution.0 as isize) {
+            return;
         }
 
-        if z < (self.config.camera.resolution.1 / 2) as isize - 1 {
-            if buffer[z as usize + 1][x as usize] == character::LOWER && character == character::UPPER {
-                character = character::FULL;
-            }
+        let mut character = Self::character_at(z as usize);
+
+        z = z / 2;
+
+        if buffer[z as usize][x as usize] == character::UPPER && character == character::LOWER {
+            character = character::FULL;
         }
 
-        // Ignore character if out of bounds for buffer.
-        if z >= 0 && z <= (self.config.camera.resolution.1 / 2) as isize {
-            let _ = std::mem::replace(&mut buffer[z as usize - 1][x as usize], character);
+        if buffer[z as usize][x as usize] == character::LOWER && character == character::UPPER {
+            character = character::FULL;
         }
+
+        let _ = std::mem::replace(&mut buffer[z as usize][x as usize], character);
     }
 }
 
@@ -312,12 +313,12 @@ mod tests {
             Matrix::from_array([
                 [0.0, 0.0, 0.0],
             ]),
-            // Matrix::from_array([
-            //     [1.0, 0.0, 0.0],
-            // ]),
-            // Matrix::from_array([
-            //     [1.0, 0.0, 1.0],
-            // ]),
+            Matrix::from_array([
+                [1.0, 0.0, 0.0],
+            ]),
+            Matrix::from_array([
+                [3.0, 0.0, 1.0],
+            ]),
             Matrix::from_array([
                 [0.0, 0.0, 1.0]
             ])
