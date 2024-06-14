@@ -17,7 +17,9 @@ mod character {
     pub static UPPER: char = '\u{2580}'; // ▀
     pub static LOWER: char = '\u{2584}'; // ▄
     pub static FULL: char = '\u{2588}'; // █
-    pub static EMPTY: char = '+'; //
+    pub static UPPER_EMPTY: char = '\u{1FB8E}'; // 🮎
+    pub static LOWER_EMPTY: char = '\u{1FB8F}'; // 🮏
+    pub static FULL_EMPTY: char = '\u{2592}'; // ▒
 }
 
 pub struct TerminalBuilder {
@@ -87,7 +89,7 @@ impl DerivedConfiguration<f64> {
 
         // TODO: Fix for FOV later :) Just use static value for now. 10 "units" back based on normal and center of viewport.
         let mut direction = direction.clone();
-        direction.scalar(10.0);
+        direction.scalar(-10.0);
         let viewpoint =  position - &direction;
 
         Self {
@@ -164,22 +166,26 @@ impl Terminal<f64> {
 
     fn render_vertex(&self, buffer: &mut Vec<Vec<char>>, vertex: &Matrix<f64>) {
         let x = *vertex.x() as isize;
-        let y = *vertex.y() as isize;
-        let mut character = Self::character_at(y.abs() as usize);
+        let z = *vertex.z() as isize;
+        let mut character = Self::character_at(z.abs() as usize);
+        let z = z - *vertex.z() as isize % 2;
 
-        if y > 0 {
-            if buffer[y as usize - 1][x as usize] == character::UPPER && character == character::LOWER {
+        if z > 0 {
+            if buffer[z as usize - 1][x as usize] == character::UPPER && character == character::LOWER {
                 character = character::FULL;
             }
         }
 
-        if y < self.config.camera.resolution.1 as isize - 1 {
-            if buffer[y as usize + 1][x as usize] == character::LOWER && character == character::UPPER {
+        if z < (self.config.camera.resolution.1 / 2) as isize - 1 {
+            if buffer[z as usize + 1][x as usize] == character::LOWER && character == character::UPPER {
                 character = character::FULL;
             }
         }
 
-        let _ = std::mem::replace(&mut buffer[y as usize][x as usize], character);
+        // Ignore character if out of bounds for buffer.
+        if z >= 0 && z <= (self.config.camera.resolution.1 / 2) as isize {
+            let _ = std::mem::replace(&mut buffer[z as usize - 1][x as usize], character);
+        }
     }
 }
 
@@ -205,7 +211,8 @@ impl RendererTrait<f64> for Terminal<f64> {
     }
 
     fn render(&self) {
-        //     Project vertices onto surface (viewport)
+        println!("viewport{:?}", self.config_derived.viewport);
+
         for vertex in &self.vertices {
             let parameter = Matrix::from_array([
                 [
@@ -215,21 +222,32 @@ impl RendererTrait<f64> for Terminal<f64> {
                 ]
             ]);
 
+            println!("vertex{:?}", vertex);
+            println!("viewpoint{:?}", self.config_derived.viewpoint);
+            println!("parameter{:?}", parameter);
+
             let viewpoint_to_vertex_line = Matrix::from_array([
                 [*self.config_derived.viewpoint.index(0, 0),*self.config_derived.viewpoint.index(0, 1),*self.config_derived.viewpoint.index(0, 2)],
                 [*parameter.index(0, 0), *parameter.index(0, 1), *parameter.index(0, 2)]
             ]);
 
+            println!("viewpoint_to_vertex_line{:?}", viewpoint_to_vertex_line);
+
             let intersection = intersect_plane_line(&self.config_derived.viewport, &viewpoint_to_vertex_line);
+            println!("intersection1{:?}", intersection);
             let mut intersection = Matrix::from_array([
                 [
-                    *intersection.index(0, 3),
-                    *intersection.index(0, 7),
-                    *intersection.index(0, 11),
+                    *self.config_derived.viewpoint.index(0, 0) + *parameter.index(0, 0) * *intersection.index(0, 11),
+                    *self.config_derived.viewpoint.index(0, 1) + *parameter.index(0, 1) * *intersection.index(0, 11),
+                    *self.config_derived.viewpoint.index(0, 2) + *parameter.index(0, 2) * *intersection.index(0, 11),
                 ]
             ]);
+            
+            println!("intersection {:?}", intersection);
             Terminal::adjust_point_to_terminal(&self.center_offset, &mut intersection);
-            self.render_vertex(&mut self.buffer.borrow_mut(), vertex);
+            println!("offset {:?}", self.center_offset);
+            println!("adjusted {:?}", intersection);
+            self.render_vertex(&mut self.buffer.borrow_mut(), &intersection);
         }
 
         for character_row in self.buffer.borrow().iter() {
@@ -238,21 +256,16 @@ impl RendererTrait<f64> for Terminal<f64> {
             }
             print!("\n");
         }
-
-        //     Draw lines between the projected points on surface (viewport) defined by #2
-        //     Adjust points coordinates (now present in viewport) for Terminal.
-        //     Map viewport (matrix) to simple 2d vec buffer.
-        //     Print to stdout (terminal)
     }
 }
 
 impl __RendererTrait<f64> for Terminal<f64> {
     fn new(config: RendererConfiguration) -> Self {
         Self {
-            buffer: RefCell::new(vec![vec![character::EMPTY; config.camera.resolution().width()]; config.camera.resolution().height()]),
+            buffer: RefCell::new(vec![vec![character::FULL_EMPTY; config.camera.resolution().width()]; config.camera.resolution().height() / 2]),
             center_offset: (
-                (config.camera.resolution().0 as f64 / 2.0).ceil() as i64,
-                -((config.camera.resolution().1 as f64 / 2.0).ceil() as i64),
+                (config.camera.resolution().0 as f64 / 2.0) as i64 - 1,
+                (config.camera.resolution().1 as f64 / 2.0) as i64 - 1,
             ),
             config_derived: DerivedConfiguration::<f64>::new(&config),
             config,
@@ -299,12 +312,12 @@ mod tests {
             Matrix::from_array([
                 [0.0, 0.0, 0.0],
             ]),
-            Matrix::from_array([
-                [1.0, 0.0, 0.0],
-            ]),
-            Matrix::from_array([
-                [1.0, 0.0, 1.0],
-            ]),
+            // Matrix::from_array([
+            //     [1.0, 0.0, 0.0],
+            // ]),
+            // Matrix::from_array([
+            //     [1.0, 0.0, 1.0],
+            // ]),
             Matrix::from_array([
                 [0.0, 0.0, 1.0]
             ])

@@ -48,8 +48,8 @@ impl<T: MatrixDataTrait> Camera<T> {
 impl Default for Camera<f64> {
     fn default() -> Self {
         Self {
-            resolution: (5, 5),
-            position: Matrix::from_array([[0.0, -10.0, 0.0]]),
+            resolution: (6, 6),
+            position: Matrix::from_array([[0.0, 0.0, 0.0]]),
             direction: Matrix::from_array([[0.0, 1.0, 0.0]]),
             fov: 90,
         }
