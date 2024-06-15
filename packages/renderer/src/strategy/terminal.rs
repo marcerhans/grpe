@@ -14,13 +14,15 @@ mod character {
     pub static LINE_HORIZONTAL: char = '\u{254c}'; // ╌
     pub static LINE_VERTICAL: char = '\u{2506}'; // ┆
     pub static CENTER: char = '\u{253c}'; // ┼
-    pub static UPPER: char = '\u{2580}'; // ▀
-    pub static LOWER: char = '\u{2584}'; // ▄
+    // pub static UPPER: char = '\u{2580}'; // ▀
+    pub static UPPER: char = '\u{1FB91}'; // ▀
+    // pub static LOWER: char = '\u{2584}'; // ▄
+    pub static LOWER: char = '\u{1FB92}'; // ▄
     pub static FULL: char = '\u{2588}'; // █
-    pub static UPPER_EMPTY: char = '\u{1FB8E}'; // 🮎
-    pub static LOWER_EMPTY: char = '\u{1FB8F}'; // 🮏
-    pub static FULL_EMPTY: char = '\u{2592}'; // ▒
-    pub static EMPTY: char = ' '; // ▒
+    // pub static UPPER_EMPTY: char = '\u{1FB91}'; // 🮎
+    // pub static LOWER_EMPTY: char = '\u{1FB92}'; // 🮏
+    // pub static FULL_EMPTY: char = '\u{2592}'; // ▒
+    pub static EMPTY: char = '\u{2592}';
 }
 
 pub struct TerminalBuilder {

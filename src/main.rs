@@ -13,38 +13,20 @@ fn main() {
         Matrix::from_array([[0.0, 0.0, 1.0]]),
         Matrix::from_array([[0.0, 0.0, 2.0]]),
         Matrix::from_array([[0.0, 0.0, 3.0]]),
-
-        Matrix::from_array([[0.0, -4.0, -3.0]]),
-        Matrix::from_array([[0.0, -4.0, -2.0]]),
-        Matrix::from_array([[0.0, -4.0, -1.0]]),
-        Matrix::from_array([[0.0, -4.0, 0.0]]),
-        Matrix::from_array([[0.0, -4.0, 1.0]]),
-        Matrix::from_array([[0.0, -4.0, 2.0]]),
-        Matrix::from_array([[0.0, -4.0, 3.0]]),
-
-        Matrix::from_array([[0.0, -8.0, -3.0]]),
-        Matrix::from_array([[0.0, -8.0, -2.0]]),
-        Matrix::from_array([[0.0, -8.0, -1.0]]),
-        Matrix::from_array([[0.0, -8.0, 0.0]]),
-        Matrix::from_array([[0.0, -8.0, 1.0]]),
-        Matrix::from_array([[0.0, -8.0, 2.0]]),
-        Matrix::from_array([[0.0, -8.0, 3.0]]),
     ];
 
     // 2. Define line order
     let line_draw_order = vec![vec![0, 1], vec![0, 2]];
 
     // 3. Render()
-    // let mut renderer = TerminalBuilder::default().build();
     let mut renderer = TerminalBuilder::default()
         .with_camera(Camera::new(
             (32, 32),
-            &[-30.0, -10.0, 0.0],
+            &[0.0, 0.0, 0.0],
             &[0.0, 1.0, 0.0],
             90,
         ))
         .build();
-    // renderer.set_vertices_line_draw_order(&line_draw_order.iter().map(|v| v.as_slice()).collect::<Vec<&[usize]>>());
 
     loop {
         thread::sleep(Duration::from_millis(500));
