@@ -6,13 +6,20 @@ use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, Renderer
 fn main() {
     // 1. Create vertices
     let mut vertices = [
-        Matrix::from_array([[0.0, 0.0, -3.0]]),
-        Matrix::from_array([[0.0, 0.0, -2.0]]),
-        Matrix::from_array([[0.0, 0.0, -1.0]]),
+        Matrix::from_array([[-15.0, 0.0, 0.0]]),
+        Matrix::from_array([[-15.0, 0.0, -15.0]]),
+        Matrix::from_array([[0.0, 0.0, -15.0]]),
+        Matrix::from_array([[16.0, 0.0, 16.0]]),
+        Matrix::from_array([[16.0, 0.0, 0.0]]),
+        Matrix::from_array([[16.0, 0.0, -15.0]]),
+        Matrix::from_array([[0.0, 0.0, 16.0]]),
+        Matrix::from_array([[-15.0, 0.0, 16.0]]),
         Matrix::from_array([[0.0, 0.0, 0.0]]),
-        Matrix::from_array([[0.0, 0.0, 1.0]]),
-        Matrix::from_array([[0.0, 0.0, 2.0]]),
-        Matrix::from_array([[0.0, 0.0, 3.0]]),
+
+        // Matrix::from_array([[0.0, 0.0, 0.0]]),
+        // Matrix::from_array([[0.0, 0.0, 1.0]]),
+        // Matrix::from_array([[0.0, 0.0, 2.0]]),
+        // Matrix::from_array([[0.0, 0.0, 3.0]]),
     ];
 
     // 2. Define line order
