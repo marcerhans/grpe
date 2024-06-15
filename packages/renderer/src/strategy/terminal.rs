@@ -172,7 +172,7 @@ impl Terminal<f64> {
             }
         }
 
-        print!("\x1B[2J");
+        // print!("\x1B[2J");
         print!("\x1B[H");
     }
 
