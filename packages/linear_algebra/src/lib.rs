@@ -1114,6 +1114,24 @@ pub mod utility {
     mod tests {
         use super::*;
 
+        #[test]
+        fn intersect_plane_line_test() {
+            let plane = Matrix::from_array([
+                [0.0, 1.0, 0.0],
+                [1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0],
+            ]);
+    
+            let line = Matrix::from_array([
+                [0.0, 0.0, 0.0],
+                [2.0, 2.0, 0.0],
+            ]);
+    
+            let intersection = intersect_plane_line(&plane, &line);
+    
+            println!("{:?}", intersection);
+        }
+
         mod test_gauss_elimination {
             use self::Matrix;
 

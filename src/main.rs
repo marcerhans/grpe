@@ -1,7 +1,7 @@
 use std::{thread, time::Duration};
 
 use linear_algebra::matrix::Matrix;
-use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait};
+use renderer::{renderer::RendererBuilder, Camera, RendererBuilderTrait, RendererTrait};
 
 fn main() {
     // 1. Create vertices
@@ -36,10 +36,10 @@ fn main() {
     let line_draw_order = vec![vec![0, 1], vec![0, 2]];
 
     // 3. Render()
-    let mut renderer = TerminalBuilder::default()
+    let mut renderer = RendererBuilder::default()
         .with_camera(Camera::new(
             (32, 32),
-            &[0.0, 0.0, 0.0],
+            &[0.0, -1.0, 0.0],
             &[0.0, 1.0, 0.0],
             90,
         ))
@@ -56,10 +56,10 @@ fn main() {
         // // *vertices[0].index_mut(0, 1) += 5.0;
         // *vertices[0].index_mut(0, 2) += 1.0;
 
-        let mut config = renderer.config();
-        let value = config.camera.position.data()[1];
-        *config.camera.position.index_mut(0, 0) -= 0.05;
-        let _ = renderer.set_config(config);
+        // let mut config = renderer.config();
+        // let value = config.camera.position.data()[1];
+        // *config.camera.position.index_mut(0, 0) -= 0.05;
+        // let _ = renderer.set_config(config);
 
         // A
         // let mut i: isize = 9;

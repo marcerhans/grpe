@@ -1,9 +1,6 @@
 use std::{borrow::BorrowMut, cell::RefCell};
 
-use linear_algebra::{
-    matrix::{Matrix, MatrixDataTrait},
-    utility::gauss_elimination,
-};
+use linear_algebra::{matrix::{Matrix, MatrixDataTrait}, utility::intersect_plane_line};
 
 use crate::{
     common::*, Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait,
@@ -25,11 +22,11 @@ mod character {
     pub static EMPTY: char = '\u{2592}';
 }
 
-pub struct TerminalBuilder {
-    config: RendererConfiguration,
+pub struct RendererBuilder {
+    config: RendererConfiguration<f64>,
 }
 
-impl<'a> Default for TerminalBuilder {
+impl<'a> Default for RendererBuilder {
     fn default() -> Self {
         Self {
             config: RendererConfiguration::default(),
@@ -37,12 +34,8 @@ impl<'a> Default for TerminalBuilder {
     }
 }
 
-impl RendererBuilderTrait<f64> for TerminalBuilder {
+impl RendererBuilderTrait<f64> for RendererBuilder {
     type Renderer = Terminal<f64>;
-
-    fn man() -> &'static str {
-        todo!()
-    }
 
     fn with_camera(mut self, camera: Camera<f64>) -> Self {
         self.config.camera = camera;
@@ -58,7 +51,7 @@ impl RendererBuilderTrait<f64> for TerminalBuilder {
         Self::Renderer::new(self.config)
     }
 
-    fn build_with_config(self, config: crate::RendererConfiguration) -> Self::Renderer {
+    fn build_with_config(self, config: crate::RendererConfiguration<f64>) -> Self::Renderer {
         Self::Renderer::new(config)
     }
 }
@@ -77,7 +70,7 @@ struct DerivedConfiguration<T: MatrixDataTrait> {
 impl DerivedConfiguration<f64> {
     /// Derived configuration determining the [Self::viewpoint] and [Self::viewport]
     /// based on given configuration. Mainly determined by the cameras position and FOV.
-    fn new<'a>(config: &RendererConfiguration) -> Self {
+    fn new<'a>(config: &RendererConfiguration<f64>) -> Self {
         let position = config.camera.position();
         let direction = config.camera.direction();
         let fov = config.camera.fov();
@@ -138,7 +131,7 @@ impl DerivedConfiguration<f64> {
 }
 
 pub struct Terminal<T: MatrixDataTrait> {
-    config: RendererConfiguration,
+    config: RendererConfiguration<T>,
     config_derived: DerivedConfiguration<T>,
     vertices: Vec<Matrix<T>>,
     line_draw_order: Vec<usize>,
@@ -177,8 +170,8 @@ impl Terminal<f64> {
     }
 
     fn render_vertex(&self, buffer: &mut Vec<Vec<char>>, vertex: &Matrix<f64>) {
-        let x = *vertex.x() as isize;
-        let mut z = *vertex.z() as isize;
+        let x = *vertex.index(0,0) as isize;
+        let mut z = *vertex.index(0,0) as isize;
 
         if !(z >= 0 && z < self.config.camera.resolution.1 as isize) || 
             !(x >= 0 && x < self.config.camera.resolution.0 as isize) {
@@ -204,11 +197,11 @@ impl Terminal<f64> {
 impl RendererTrait<f64> for Terminal<f64> {
     type Vertex = Matrix<f64>;
 
-    fn config(&self) -> crate::RendererConfiguration {
+    fn config(&self) -> crate::RendererConfiguration<f64> {
         self.config.clone()
     }
 
-    fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str> {
+    fn set_config(&mut self, config: RendererConfiguration<f64>) -> Result<(), &'static str> {
         self.config = config;
         self.config_derived = DerivedConfiguration::<f64>::new(&self.config);
         Ok(()) // TODO: when does this fail again?
@@ -271,12 +264,12 @@ impl RendererTrait<f64> for Terminal<f64> {
 }
 
 impl __RendererTrait<f64> for Terminal<f64> {
-    fn new(config: RendererConfiguration) -> Self {
+    fn new(config: RendererConfiguration<f64>) -> Self {
         Self {
-            buffer: RefCell::new(vec![vec![character::EMPTY; config.camera.resolution().width()]; config.camera.resolution().height() / 2]),
+            buffer: RefCell::new(vec![vec![character::EMPTY; config.camera.resolution().width() as usize]; (config.camera.resolution().height() / 2) as usize]),
             center_offset: (
-                (config.camera.resolution().width() / 2),
-                (config.camera.resolution().height() / 2),
+                (config.camera.resolution().width() / 2) as i64,
+                (config.camera.resolution().height() / 2) as i64,
             ),
             config_derived: DerivedConfiguration::<f64>::new(&config),
             config,
@@ -295,7 +288,7 @@ mod tests {
 
     #[test]
     fn normal_to_parametric_form() {
-        let config = RendererConfiguration::default();
+        let config = RendererConfiguration::<f64>::default();
         let parametric = DerivedConfiguration::normal_to_parametric_form(&config.camera.direction, &config.camera.position);
 
         let a = parametric.slice(0..1, 0..3).into_iter().cloned().collect::<Vec<f64>>();
@@ -340,7 +333,7 @@ mod tests {
         let line_draw_order = vec![vec![0,1], vec![0,2]];
 
         // 3. Render()
-        let mut renderer = TerminalBuilder::default().build();
+        let mut renderer = RendererBuilder::default().build();
         // renderer.set_vertices_line_draw_order(&line_draw_order.iter().map(|v| v.as_slice()).collect::<Vec<&[usize]>>());
 
         loop {
@@ -353,7 +346,7 @@ mod tests {
 
     #[test]
     fn center_points() {
-        let renderer = TerminalBuilder::default().build();
+        let renderer = RendererBuilder::default().build();
 
         // let mut test_surface = Matrix::from_array([
         //     [0.0, 0.0, 0.0],

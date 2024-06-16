@@ -10,14 +10,14 @@ use linear_algebra::matrix::{Matrix, MatrixDataTrait};
 
 #[derive(Clone)]
 pub struct Camera<T: MatrixDataTrait> {
-    pub resolution: (usize, usize),
+    pub resolution: (u64, u64),
     pub position: Matrix<T>,
     pub direction: Matrix<T>,
-    pub fov: usize,
+    pub fov: u64,
 }
 
 impl<T: MatrixDataTrait> Camera<T> {
-    pub fn new(resolution: (usize, usize), position: &[T; 3], direction: &[T; 3], fov: usize) -> Self {
+    pub fn new(resolution: (u64, u64), position: &[T; 3], direction: &[T; 3], fov: u64) -> Self {
         Self {
             resolution,
             position: Matrix::from_slice(&[position]),
@@ -26,7 +26,7 @@ impl<T: MatrixDataTrait> Camera<T> {
         }
     }
 
-    pub fn resolution(&self) -> &(usize, usize) {
+    pub fn resolution(&self) -> &(u64, u64) {
         &self.resolution
     }
 
@@ -38,7 +38,7 @@ impl<T: MatrixDataTrait> Camera<T> {
         &self.direction
     }
     
-    pub fn fov(&self) -> &usize {
+    pub fn fov(&self) -> &u64{
         &self.fov
     }
 }
@@ -63,21 +63,16 @@ pub enum RenderOption {
 }
 
 #[derive(Default, Clone)]
-pub struct RendererConfiguration {
+pub struct RendererConfiguration<T: MatrixDataTrait> {
     pub camera: Camera<f64>,
     pub option: RenderOption,
+    pub(crate) viewpoint: Matrix<T>,
+    pub(crate) viewport: Matrix<T>,
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
 pub trait RendererBuilderTrait<T: MatrixDataTrait>: Default {
     type Renderer: RendererTrait<T>;
-
-    /// In order to instantiate this type, since the implementation may vary for different renderers,
-    /// the implementation should provide a 'man' (manual/info) string for what info is needed to 
-    /// initialize it.
-    /// 
-    /// TODO: There are better solutions, but this will do for now.
-    fn man() -> &'static str;
 
     fn with_camera(self, camera: Camera<T>) -> Self;
     fn with_option(self, option: RenderOption) -> Self;
@@ -86,7 +81,7 @@ pub trait RendererBuilderTrait<T: MatrixDataTrait>: Default {
     fn build(self) -> Self::Renderer;
 
     /// Build an instance of [RendererTrait] using an existing [RendererConfiguration].
-    fn build_with_config(self, config: RendererConfiguration) -> Self::Renderer;
+    fn build_with_config(self, config: RendererConfiguration<T>) -> Self::Renderer;
 }
 
 /// [RendererTrait] for rendering to display.
@@ -94,12 +89,12 @@ pub trait RendererTrait<T: MatrixDataTrait> {
     type Vertex;
 
     /// Get [RendererConfiguration].
-    fn config(&self) -> RendererConfiguration;
+    fn config(&self) -> RendererConfiguration<T>;
 
     /// Set a new config ([RendererConfiguration]) for the [RendererTrait].
     /// Useful if the dimensions of the viewport ([common::PlaneTrait]) changes in size, for example.
     /// Returns [Result::Ok] if configuration is valid for current renderer.
-    fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str>;
+    fn set_config(&mut self, config: RendererConfiguration<T>) -> Result<(), &'static str>;
 
     /// Vertices ([VertexTrait]) are used as "anchors"/"points in space" from which lines can be drawn.
     fn set_vertices(&mut self, vertices: &[Self::Vertex]);
@@ -125,5 +120,5 @@ pub trait RendererTrait<T: MatrixDataTrait> {
 /// Hidden trait methods for [RendererTrait].
 trait __RendererTrait<T: MatrixDataTrait>: RendererTrait<T> {
     /// Create new instance.
-    fn new(config: RendererConfiguration) -> Self;
+    fn new(config: RendererConfiguration<T>) -> Self;
 }
