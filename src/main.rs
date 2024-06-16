@@ -1,4 +1,4 @@
-use std::{thread, time::Duration};
+use std::{thread, time::{self, Duration}};
 
 use linear_algebra::matrix::Matrix;
 use renderer::{renderer::RendererBuilder, Camera, RendererBuilderTrait, RendererTrait};
@@ -48,8 +48,14 @@ fn main() {
     // A
     // let mut angle = 0.0;
 
+    let mut frame: u128 = 0;
+    let mut frame_tmp: u128 = 0;
+    let mut frame_timer = time::Instant::now();
+    let mut fps = 0;
+
     loop {
-        thread::sleep(Duration::from_millis(50));
+        // Loop
+        thread::sleep(Duration::from_millis(100));
         renderer.set_vertices(&vertices);
         renderer.render();
         // *vertices[0].index_mut(0, 0) += 2.0;
@@ -71,5 +77,18 @@ fn main() {
         // if angle > 2.0 * std::f64::consts::PI {
         //     angle = 0.0;
         // }
+
+        // Statistics
+        if frame_timer.elapsed() >= Duration::from_secs(1) {
+            fps = frame_tmp;
+            frame_tmp = 0;
+            frame_timer = time::Instant::now();
+        } else {
+            frame_tmp += 1;
+        }
+
+        frame += 1;
+
+        println!("Statistics: [FPS: {}]",  fps);
     }
 }
