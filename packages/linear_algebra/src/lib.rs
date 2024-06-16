@@ -929,9 +929,37 @@ pub mod matrix {
 }
 
 pub mod utility {
-    use self::matrix::MatrixDataTrait;
+    use super::matrix::*;
 
-    use super::*;
+    /// Solves the equation system below to find the point at which the
+    /// line and the plane intersects.
+    ///
+    /// |plane_x_0|          |x|          |x|   |line_x_0|         |x|
+    /// |plane_y_0| + plane_t|y| + plane_s|y| = |line_y_0| + line_t|y|
+    /// |plane_z_0|          |z|          |z|   |line_z_0|         |z|
+    pub fn intersect_plane_line(plane: &Matrix<f64>, line: &Matrix<f64>) -> Matrix<f64> {
+        let plane_origin = plane.slice(0..1, 0..3);
+        let plane_t_vec = plane.slice(1..2, 0..3);
+        let plane_s_vec = plane.slice(2..3, 0..3);
+    
+        let line_origin = line.slice(0..1, 0..3);
+        let line_t_vec = line.slice(1..2, 0..3);
+    
+        let origin = [
+            line_origin[0] - plane_origin[0],
+            line_origin[1] - plane_origin[1],
+            line_origin[2] - plane_origin[2],
+        ];
+    
+        let mut intersection_point = Matrix::<f64>::from_array([
+            [*plane_t_vec[0], *plane_s_vec[0], -*line_t_vec[0], origin[0]],
+            [*plane_t_vec[1], *plane_s_vec[1], -*line_t_vec[1], origin[1]],
+            [*plane_t_vec[2], *plane_s_vec[2], -*line_t_vec[2], origin[2]],
+        ]);
+        
+        gauss_elimination(&mut intersection_point);
+        intersection_point
+    }
 
     /// Last column in matrix is seen as the sum of the values to the left,
     /// where the values to the left are parametric.
@@ -941,8 +969,8 @@ pub mod utility {
     /// 
     /// TODO: What the heck does this actually return? BAD CODE! BAD!
     pub fn gauss_elimination<Data: MatrixDataTrait>(
-        mut matrix: &mut matrix::Matrix<Data>,
-    ) -> Option<matrix::Matrix<Data>> {
+        mut matrix: &mut Matrix<Data>,
+    ) -> Option<Matrix<Data>> {
         enum Direction {
             Down,
             Up,
@@ -950,7 +978,7 @@ pub mod utility {
 
         /// Find a 'pivotable' point in a row given a column.
         fn find_next_pivot_row<Data: MatrixDataTrait>(
-            matrix: &mut matrix::Matrix<Data>,
+            matrix: &mut Matrix<Data>,
             start_row: usize,
             column: usize,
         ) -> Option<usize> {
@@ -965,7 +993,7 @@ pub mod utility {
 
         /// Normalize the row for a given pivot coordinate.
         fn normalize_row<Data: MatrixDataTrait>(
-            matrix: &mut matrix::Matrix<Data>,
+            matrix: &mut Matrix<Data>,
             row: usize,
             divisor_column: usize,
         ) {
@@ -978,7 +1006,7 @@ pub mod utility {
 
         /// Eliminate all rows based on pivot.
         fn eliminate_columns<Data: MatrixDataTrait>(
-            matrix: &mut matrix::Matrix<Data>,
+            matrix: &mut Matrix<Data>,
             pivot_row: usize,
             pivot_column: usize,
             start_row: usize,
@@ -1087,7 +1115,7 @@ pub mod utility {
         use super::*;
 
         mod test_gauss_elimination {
-            use self::matrix::Matrix;
+            use self::Matrix;
 
             use super::*;
 
@@ -1168,8 +1196,8 @@ pub mod utility {
             }
 
             fn check<Data: MatrixDataTrait>(
-                matrix: matrix::Matrix<Data>,
-                expected: matrix::Matrix<Data>,
+                matrix: Matrix<Data>,
+                expected: Matrix<Data>,
             ) {
                 assert!(matrix == expected);
             }

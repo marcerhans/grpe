@@ -275,8 +275,8 @@ impl __RendererTrait<f64> for Terminal<f64> {
         Self {
             buffer: RefCell::new(vec![vec![character::EMPTY; config.camera.resolution().width()]; config.camera.resolution().height() / 2]),
             center_offset: (
-                (config.camera.resolution().0 as f64 / 2.0) as i64 - 1,
-                (config.camera.resolution().1 as f64 / 2.0) as i64 - 1,
+                (config.camera.resolution().width() / 2),
+                (config.camera.resolution().height() / 2),
             ),
             config_derived: DerivedConfiguration::<f64>::new(&config),
             config,

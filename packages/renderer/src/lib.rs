@@ -1,7 +1,5 @@
 /// Current implementation only supports a terminal (/text) output for rendering,
 /// and for simplicity only [f64] is used.
-/// 
-/// TODO: How does the Into trait get implemented automatically from From?
 
 pub mod strategy;
 pub use strategy::renderer;
