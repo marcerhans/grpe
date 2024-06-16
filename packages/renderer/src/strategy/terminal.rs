@@ -223,7 +223,7 @@ impl RendererTrait<f64> for Terminal<f64> {
     }
 
     fn render(&self) {
-        for vertex in &self.vertices {
+        'outer: for vertex in &self.vertices {
             let parameter = Matrix::from_array([
                 [
                     vertex.index(0, 0) - self.config_derived.viewpoint.index(0, 0),
@@ -236,6 +236,15 @@ impl RendererTrait<f64> for Terminal<f64> {
                 [*self.config_derived.viewpoint.index(0, 0),*self.config_derived.viewpoint.index(0, 1),*self.config_derived.viewpoint.index(0, 2)],
                 [*parameter.index(0, 0), *parameter.index(0, 1), *parameter.index(0, 2)]
             ]);
+
+            for i in 0..2 {
+                let dir = self.config.camera.direction.index(0, i);
+                let test = viewpoint_to_vertex_line.index(1, i);
+
+                if dir.signum() != test.signum() {
+                    continue 'outer;
+                }
+            }
 
             let intersection = intersect_plane_line(&self.config_derived.viewport, &viewpoint_to_vertex_line);
             let mut intersection = Matrix::from_array([
