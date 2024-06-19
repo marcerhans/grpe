@@ -176,6 +176,8 @@ impl Terminal<f64> {
     }
 
     fn render_vertex(&self, buffer: &mut Vec<Vec<char>>, vertex: &Matrix<f64>) {
+        // TODO: Idéa: Each time a pixel is filled with FULL, we can remove it from the "todo-buffer", 
+        // because we have already filled it.
         let x = *vertex.index(0,0) as isize;
         let mut z = *vertex.index(0,2) as isize;
 
