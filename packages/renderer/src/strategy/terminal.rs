@@ -1,4 +1,4 @@
-use std::{borrow::BorrowMut, cell::RefCell};
+use std::{borrow::BorrowMut, cell::RefCell, io::Write};
 
 use linear_algebra::{matrix::{Matrix, MatrixDataTrait}, utility::intersect_plane_line};
 
@@ -261,12 +261,16 @@ impl RendererTrait<f64> for Terminal<f64> {
             self.render_vertex(&mut self.buffer.borrow_mut(), &intersection);
         }
 
+        // Buffered write
+        let stdout = std::io::stdout();
+        let mut handle = std::io::BufWriter::new(stdout.lock());
         for character_row in self.buffer.borrow().iter() {
             for character in character_row.iter() {
-                print!("{character}");
+                write!(handle, "{character}").unwrap();
             }
-            print!("\n");
+            write!(handle, "\n").unwrap();
         }
+        handle.flush().unwrap()
     }
 }
 
