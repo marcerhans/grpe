@@ -188,15 +188,22 @@ impl Terminal<f64> {
 
         z = z / 2;
 
-        if buffer[z as usize][x as usize] == character::UPPER && character == character::LOWER {
+        let buff_val = &mut buffer[z as usize][x as usize];
+
+        // Is it already occupied?
+        if *buff_val == character::FULL {
+            return;
+        }
+
+        if *buff_val == character::UPPER && character == character::LOWER {
             character = character::FULL;
         }
 
-        if buffer[z as usize][x as usize] == character::LOWER && character == character::UPPER {
+        if *buff_val == character::LOWER && character == character::UPPER {
             character = character::FULL;
         }
 
-        let _ = std::mem::replace(&mut buffer[z as usize][x as usize], character);
+        let _ = std::mem::replace(buff_val, character);
     }
 }
 
