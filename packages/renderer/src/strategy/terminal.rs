@@ -150,9 +150,9 @@ impl Terminal<f64> {
     }
 
     fn adjust_point_to_camera_pos(camera_position: &Matrix<f64>, point: &mut Matrix<f64>) {
-        *point.index_mut(0, 0) += camera_position.index(0, 0);
-        *point.index_mut(0, 1) += camera_position.index(0, 1);
-        *point.index_mut(0, 2) += camera_position.index(0, 2);
+        *point.index_mut(0, 0) -= camera_position.index(0, 0);
+        *point.index_mut(0, 1) -= camera_position.index(0, 1);
+        *point.index_mut(0, 2) -= camera_position.index(0, 2);
     }
 
     /// Center points such that, for example, vertex (0,0,0) appears in the middle of the terminal
@@ -171,8 +171,8 @@ impl Terminal<f64> {
             }
         }
 
-        // print!("\x1B[2J");
-        // print!("\x1B[H");
+        print!("\x1B[2J");
+        print!("\x1B[H");
     }
 
     fn render_vertex(&self, buffer: &mut Vec<Vec<char>>, vertex: &Matrix<f64>) {
@@ -222,6 +222,8 @@ impl RendererTrait<f64> for Terminal<f64> {
     }
 
     fn render(&self) {
+        self.clear();
+
         'outer: for vertex in &self.vertices {
             let parameter = Matrix::from_array([
                 [
@@ -265,8 +267,6 @@ impl RendererTrait<f64> for Terminal<f64> {
             }
             print!("\n");
         }
-
-        self.clear();
     }
 }
 

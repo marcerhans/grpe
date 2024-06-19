@@ -7,15 +7,47 @@ fn main() {
     // 1. Create vertices
     let mut vertices = vec![
         // A
-        Matrix::from_array([[-16.0, 0.0, 0.0]]),
-        Matrix::from_array([[-16.0, 0.0, -16.0]]),
-        Matrix::from_array([[0.0, 0.0, -16.0]]),
-        Matrix::from_array([[15.0, 0.0, -16.0]]),
-        Matrix::from_array([[15.0, 0.0, 0.0]]),
-        Matrix::from_array([[15.0, 0.0, 15.0]]),
-        Matrix::from_array([[0.0, 0.0, 15.0]]),
-        Matrix::from_array([[-16.0, 0.0, 15.0]]),
+        // Matrix::from_array([[-16.0, 0.0, 0.0]]),
+        // Matrix::from_array([[-16.0, 0.0, -16.0]]),
+        // Matrix::from_array([[0.0, 0.0, -16.0]]),
+        // Matrix::from_array([[15.0, 0.0, -16.0]]),
+        // Matrix::from_array([[15.0, 0.0, 0.0]]),
+        // Matrix::from_array([[15.0, 0.0, 15.0]]),
+        // Matrix::from_array([[0.0, 0.0, 15.0]]),
+        // Matrix::from_array([[-16.0, 0.0, 15.0]]),
+        // Matrix::from_array([[0.0, 0.0, 0.0]]),
+        // /A
+
+        // B
+        Matrix::from_array([[0.0, 0.0, -3.0]]),
+        Matrix::from_array([[0.0, 0.0, -2.0]]),
+        Matrix::from_array([[0.0, 0.0, -1.0]]),
         Matrix::from_array([[0.0, 0.0, 0.0]]),
+        Matrix::from_array([[0.0, 0.0, 1.0]]),
+        Matrix::from_array([[0.0, 0.0, 2.0]]),
+        Matrix::from_array([[0.0, 0.0, 3.0]]),
+        Matrix::from_array([[-1.0, 0.0, 3.0]]),
+        Matrix::from_array([[1.0, 0.0, 3.0]]),
+
+        Matrix::from_array([[-1.0, -4.0, -3.0]]),
+        Matrix::from_array([[1.0, -4.0, -3.0]]),
+        Matrix::from_array([[0.0, -4.0, -3.0]]),
+        Matrix::from_array([[0.0, -4.0, -2.0]]),
+        Matrix::from_array([[0.0, -4.0, -1.0]]),
+        Matrix::from_array([[0.0, -4.0, 0.0]]),
+        Matrix::from_array([[0.0, -4.0, 1.0]]),
+        Matrix::from_array([[0.0, -4.0, 2.0]]),
+        Matrix::from_array([[0.0, -4.0, 3.0]]),
+
+        Matrix::from_array([[0.0, -8.0, -3.0]]),
+        Matrix::from_array([[0.0, -8.0, -2.0]]),
+        Matrix::from_array([[0.0, -8.0, -1.0]]),
+        Matrix::from_array([[0.0, -8.0, 0.0]]),
+        Matrix::from_array([[0.0, -8.0, 1.0]]),
+        Matrix::from_array([[0.0, -8.0, 2.0]]),
+        Matrix::from_array([[0.0, -8.0, 3.0]]),
+        // /B
+
         // Matrix::from_array([[2.0, 0.0, 0.0]]),
         // Matrix::from_array([[4.0, 0.0, 0.0]]),
         // Matrix::from_array([[0.0, 0.0, 2.0]]),
@@ -44,7 +76,7 @@ fn main() {
     let mut renderer = RendererBuilder::default()
         .with_camera(Camera::new(
             (32, 32),
-            &[0.0, 0.0, 0.0],
+            &[-16.0, 0.0, 0.0],
             &[0.0, 1.0, 0.0],
             90,
         ))
@@ -72,6 +104,13 @@ fn main() {
         // *config.camera.position.index_mut(0, 1) += 0.05;
         // *config.camera.position.index_mut(0, 2) += 0.05;
         // let _ = renderer.set_config(config);
+
+        // B
+        let mut config = renderer.config();
+        *config.camera.position.index_mut(0, 0) += 0.05;
+        let _ = renderer.set_config(config);
+        // /B
+
 
         // A
         // let mut i: isize = 9;
