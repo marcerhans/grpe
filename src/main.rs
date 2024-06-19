@@ -7,15 +7,20 @@ fn main() {
     // 1. Create vertices
     let mut vertices = vec![
         // A
-        // Matrix::from_array([[-15.0, 0.0, 0.0]]),
-        // Matrix::from_array([[-15.0, 0.0, -15.0]]),
-        // Matrix::from_array([[0.0, 0.0, -15.0]]),
-        // Matrix::from_array([[16.0, 0.0, -15.0]]),
-        // Matrix::from_array([[16.0, 0.0, 0.0]]),
-        // Matrix::from_array([[16.0, 0.0, 16.0]]),
-        // Matrix::from_array([[0.0, 0.0, 16.0]]),
-        // Matrix::from_array([[-15.0, 0.0, 16.0]]),
-        // Matrix::from_array([[0.0, 0.0, 0.0]]),
+        Matrix::from_array([[-16.0, 0.0, 0.0]]),
+        Matrix::from_array([[-16.0, 0.0, -16.0]]),
+        Matrix::from_array([[0.0, 0.0, -16.0]]),
+        Matrix::from_array([[15.0, 0.0, -16.0]]),
+        Matrix::from_array([[15.0, 0.0, 0.0]]),
+        Matrix::from_array([[15.0, 0.0, 15.0]]),
+        Matrix::from_array([[0.0, 0.0, 15.0]]),
+        Matrix::from_array([[-16.0, 0.0, 15.0]]),
+        Matrix::from_array([[0.0, 0.0, 0.0]]),
+        // Matrix::from_array([[2.0, 0.0, 0.0]]),
+        // Matrix::from_array([[4.0, 0.0, 0.0]]),
+        // Matrix::from_array([[0.0, 0.0, 2.0]]),
+        // Matrix::from_array([[-2.0, 0.0, 0.0]]),
+        // Matrix::from_array([[0.0, 0.0, -2.0]]),
 
         // Matrix::from_array([[0.0, 0.0, 0.0]]),
         // Matrix::from_array([[0.0, 0.0, 0.0]]),
@@ -28,8 +33,8 @@ fn main() {
         // Matrix::from_array([[0.0, 0.0, 0.0]]),
         // Matrix::from_array([[0.0, 0.0, 0.0]]),
 
-        Matrix::from_array([[-7.0, 10.0, 0.0]]),
-        Matrix::from_array([[8.0, -10.0, 0.0]]),
+        // Matrix::from_array([[-7.0, 10.0, 0.0]]),
+        // Matrix::from_array([[8.0, -10.0, 0.0]]),
     ];
 
     // 2. Define line order
@@ -39,7 +44,7 @@ fn main() {
     let mut renderer = RendererBuilder::default()
         .with_camera(Camera::new(
             (32, 32),
-            &[0.0, -1.0, 0.0],
+            &[0.0, 0.0, 0.0],
             &[0.0, 1.0, 0.0],
             90,
         ))
@@ -53,9 +58,9 @@ fn main() {
     let mut frame_timer = time::Instant::now();
     let mut fps = 0;
 
-    loop {
+    // loop {
         // Loop
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(10));
         renderer.set_vertices(&vertices);
         renderer.render();
         // *vertices[0].index_mut(0, 0) += 2.0;
@@ -90,5 +95,5 @@ fn main() {
         frame += 1;
 
         println!("Statistics: [FPS: {}]",  fps);
-    }
+    // }
 }

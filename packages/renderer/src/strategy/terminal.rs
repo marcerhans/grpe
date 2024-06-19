@@ -166,12 +166,12 @@ impl Terminal<f64> {
         }
 
         // print!("\x1B[2J");
-        print!("\x1B[H");
+        // print!("\x1B[H");
     }
 
     fn render_vertex(&self, buffer: &mut Vec<Vec<char>>, vertex: &Matrix<f64>) {
         let x = *vertex.index(0,0) as isize;
-        let mut z = *vertex.index(0,0) as isize;
+        let mut z = *vertex.index(0,2) as isize;
 
         if !(z >= 0 && z < self.config.camera.resolution.1 as isize) || 
             !(x >= 0 && x < self.config.camera.resolution.0 as isize) {
@@ -230,14 +230,14 @@ impl RendererTrait<f64> for Terminal<f64> {
                 [*parameter.index(0, 0), *parameter.index(0, 1), *parameter.index(0, 2)]
             ]);
 
-            for i in 0..2 {
-                let dir = self.config.camera.direction.index(0, i);
-                let test = viewpoint_to_vertex_line.index(1, i);
+            // for i in 0..2 {
+            //     let dir = self.config.camera.direction.index(0, i);
+            //     let test = viewpoint_to_vertex_line.index(1, i);
 
-                if dir.signum() != test.signum() {
-                    continue 'outer;
-                }
-            }
+            //     if dir.signum() != test.signum() {
+            //         continue 'outer;
+            //     }
+            // }
 
             let intersection = intersect_plane_line(&self.config_derived.viewport, &viewpoint_to_vertex_line);
             let mut intersection = Matrix::from_array([
