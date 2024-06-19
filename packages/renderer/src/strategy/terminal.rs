@@ -149,6 +149,12 @@ impl Terminal<f64> {
         character::LOWER
     }
 
+    fn adjust_point_to_camera_pos(camera_position: &Matrix<f64>, point: &mut Matrix<f64>) {
+        *point.index_mut(0, 0) += camera_position.index(0, 0);
+        *point.index_mut(0, 1) += camera_position.index(0, 1);
+        *point.index_mut(0, 2) += camera_position.index(0, 2);
+    }
+
     /// Center points such that, for example, vertex (0,0,0) appears in the middle of the terminal
     /// (which would be at (5,0,-5) after centering using a terminal with dimensions (9,9)).
     /// This is due to the origin of a terminal being at the top left.
@@ -248,6 +254,7 @@ impl RendererTrait<f64> for Terminal<f64> {
                 ]
             ]);
             
+            Terminal::adjust_point_to_camera_pos(&self.config.camera.position, &mut intersection);
             Terminal::adjust_point_to_terminal(&self.center_offset, &mut intersection);
             self.render_vertex(&mut self.buffer.borrow_mut(), &intersection);
         }

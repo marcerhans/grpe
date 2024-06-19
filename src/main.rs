@@ -58,7 +58,7 @@ fn main() {
     let mut frame_timer = time::Instant::now();
     let mut fps = 0;
 
-    // loop {
+    loop {
         // Loop
         thread::sleep(Duration::from_millis(10));
         renderer.set_vertices(&vertices);
@@ -68,8 +68,9 @@ fn main() {
         // *vertices[0].index_mut(0, 2) += 1.0;
 
         // let mut config = renderer.config();
-        // let value = config.camera.position.data()[1];
-        // *config.camera.position.index_mut(0, 0) -= 0.05;
+        // *config.camera.position.index_mut(0, 0) += 0.05;
+        // *config.camera.position.index_mut(0, 1) += 0.05;
+        // *config.camera.position.index_mut(0, 2) += 0.05;
         // let _ = renderer.set_config(config);
 
         // A
@@ -95,5 +96,5 @@ fn main() {
         frame += 1;
 
         println!("Statistics: [FPS: {}]",  fps);
-    // }
+    }
 }
