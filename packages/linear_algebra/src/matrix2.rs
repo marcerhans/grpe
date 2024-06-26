@@ -54,7 +54,7 @@ pub mod matrix2 {
         }
     }
 
-    #[derive(Clone)]
+    #[derive(Clone, PartialEq, PartialOrd)]
     pub struct Matrix<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> {
         data: [[T; COLS]; ROWS],
     }
@@ -86,6 +86,18 @@ pub mod matrix2 {
             }
 
             identity
+        }
+
+        pub fn transpose(&self) -> Matrix<T, COLS, ROWS> {
+            let mut matrix = Matrix::<T, COLS, ROWS>::zeros();
+
+            for (i, &row) in self.iter().enumerate() {
+                for (j, &cell) in row.iter().enumerate() {
+                    matrix[j][i] = cell;
+                }
+            }
+
+            matrix
         }
 
         pub fn iter<'a>(&'a self) -> std::slice::Iter<'a, [T; COLS]> {
@@ -156,26 +168,44 @@ mod matrix_owned_tests {
         fn new_test() {
             let matrix = Matrix::new([[1, 2, 3]]);
 
+            // Check using iterators.
             for i in 0..3 {
                 assert!(matrix[0][i] == (i as i64) + 1);
             }
+
+            // Check using [PartialEq].
+            assert!(matrix == Matrix::new([[1, 2, 3]]));
         }
 
         #[test]
         fn zeros_test() {
             let matrix = Matrix::<i64, 3, 3>::zeros();
 
+            // Check using [Index].
             for row in matrix.iter() {
                 for &cell in row.iter() {
                     assert!(cell == 0);
                 }
             }
+
+            // Check using [PartialEq].
+            assert!(matrix == Matrix::new([
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 0],
+            ]));
+        }
+
+        #[test]
+        fn default_test() {
+            zeros_test();
         }
 
         #[test]
         fn identity_test() {
             let matrix = Matrix::<i64, 3, 3>::identity();
 
+            // Check using [Index].
             for (i, row) in matrix.iter().enumerate() {
                 for (j, _) in row.iter().enumerate() {
                     if i == j {
@@ -185,11 +215,36 @@ mod matrix_owned_tests {
                     }
                 }
             }
+
+            // Check using [PartialEq].
+            assert!(matrix == Matrix::new([
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 0, 1],
+            ]));
         }
 
         #[test]
-        fn default_test() {
-            zeros_test();
+        #[should_panic]
+        fn identity_test_panic() {
+            let _ = Matrix::<i64, 3, 4>::identity();
+        }
+
+        #[test]
+        fn transpose_test() {
+            let matrix = Matrix::new([
+                [1, 2, 3, 4],
+                [5, 6, 7, 8],
+            ]);
+            let matrix = matrix.transpose();
+
+            // Only checking using [PartialEq].
+            assert!(matrix == Matrix::new([
+                [1, 5],
+                [2, 6],
+                [3, 7],
+                [4, 8],
+            ]));
         }
     }
 }
