@@ -87,6 +87,14 @@ pub mod matrix2 {
 
             identity
         }
+
+        pub fn iter<'a>(&'a self) -> std::slice::Iter<'a, [T; COLS]> {
+            self.into_iter()
+        }
+
+        pub fn iter_mut<'a>(&'a mut self) -> std::slice::IterMut<'a, [T; COLS]> {
+            self.into_iter()
+        }
     }
 
     impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Default for Matrix<T, ROWS, COLS> {
@@ -134,7 +142,7 @@ mod matrix_owned_tests {
         fn new_test() {
             let matrix = Matrix::new([[1, 2, 3]]);
 
-            for cell in matrix.into_iter() {}
+            for cell in matrix.iter() {}
         }
 
         #[test]
