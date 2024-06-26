@@ -59,20 +59,34 @@ pub mod matrix2 {
         data: T,
     }
 
-    /// This implementation owns the data.
-    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<[[T; COLS]; ROWS], ROWS, COLS> {
-        pub fn from_array(data: [[T; COLS]; ROWS]) -> Self {
-            Self {
-                data,
+    /// These implementations own the data.
+    pub mod owned {
+        use super::*;
+
+        impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<[[T; COLS]; ROWS], ROWS, COLS> {
+        }
+
+        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<[[T; COLS]; ROWS]> for Matrix<[[T; COLS]; ROWS], ROWS, COLS> {
+            fn from(data: [[T; COLS]; ROWS]) -> Self {
+                Self {
+                    data,
+                }
             }
         }
     }
 
-    /// This implementation does NOT own the data.
-    impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<&'a [&'a [T; COLS]; ROWS], ROWS, COLS> {
-        pub fn from_slice(data: &'a [&'a [T; COLS]; ROWS]) -> Self {
-            Self {
-                data,
+    /// These implementations does NOT own the data.
+    pub mod reference {
+        use super::*;
+
+        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<&'a [&'a [T; COLS]; ROWS], ROWS, COLS> {
+        }
+
+        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<&'a [&'a [T; COLS]; ROWS]> for Matrix<&'a [&'a [T; COLS]; ROWS], ROWS, COLS> {
+            fn from(data: &'a [&'a [T; COLS]; ROWS]) -> Self {
+                Self {
+                    data,
+                }
             }
         }
     }
@@ -84,12 +98,24 @@ pub mod matrix2 {
 }
 
 #[cfg(test)]
-mod matrix_ref_tests {
+mod matrix_owned_tests {
+    use super::matrix2::Matrix;
+
+    #[test]
+    fn from_array_test() {
+        let _ = Matrix::from([
+            [1, 2, 3],
+        ]);
+    }
+}
+
+#[cfg(test)]
+mod matrix_reference_tests {
     use super::matrix2::Matrix;
 
     #[test]
     fn from_slice_test() {
-        let matrix = Matrix::from_slice(&[
+        let _ = Matrix::from(&[
             &[1, 2, 3],
         ]);
     }
