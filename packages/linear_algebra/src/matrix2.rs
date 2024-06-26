@@ -119,6 +119,42 @@ pub mod matrix2 {
         }
     }
 
+    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<&[Matrix<T, 1, COLS>; ROWS]> for Matrix<T, ROWS, COLS> {
+        fn from(matrices: &[Matrix<T, 1, COLS>; ROWS]) -> Self {
+            let mut data = [[T::zero(); COLS]; ROWS];
+
+            for (i, matrix) in matrices.iter().enumerate() {
+                for row in matrix.iter() {
+                    for (j, &cell) in row.iter().enumerate() {
+                        data[i][j] = cell;
+                    }
+                }
+            }
+
+            Self {
+                data,
+            }
+        }
+    }
+
+    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<&[VectorRow<T, COLS>; ROWS]> for Matrix<T, ROWS, COLS> {
+        fn from(vectors: &[VectorRow<T, COLS>; ROWS]) -> Self {
+            let mut data = [[T::zero(); COLS]; ROWS];
+
+            for (i, vector) in vectors.iter().enumerate() {
+                for row in vector.0.iter() {
+                    for (j, &cell) in row.iter().enumerate() {
+                        data[i][j] = cell;
+                    }
+                }
+            }
+
+            Self {
+                data,
+            }
+        }
+    }
+
     impl<T: MatrixDataTrait, const LENGTH: usize> From<VectorRow<T, LENGTH>> for Matrix<T, 1, LENGTH> {
         fn from(vector: VectorRow<T, LENGTH>) -> Self {
             vector.0
@@ -256,6 +292,52 @@ mod matrix_tests {
             // Only checking using [PartialEq].
             assert!(matrix == Matrix::new([[1, 5], [2, 6], [3, 7], [4, 8],]));
         }
+
+        #[test]
+        fn from_slice_of_row_matrices_test() {
+            let matrices = [
+                Matrix::new([[1,2,3]]),
+                Matrix::new([[4,5,6]]),
+                Matrix::new([[7,8,9]]),
+                Matrix::new([[10,11,12]]),
+            ];
+
+            let matrix = Matrix::<i64, 4, 3>::from(&matrices);
+
+            assert!(matrix == Matrix::new([
+                [1,2,3],
+                [4,5,6],
+                [7,8,9],
+                [10,11,12],
+            ]));
+
+            // let matrix = Matrix::<i64, 4, 4>::from(&matrices); // Will not even compile due to wrong dimensions (manual check)
+            // let matrix = Matrix::<i64, 3, 3>::from(&matrices); // Will not even compile due to wrong dimensions (manual check)
+        }
+
+        #[test]
+        fn from_slice_of_row_vectors_test() {
+            use crate::matrix2::vector::VectorRow;
+
+            let vectors = [
+                VectorRow::new([[1,2,3]]),
+                VectorRow::new([[4,5,6]]),
+                VectorRow::new([[7,8,9]]),
+                VectorRow::new([[10,11,12]]),
+            ];
+
+            let matrix = Matrix::<i64, 4, 3>::from(&vectors);
+
+            assert!(matrix == Matrix::new([
+                [1,2,3],
+                [4,5,6],
+                [7,8,9],
+                [10,11,12],
+            ]));
+
+            // let matrix = Matrix::<i64, 4, 4>::from(&vectors); // Will not even compile due to wrong dimensions (manual check)
+            // let matrix = Matrix::<i64, 3, 3>::from(&vectors); // Will not even compile due to wrong dimensions (manual check)
+        }
     }
 }
 
@@ -331,7 +413,7 @@ mod vector_tests {
     }
 
     #[test]
-    fn from_into() {
+    fn into_test() {
         use super::matrix2::Matrix;
 
         let vector_row = VectorRow::<i64, 4>::new([
