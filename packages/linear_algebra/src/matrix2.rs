@@ -255,7 +255,11 @@ mod matrix_tests {
             }
 
             // Check using [PartialEq].
-            assert!(matrix == Matrix::from([[0, 0, 0], [0, 0, 0], [0, 0, 0],]));
+            assert!(matrix == Matrix::from([
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 0],
+            ]));
         }
 
         #[test]
@@ -279,7 +283,11 @@ mod matrix_tests {
             }
 
             // Check using [PartialEq].
-            assert!(matrix == Matrix::from([[1, 0, 0], [0, 1, 0], [0, 0, 1],]));
+            assert!(matrix == Matrix::from([
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 0, 1],
+            ]));
         }
 
         #[test]
@@ -290,11 +298,19 @@ mod matrix_tests {
 
         #[test]
         fn transpose_test() {
-            let matrix = Matrix::from([[1, 2, 3, 4], [5, 6, 7, 8]]);
+            let matrix = Matrix::from([
+                [1, 2, 3, 4],
+                [5, 6, 7, 8]
+            ]);
             let matrix = matrix.transpose();
 
             // Only checking using [PartialEq].
-            assert!(matrix == Matrix::from([[1, 5], [2, 6], [3, 7], [4, 8],]));
+            assert!(matrix == Matrix::from([
+                [1, 5],
+                [2, 6],
+                [3, 7],
+                [4, 8],
+            ]));
         }
 
         #[test]
