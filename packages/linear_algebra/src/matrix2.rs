@@ -63,14 +63,16 @@ pub mod matrix2 {
     pub mod owned {
         use super::*;
 
-        impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<[[T; COLS]; ROWS], ROWS, COLS> {
+        impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
+            Matrix<[[T; COLS]; ROWS], ROWS, COLS>
+        {
         }
 
-        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<[[T; COLS]; ROWS]> for Matrix<[[T; COLS]; ROWS], ROWS, COLS> {
+        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<[[T; COLS]; ROWS]>
+            for Matrix<[[T; COLS]; ROWS], ROWS, COLS>
+        {
             fn from(data: [[T; COLS]; ROWS]) -> Self {
-                Self {
-                    data,
-                }
+                Self { data }
             }
         }
     }
@@ -79,22 +81,22 @@ pub mod matrix2 {
     pub mod reference {
         use super::*;
 
-        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<&'a [&'a [T; COLS]; ROWS], ROWS, COLS> {
+        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
+            Matrix<&'a [&'a [T; COLS]; ROWS], ROWS, COLS>
+        {
         }
 
-        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<&'a [&'a [T; COLS]; ROWS]> for Matrix<&'a [&'a [T; COLS]; ROWS], ROWS, COLS> {
+        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
+            From<&'a [&'a [T; COLS]; ROWS]> for Matrix<&'a [&'a [T; COLS]; ROWS], ROWS, COLS>
+        {
             fn from(data: &'a [&'a [T; COLS]; ROWS]) -> Self {
-                Self {
-                    data,
-                }
+                Self { data }
             }
         }
     }
 
     /// This implemntation provides shared behaviour for all implemntations of [Matrix].
-    impl<T, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, COLS> {
-
-    }
+    impl<T, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, COLS> {}
 }
 
 #[cfg(test)]
@@ -103,9 +105,7 @@ mod matrix_owned_tests {
 
     #[test]
     fn from_array_test() {
-        let _ = Matrix::from([
-            [1, 2, 3],
-        ]);
+        let _ = Matrix::from([[1, 2, 3]]);
     }
 }
 
@@ -115,8 +115,6 @@ mod matrix_reference_tests {
 
     #[test]
     fn from_slice_test() {
-        let _ = Matrix::from(&[
-            &[1, 2, 3],
-        ]);
+        let _ = Matrix::from(&[&[1, 2, 3]]);
     }
 }
