@@ -16,8 +16,8 @@ pub mod matrix2 {
         + Neg<Output = Self>
         + PartialEq
         + PartialOrd
-        + Clone
         + Copy
+        + Clone
         + Default
         + Debug
     {
@@ -54,67 +54,73 @@ pub mod matrix2 {
         }
     }
 
-    #[derive(Default, Clone)]
-    pub struct Matrix<T, const ROWS: usize, const COLS: usize> {
-        data: T,
+    #[derive(Clone)]
+    pub struct Matrix<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> {
+        data: [[T; COLS]; ROWS],
     }
 
-    /// These implementations own the data.
-    pub mod owned {
-        use super::*;
-
-        impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
-            Matrix<[[T; COLS]; ROWS], ROWS, COLS>
-        {
+    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
+        Matrix<T, ROWS, COLS>
+    {
+        pub fn new(data: [[T; COLS]; ROWS]) -> Self {
+            Self { data }
         }
 
-        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<[[T; COLS]; ROWS]>
-            for Matrix<[[T; COLS]; ROWS], ROWS, COLS>
-        {
-            fn from(data: [[T; COLS]; ROWS]) -> Self {
-                Self { data }
+        pub fn zeros() -> Self {
+            Self {
+                data: [[T::zero(); COLS]; ROWS],
             }
         }
-    }
 
-    /// These implementations does NOT own the data.
-    pub mod reference {
-        use super::*;
-
-        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
-            Matrix<&'a [&'a [T; COLS]; ROWS], ROWS, COLS>
-        {
-        }
-
-        impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
-            From<&'a [&'a [T; COLS]; ROWS]> for Matrix<&'a [&'a [T; COLS]; ROWS], ROWS, COLS>
-        {
-            fn from(data: &'a [&'a [T; COLS]; ROWS]) -> Self {
-                Self { data }
+        pub fn identity() -> Self {
+            if ROWS != COLS {
+                panic!("Identity matrix requires a quadratic form.")
             }
+
+            let mut identity = Self {
+                data: [[T::zero(); COLS]; ROWS],
+            };
+
+            for (i, row) in identity.data.iter_mut().enumerate() {
+                row[i] = T::one();
+            }
+
+            identity
         }
     }
 
-    /// This implemntation provides shared behaviour for all implemntations of [Matrix].
-    impl<T, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, COLS> {}
+    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Default for Matrix<T, ROWS, COLS> {
+        fn default() -> Self {
+            Self { data: [[T::zero(); COLS]; ROWS] }
+        }
+    }
 }
 
 #[cfg(test)]
 mod matrix_owned_tests {
     use super::matrix2::Matrix;
 
-    #[test]
-    fn from_array_test() {
-        let _ = Matrix::from([[1, 2, 3]]);
-    }
-}
+    mod unit_tests {
+        use super::*;
 
-#[cfg(test)]
-mod matrix_reference_tests {
-    use super::matrix2::Matrix;
+        #[test]
+        fn new_test() {
+            let matrix = Matrix::new([[1, 2, 3]]);
+        }
 
-    #[test]
-    fn from_slice_test() {
-        let _ = Matrix::from(&[&[1, 2, 3]]);
+        #[test]
+        fn zeros_test() {
+            let matrix = Matrix::<f64, 1, 1>::zeros();
+        }
+
+        #[test]
+        fn identity_test() {
+            let matrix = Matrix::<f64, 1, 1>::identity();
+        }
+
+        #[test]
+        fn default_test() {
+            let matrix = Matrix::<f64, 1, 1>::default();
+        }
     }
 }
