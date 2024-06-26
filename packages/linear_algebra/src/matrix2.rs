@@ -1,7 +1,7 @@
 pub mod matrix2 {
     use std::{
         fmt::Debug,
-        ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+        ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
     };
 
     pub trait MatrixDataTrait:
@@ -103,6 +103,20 @@ pub mod matrix2 {
         }
     }
 
+    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Index<(usize, usize)> for Matrix<T, ROWS, COLS> {
+        type Output = T;
+    
+        fn index(&self, index: (usize, usize)) -> &Self::Output {
+            &self.data[index.0][index.1]
+        }
+    }
+
+    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IndexMut<(usize, usize)> for Matrix<T, ROWS, COLS> {
+        fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+            &mut self.data[index.0][index.1]
+        }
+    }
+
     impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator for Matrix<T, ROWS, COLS> {
         type Item = [T; COLS];
         type IntoIter = core::array::IntoIter<Self::Item, ROWS>;
@@ -141,8 +155,6 @@ mod matrix_owned_tests {
         #[test]
         fn new_test() {
             let matrix = Matrix::new([[1, 2, 3]]);
-
-            for cell in matrix.iter() {}
         }
 
         #[test]
