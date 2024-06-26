@@ -64,10 +64,6 @@ pub mod matrix2 {
     }
 
     impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, COLS> {
-        pub fn new(data: [[T; COLS]; ROWS]) -> Self {
-            Self { data }
-        }
-
         pub fn zeros() -> Self {
             Self {
                 data: [[T::zero(); COLS]; ROWS],
@@ -115,6 +111,14 @@ pub mod matrix2 {
         fn default() -> Self {
             Self {
                 data: [[T::zero(); COLS]; ROWS],
+            }
+        }
+    }
+
+    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<[[T; COLS]; ROWS]> for Matrix<T, ROWS, COLS> {
+        fn from(data: [[T; COLS]; ROWS]) -> Self {
+            Self {
+                data,
             }
         }
     }
@@ -228,7 +232,7 @@ mod matrix_tests {
 
         #[test]
         fn new_test() {
-            let matrix = Matrix::new([[1, 2, 3]]);
+            let matrix = Matrix::from([[1, 2, 3]]);
 
             // Check using iterators.
             for i in 0..3 {
@@ -236,7 +240,7 @@ mod matrix_tests {
             }
 
             // Check using [PartialEq].
-            assert!(matrix == Matrix::new([[1, 2, 3]]));
+            assert!(matrix == Matrix::from([[1, 2, 3]]));
         }
 
         #[test]
@@ -251,7 +255,7 @@ mod matrix_tests {
             }
 
             // Check using [PartialEq].
-            assert!(matrix == Matrix::new([[0, 0, 0], [0, 0, 0], [0, 0, 0],]));
+            assert!(matrix == Matrix::from([[0, 0, 0], [0, 0, 0], [0, 0, 0],]));
         }
 
         #[test]
@@ -275,7 +279,7 @@ mod matrix_tests {
             }
 
             // Check using [PartialEq].
-            assert!(matrix == Matrix::new([[1, 0, 0], [0, 1, 0], [0, 0, 1],]));
+            assert!(matrix == Matrix::from([[1, 0, 0], [0, 1, 0], [0, 0, 1],]));
         }
 
         #[test]
@@ -286,25 +290,42 @@ mod matrix_tests {
 
         #[test]
         fn transpose_test() {
-            let matrix = Matrix::new([[1, 2, 3, 4], [5, 6, 7, 8]]);
+            let matrix = Matrix::from([[1, 2, 3, 4], [5, 6, 7, 8]]);
             let matrix = matrix.transpose();
 
             // Only checking using [PartialEq].
-            assert!(matrix == Matrix::new([[1, 5], [2, 6], [3, 7], [4, 8],]));
+            assert!(matrix == Matrix::from([[1, 5], [2, 6], [3, 7], [4, 8],]));
+        }
+
+        #[test]
+        fn from_array_test() {
+            let matrix = Matrix::from([
+                [1,2,3],
+                [4,5,6],
+                [7,8,9],
+                [10,11,12],
+            ]);
+
+            assert!(matrix == Matrix::from([
+                [1,2,3],
+                [4,5,6],
+                [7,8,9],
+                [10,11,12],
+            ]));
         }
 
         #[test]
         fn from_slice_of_row_matrices_test() {
             let matrices = [
-                Matrix::new([[1,2,3]]),
-                Matrix::new([[4,5,6]]),
-                Matrix::new([[7,8,9]]),
-                Matrix::new([[10,11,12]]),
+                Matrix::from([[1,2,3]]),
+                Matrix::from([[4,5,6]]),
+                Matrix::from([[7,8,9]]),
+                Matrix::from([[10,11,12]]),
             ];
 
             let matrix = Matrix::<i64, 4, 3>::from(&matrices);
 
-            assert!(matrix == Matrix::new([
+            assert!(matrix == Matrix::from([
                 [1,2,3],
                 [4,5,6],
                 [7,8,9],
@@ -328,7 +349,7 @@ mod matrix_tests {
 
             let matrix = Matrix::<i64, 4, 3>::from(&vectors);
 
-            assert!(matrix == Matrix::new([
+            assert!(matrix == Matrix::from([
                 [1,2,3],
                 [4,5,6],
                 [7,8,9],
@@ -352,7 +373,7 @@ mod vector {
     impl<T: MatrixDataTrait, const LENGTH: usize> VectorRow<T, LENGTH> {
         pub fn new(data: [[T; LENGTH]; 1]) -> Self {
             Self (
-                Matrix::new(data),
+                Matrix::from(data),
             )
         }
 
@@ -372,7 +393,7 @@ mod vector {
     impl<T: MatrixDataTrait, const LENGTH: usize> VectorColumn<T, LENGTH> {
         pub fn new(data: [[T; 1]; LENGTH]) -> Self {
             Self (
-                Matrix::new(data),
+                Matrix::from(data),
             )
         }
 
@@ -420,7 +441,7 @@ mod vector_tests {
             [1, 2, 3, 4]
         ]);
         let matrix_row: Matrix<i64, 1, 4> = vector_row.into();
-        assert!(matrix_row == Matrix::new([
+        assert!(matrix_row == Matrix::from([
             [1, 2, 3, 4]
         ]));
 
@@ -431,7 +452,7 @@ mod vector_tests {
             [4],
         ]);
         let matrix_col: Matrix<i64, 4, 1> = vector_col.into();
-        assert!(matrix_col == Matrix::new([
+        assert!(matrix_col == Matrix::from([
             [1],
             [2],
             [3],
