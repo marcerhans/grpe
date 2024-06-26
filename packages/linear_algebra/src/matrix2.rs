@@ -103,17 +103,17 @@ pub mod matrix2 {
         }
     }
 
-    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Index<(usize, usize)> for Matrix<T, ROWS, COLS> {
-        type Output = T;
+    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Index<usize> for Matrix<T, ROWS, COLS> {
+        type Output = [T; COLS];
     
-        fn index(&self, index: (usize, usize)) -> &Self::Output {
-            &self.data[index.0][index.1]
+        fn index(&self, index: usize) -> &Self::Output {
+            &self.data[index]
         }
     }
 
-    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IndexMut<(usize, usize)> for Matrix<T, ROWS, COLS> {
-        fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
-            &mut self.data[index.0][index.1]
+    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IndexMut<usize> for Matrix<T, ROWS, COLS> {
+        fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+            &mut self.data[index]
         }
     }
 
@@ -155,6 +155,8 @@ mod matrix_owned_tests {
         #[test]
         fn new_test() {
             let matrix = Matrix::new([[1, 2, 3]]);
+
+            // assert!(matrix[0] == 1)
         }
 
         #[test]
