@@ -65,6 +65,10 @@ struct DerivedConfiguration<T: MatrixDataTrait> {
     /// - Parameter vector A
     /// - Parameter vector B
     viewport: Matrix<T>,
+
+    /// Determined by the plane equation to indicate which side of the viewport the viewpoint is on.
+    /// (This is needed to not render things behind the camera.)
+    viewpoint_viewport_sign: T,
 }
 
 impl DerivedConfiguration<f64> {
@@ -88,9 +92,25 @@ impl DerivedConfiguration<f64> {
         direction.scalar(-2.0);
         let viewpoint =  position - &direction;
 
+        // Determine which side of the plane (viewport) the camera (viewpoint) is on.
+        // This is based on the plane equation.
+        // (direction = the normal, position = a point on the plane, viewpoint "arbitrary" point in space.)
+        let viewpoint_viewport_sign = {
+            let ax0 = direction.index(0, 0) * position.index(0, 0);
+            let by0 = direction.index(0, 1) * position.index(0, 1);
+            let cz0 = direction.index(0, 2) * position.index(0, 2);
+            let d = ax0 + by0 + cz0;
+            
+            let ax = direction.index(0, 0) * viewpoint.index(0, 0);
+            let by = direction.index(0, 1) * viewpoint.index(0, 1);
+            let cz = direction.index(0, 2) * viewpoint.index(0, 2);
+            ax + by + cz - d
+        };
+
         Self {
             viewpoint,
             viewport,
+            viewpoint_viewport_sign,
         }
     }
 
@@ -233,7 +253,30 @@ impl RendererTrait<f64> for Terminal<f64> {
     fn render(&self) {
         self.clear();
 
-        'outer: for vertex in &self.vertices {
+        // Render each vertex
+        for vertex in &self.vertices {
+            let mut vertex = vertex.clone();
+
+            Terminal::adjust_point_to_camera_pos(&self.config.camera.position, &mut vertex);
+
+            let vertex_viewport_sign = {
+                let ax0 = self.config.camera.direction.index(0, 0) * self.config.camera.position.index(0, 0);
+                let by0 = self.config.camera.direction.index(0, 1) * self.config.camera.position.index(0, 1);
+                let cz0 = self.config.camera.direction.index(0, 2) * self.config.camera.position.index(0, 2);
+                let d = ax0 + by0 + cz0;
+
+                let ax = self.config.camera.direction.index(0, 0) * vertex.index(0, 0);
+                let by = self.config.camera.direction.index(0, 1) * vertex.index(0, 1);
+                let cz = self.config.camera.direction.index(0, 2) * vertex.index(0, 2);
+                ax + by + cz - d
+            };
+
+            println!("{:?} and {} and {}", vertex, vertex_viewport_sign, self.config_derived.viewpoint_viewport_sign);
+
+            if vertex_viewport_sign.signum() == self.config_derived.viewpoint_viewport_sign.signum() {
+                continue;
+            }
+
             let parameter = Matrix::from_array([
                 [
                     vertex.index(0, 0) - self.config_derived.viewpoint.index(0, 0),
@@ -248,6 +291,7 @@ impl RendererTrait<f64> for Terminal<f64> {
             ]);
 
             // for i in 0..2 {
+            // // let i = 1;
             //     let dir = self.config.camera.direction.index(0, i);
             //     let test = viewpoint_to_vertex_line.index(1, i);
 
@@ -265,7 +309,6 @@ impl RendererTrait<f64> for Terminal<f64> {
                 ]
             ]);
             
-            Terminal::adjust_point_to_camera_pos(&self.config.camera.position, &mut intersection);
             Terminal::adjust_point_to_terminal(&self.center_offset, &mut intersection);
             self.render_vertex(&mut self.buffer.borrow_mut(), &intersection);
         }

@@ -15,7 +15,7 @@ fn main() {
         // Matrix::from_array([[15.0, 0.0, 15.0]]),
         // Matrix::from_array([[0.0, 0.0, 15.0]]),
         // Matrix::from_array([[-16.0, 0.0, 15.0]]),
-        // Matrix::from_array([[0.0, 0.0, 0.0]]),
+        Matrix::from_array([[0.0, 0.0, 0.0]]),
         // /A
 
         // B
@@ -50,54 +50,54 @@ fn main() {
 
         // C
         // Smiley
-        Matrix::from_array([[1.0, 0.0, -3.0]]),
-        Matrix::from_array([[1.0, 0.0, -2.0]]),
-        Matrix::from_array([[1.0, 0.0, -1.0]]),
+        // Matrix::from_array([[1.0, 0.0, -3.0]]),
+        // Matrix::from_array([[1.0, 0.0, -2.0]]),
+        // Matrix::from_array([[1.0, 0.0, -1.0]]),
 
-        Matrix::from_array([[-1.0, 0.0, -3.0]]),
-        Matrix::from_array([[-1.0, 0.0, -2.0]]),
-        Matrix::from_array([[-1.0, 0.0, -1.0]]),
+        // Matrix::from_array([[-1.0, 0.0, -3.0]]),
+        // Matrix::from_array([[-1.0, 0.0, -2.0]]),
+        // Matrix::from_array([[-1.0, 0.0, -1.0]]),
 
-        Matrix::from_array([[-2.0, 0.0, 1.0]]),
-        Matrix::from_array([[-1.0, 0.0, 2.0]]),
-        Matrix::from_array([[0.0, 0.0, 2.0]]),
-        Matrix::from_array([[1.0, 0.0, 2.0]]),
-        Matrix::from_array([[2.0, 0.0, 1.0]]),
+        // Matrix::from_array([[-2.0, 0.0, 1.0]]),
+        // Matrix::from_array([[-1.0, 0.0, 2.0]]),
+        // Matrix::from_array([[0.0, 0.0, 2.0]]),
+        // Matrix::from_array([[1.0, 0.0, 2.0]]),
+        // Matrix::from_array([[2.0, 0.0, 1.0]]),
 
         // Circle
 
         // Canyon
-        Matrix::from_array([[-32.0, -10.0, -32.0]]),
-        Matrix::from_array([[-31.0, -10.0, -32.0]]),
-        Matrix::from_array([[-30.0, -10.0, -32.0]]),
-        Matrix::from_array([[-29.0, -10.0, -32.0]]),
-        Matrix::from_array([[-28.0, -10.0, -32.0]]),
-        Matrix::from_array([[-27.0, -10.0, -32.0]]),
-        Matrix::from_array([[-26.0, -10.0, -32.0]]),
-        Matrix::from_array([[-25.0, -10.0, -32.0]]),
-        Matrix::from_array([[-24.0, -10.0, -32.0]]),
-        Matrix::from_array([[-23.0, -10.0, -32.0]]),
-        Matrix::from_array([[-22.0, -10.0, -32.0]]),
-        Matrix::from_array([[-21.0, -10.0, -32.0]]),
-        Matrix::from_array([[-20.0, -10.0, -32.0]]),
-        Matrix::from_array([[-19.0, -10.0, -32.0]]),
-        Matrix::from_array([[-18.0, -10.0, -32.0]]),
-        Matrix::from_array([[-17.0, -10.0, -32.0]]),
-        Matrix::from_array([[-16.0, -10.0, -32.0]]),
-        Matrix::from_array([[-15.0, -10.0, -28.0]]),
-        Matrix::from_array([[-14.0, -10.0, -25.0]]),
-        Matrix::from_array([[-13.0, -10.0, -25.0]]),
-        Matrix::from_array([[-12.0, -10.0, -25.0]]),
-        Matrix::from_array([[-11.0, -10.0, -25.0]]),
-        Matrix::from_array([[-10.0, -10.0, -25.0]]),
-        Matrix::from_array([[-9.0, -10.0, -25.0]]),
-        Matrix::from_array([[-8.0, -10.0, -25.0]]),
-        Matrix::from_array([[-7.0, -10.0, -25.0]]),
-        Matrix::from_array([[-6.0, -10.0, -25.0]]),
-        Matrix::from_array([[-5.0, -10.0, -24.0]]),
-        Matrix::from_array([[-4.0, -10.0, -24.0]]),
-        Matrix::from_array([[-3.0, -10.0, -25.0]]),
-        Matrix::from_array([[-2.0, -10.0, -25.0]]),
+        // Matrix::from_array([[-32.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-31.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-30.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-29.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-28.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-27.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-26.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-25.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-24.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-23.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-22.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-21.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-20.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-19.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-18.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-17.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-16.0, -10.0, -32.0]]),
+        // Matrix::from_array([[-15.0, -10.0, -28.0]]),
+        // Matrix::from_array([[-14.0, -10.0, -25.0]]),
+        // Matrix::from_array([[-13.0, -10.0, -25.0]]),
+        // Matrix::from_array([[-12.0, -10.0, -25.0]]),
+        // Matrix::from_array([[-11.0, -10.0, -25.0]]),
+        // Matrix::from_array([[-10.0, -10.0, -25.0]]),
+        // Matrix::from_array([[-9.0, -10.0, -25.0]]),
+        // Matrix::from_array([[-8.0, -10.0, -25.0]]),
+        // Matrix::from_array([[-7.0, -10.0, -25.0]]),
+        // Matrix::from_array([[-6.0, -10.0, -25.0]]),
+        // Matrix::from_array([[-5.0, -10.0, -24.0]]),
+        // Matrix::from_array([[-4.0, -10.0, -24.0]]),
+        // Matrix::from_array([[-3.0, -10.0, -25.0]]),
+        // Matrix::from_array([[-2.0, -10.0, -25.0]]),
         // /C
 
         // Matrix::from_array([[2.0, 0.0, 0.0]]),
@@ -128,7 +128,7 @@ fn main() {
     let mut renderer = RendererBuilder::default()
         .with_camera(Camera::new(
             (32, 32),
-            &[0.0, 0.0, 0.0],
+            &[0.0, -5.0, 0.0],
             &[0.0, 1.0, 0.0],
             90,
         ))
@@ -144,7 +144,7 @@ fn main() {
 
     loop {
         // Loop
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(1000));
         renderer.set_vertices(&vertices);
         renderer.render();
         // *vertices[0].index_mut(0, 0) += 2.0;
@@ -165,7 +165,7 @@ fn main() {
 
         // B C | 2
         let mut config = renderer.config();
-        *config.camera.position.index_mut(0, 1) -= 0.05;
+        *config.camera.position.index_mut(0, 1) += 0.5;
         let _ = renderer.set_config(config);
         // /B /C
 
