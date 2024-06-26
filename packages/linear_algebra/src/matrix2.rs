@@ -156,22 +156,40 @@ mod matrix_owned_tests {
         fn new_test() {
             let matrix = Matrix::new([[1, 2, 3]]);
 
-            // assert!(matrix[0] == 1)
+            for i in 0..3 {
+                assert!(matrix[0][i] == (i as i64) + 1);
+            }
         }
 
         #[test]
         fn zeros_test() {
-            let matrix = Matrix::<f64, 1, 1>::zeros();
+            let matrix = Matrix::<i64, 3, 3>::zeros();
+
+            for row in matrix.iter() {
+                for &cell in row.iter() {
+                    assert!(cell == 0);
+                }
+            }
         }
 
         #[test]
         fn identity_test() {
-            let matrix = Matrix::<f64, 1, 1>::identity();
+            let matrix = Matrix::<i64, 3, 3>::identity();
+
+            for (i, row) in matrix.iter().enumerate() {
+                for (j, _) in row.iter().enumerate() {
+                    if i == j {
+                        assert!(row[i] == 1);
+                    } else {
+                        assert!(row[j] == 0);
+                    }
+                }
+            }
         }
 
         #[test]
         fn default_test() {
-            let matrix = Matrix::<f64, 1, 1>::default();
+            zeros_test();
         }
     }
 }
