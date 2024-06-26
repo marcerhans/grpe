@@ -94,6 +94,33 @@ pub mod matrix2 {
             Self { data: [[T::zero(); COLS]; ROWS] }
         }
     }
+
+    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator for Matrix<T, ROWS, COLS> {
+        type Item = [T; COLS];
+        type IntoIter = core::array::IntoIter<Self::Item, ROWS>;
+    
+        fn into_iter(self) -> Self::IntoIter {
+            self.data.into_iter()
+        }
+    }
+
+    impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator for &'a Matrix<T, ROWS, COLS> {
+        type Item = &'a [T; COLS];
+        type IntoIter = std::slice::Iter<'a, [T; COLS]>;
+    
+        fn into_iter(self) -> Self::IntoIter {
+            self.data.iter()
+        }
+    }
+
+    impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator for &'a mut Matrix<T, ROWS, COLS> {
+        type Item = &'a mut [T; COLS];
+        type IntoIter = std::slice::IterMut<'a, [T; COLS]>;
+    
+        fn into_iter(self) -> Self::IntoIter {
+            self.data.iter_mut()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -106,6 +133,8 @@ mod matrix_owned_tests {
         #[test]
         fn new_test() {
             let matrix = Matrix::new([[1, 2, 3]]);
+
+            for cell in matrix.into_iter() {}
         }
 
         #[test]
