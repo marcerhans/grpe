@@ -471,9 +471,6 @@ mod tests {
                 [7,8,9],
                 [10,11,12],
             ]));
-
-            // let matrix = Matrix::<i64, 4, 4>::from(&matrices); // Will not even compile due to wrong dimensions (manual check)
-            // let matrix = Matrix::<i64, 3, 3>::from(&matrices); // Will not even compile due to wrong dimensions (manual check)
         }
     }
 }
