@@ -106,7 +106,7 @@ impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, C
 
 impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Debug for Matrix<T, ROWS, COLS> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Matrix").field("data", &self.data).finish()
+        write!(f, "Matrix {{{:?}}}", self.data)
     }
 }
 
@@ -214,6 +214,18 @@ pub mod vector {
         }
     }
 
+    impl<T: MatrixDataTrait, const LENGTH: usize> Debug for VectorRow<T, LENGTH> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "VectorRow {{{:?}}}", self.0.data[0])
+        }
+    }
+
+    impl<T: MatrixDataTrait, const LENGTH: usize> Debug for VectorColumn<T, LENGTH> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "VectorColumn {{{:?}}}", self.0.data)
+        }
+    }
+
     impl<T: MatrixDataTrait, const LENGTH: usize> From<[T; LENGTH]> for VectorRow<T, LENGTH> {
         fn from(data: [T; LENGTH]) -> Self {
             Self(
@@ -282,6 +294,20 @@ pub mod vector {
                 [3],
                 [4],
             ]));
+        }
+
+        #[test]
+        fn debug_test() {
+            // Manual (visual) test.
+            let vector_row = VectorRow::<i64, 4>::from([1, 2, 3, 4]);
+            let vector_col = VectorColumn::<i64, 4>::from([
+                [1],
+                [2],
+                [3],
+                [4],
+            ]);
+            println!("{:?}", vector_row);
+            println!("{:?}", vector_col);
         }
     }
 }
@@ -391,6 +417,17 @@ mod tests {
                 [7,8,9],
                 [10,11,12],
             ]));
+        }
+
+        #[test]
+        fn debug_test() {
+            // Manual (visual) test.
+            let matrix = Matrix::from([
+                [1,2,3],
+                [4,5,6],
+                [7,8,9],
+            ]);
+            println!("{:?}", matrix);
         }
     }
 }
