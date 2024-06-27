@@ -199,7 +199,7 @@ impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
 /// TODO: Some duplicate code for row and column vector. Not the best,
 /// but it will make the type system happy.
 pub mod vector {
-    use super::{Matrix, MatrixDataTrait};
+    use super::*;
 
     pub struct VectorRow<T: MatrixDataTrait, const LENGTH: usize>(pub Matrix<T, 1, LENGTH>);
     pub struct VectorColumn<T: MatrixDataTrait, const LENGTH: usize>(pub Matrix<T, LENGTH, 1>);
@@ -276,7 +276,7 @@ pub mod vector {
 
     #[cfg(test)]
     mod tests {
-        use super::{VectorColumn, VectorRow};
+        use super::*;
 
         #[test]
         fn length_test() {
@@ -298,7 +298,7 @@ pub mod vector {
 
         #[test]
         fn into_test() {
-            use super::Matrix;
+            use super::*;
 
             let vector_row = VectorRow::<i64, 4>::new([
                 [1, 2, 3, 4]
@@ -325,8 +325,7 @@ pub mod vector {
 
         #[test]
         fn from_slice_of_row_vectors_test() {
-            use super::Matrix;
-            use super::VectorRow;
+            use super::*;
 
             let vectors = [
                 VectorRow::new([[1,2,3]]),
@@ -352,7 +351,7 @@ pub mod vector {
 
 #[cfg(test)]
 mod tests {
-    use super::Matrix;
+    use super::*;
 
     mod unit_tests {
         use super::*;
