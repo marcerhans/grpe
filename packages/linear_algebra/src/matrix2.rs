@@ -126,8 +126,8 @@ impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<[[T; COLS]; 
     }
 }
 
-impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<&[Matrix<T, 1, COLS>; ROWS]> for Matrix<T, ROWS, COLS> {
-    fn from(matrices: &[Matrix<T, 1, COLS>; ROWS]) -> Self {
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<[&Matrix<T, 1, COLS>; ROWS]> for Matrix<T, ROWS, COLS> {
+    fn from(matrices: [&Matrix<T, 1, COLS>; ROWS]) -> Self {
         let mut data = [[T::zero(); COLS]; ROWS];
 
         for (i, matrix) in matrices.iter().enumerate() {
@@ -457,15 +457,13 @@ mod tests {
         }
 
         #[test]
-        fn from_slice_of_row_matrices_test() {
-            let matrices = [
-                Matrix::from([[1,2,3]]),
-                Matrix::from([[4,5,6]]),
-                Matrix::from([[7,8,9]]),
-                Matrix::from([[10,11,12]]),
-            ];
-
-            let matrix = Matrix::<i64, 4, 3>::from(&matrices);
+        fn from_ref_row_matrices_test() {
+            let matrix = Matrix::from([
+                &Matrix::from([[1,2,3]]),
+                &Matrix::from([[4,5,6]]),
+                &Matrix::from([[7,8,9]]),
+                &Matrix::from([[10,11,12]]),
+            ]);
 
             assert!(matrix == Matrix::from([
                 [1,2,3],
