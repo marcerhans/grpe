@@ -1,143 +1,252 @@
-pub mod matrix2 {
-    use std::{
-        fmt::Debug,
-        ops::{
-            Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
-        },
-    };
+use std::{
+    fmt::Debug,
+    ops::{
+        Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
+    },
+};
 
-    use super::vector::{VectorRow, VectorColumn};
+pub trait MatrixDataTrait:
+    Add<Output = Self>
+    + AddAssign
+    + Sub<Output = Self>
+    + SubAssign
+    + Mul<Output = Self>
+    + MulAssign
+    + Div<Output = Self>
+    + DivAssign
+    + Neg<Output = Self>
+    + PartialEq
+    + PartialOrd
+    + Copy
+    + Clone
+    + Default
+    + Debug
+{
+    fn zero() -> Self;
+    fn one() -> Self;
+    fn sqrt(&self) -> Self;
+}
 
-    pub trait MatrixDataTrait:
-        Add<Output = Self>
-        + AddAssign
-        + Sub<Output = Self>
-        + SubAssign
-        + Mul<Output = Self>
-        + MulAssign
-        + Div<Output = Self>
-        + DivAssign
-        + Neg<Output = Self>
-        + PartialEq
-        + PartialOrd
-        + Copy
-        + Clone
-        + Default
-        + Debug
-    {
-        fn zero() -> Self;
-        fn one() -> Self;
-        fn sqrt(&self) -> Self;
+impl MatrixDataTrait for i64 {
+    fn zero() -> Self {
+        0
     }
 
-    impl MatrixDataTrait for i64 {
-        fn zero() -> Self {
-            0
-        }
+    fn one() -> Self {
+        1
+    }
 
-        fn one() -> Self {
-            1
-        }
+    fn sqrt(&self) -> Self {
+        (*self as f64).sqrt() as Self
+    }
+}
 
-        fn sqrt(&self) -> Self {
-            (*self as f64).sqrt() as Self
+impl MatrixDataTrait for f64 {
+    fn zero() -> Self {
+        0.0
+    }
+
+    fn one() -> Self {
+        1.0
+    }
+
+    fn sqrt(&self) -> Self {
+        (*self as f64).sqrt()
+    }
+}
+
+#[derive(Clone, PartialEq, PartialOrd)]
+pub struct Matrix<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> {
+    data: [[T; COLS]; ROWS],
+}
+
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, COLS> {
+    pub fn zeros() -> Self {
+        Self {
+            data: [[T::zero(); COLS]; ROWS],
         }
     }
 
-    impl MatrixDataTrait for f64 {
-        fn zero() -> Self {
-            0.0
+    pub fn identity() -> Self {
+        if ROWS != COLS {
+            panic!("Identity matrix requires a quadratic form.")
         }
 
-        fn one() -> Self {
-            1.0
+        let mut identity = Self {
+            data: [[T::zero(); COLS]; ROWS],
+        };
+
+        for (i, row) in identity.data.iter_mut().enumerate() {
+            row[i] = T::one();
         }
 
-        fn sqrt(&self) -> Self {
-            (*self as f64).sqrt()
-        }
+        identity
     }
 
-    #[derive(Clone, PartialEq, PartialOrd)]
-    pub struct Matrix<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> {
-        data: [[T; COLS]; ROWS],
-    }
+    pub fn transpose(&self) -> Matrix<T, COLS, ROWS> {
+        let mut matrix = Matrix::<T, COLS, ROWS>::zeros();
 
-    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, COLS> {
-        pub fn zeros() -> Self {
-            Self {
-                data: [[T::zero(); COLS]; ROWS],
+        for (i, &row) in self.iter().enumerate() {
+            for (j, &cell) in row.iter().enumerate() {
+                matrix[j][i] = cell;
             }
         }
 
-        pub fn identity() -> Self {
-            if ROWS != COLS {
-                panic!("Identity matrix requires a quadratic form.")
-            }
+        matrix
+    }
 
-            let mut identity = Self {
-                data: [[T::zero(); COLS]; ROWS],
-            };
+    pub fn iter<'a>(&'a self) -> std::slice::Iter<'a, [T; COLS]> {
+        self.into_iter()
+    }
 
-            for (i, row) in identity.data.iter_mut().enumerate() {
-                row[i] = T::one();
-            }
+    pub fn iter_mut<'a>(&'a mut self) -> std::slice::IterMut<'a, [T; COLS]> {
+        self.into_iter()
+    }
+}
 
-            identity
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Default for Matrix<T, ROWS, COLS> {
+    fn default() -> Self {
+        Self {
+            data: [[T::zero(); COLS]; ROWS],
         }
+    }
+}
 
-        pub fn transpose(&self) -> Matrix<T, COLS, ROWS> {
-            let mut matrix = Matrix::<T, COLS, ROWS>::zeros();
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<[[T; COLS]; ROWS]> for Matrix<T, ROWS, COLS> {
+    fn from(data: [[T; COLS]; ROWS]) -> Self {
+        Self {
+            data,
+        }
+    }
+}
 
-            for (i, &row) in self.iter().enumerate() {
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<&[Matrix<T, 1, COLS>; ROWS]> for Matrix<T, ROWS, COLS> {
+    fn from(matrices: &[Matrix<T, 1, COLS>; ROWS]) -> Self {
+        let mut data = [[T::zero(); COLS]; ROWS];
+
+        for (i, matrix) in matrices.iter().enumerate() {
+            for row in matrix.iter() {
                 for (j, &cell) in row.iter().enumerate() {
-                    matrix[j][i] = cell;
+                    data[i][j] = cell;
+                }
+            }
+        }
+
+        Self {
+            data,
+        }
+    }
+}
+
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Index<usize>
+    for Matrix<T, ROWS, COLS>
+{
+    type Output = [T; COLS];
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.data[index]
+    }
+}
+
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IndexMut<usize>
+    for Matrix<T, ROWS, COLS>
+{
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.data[index]
+    }
+}
+
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
+    for Matrix<T, ROWS, COLS>
+{
+    type Item = [T; COLS];
+    type IntoIter = core::array::IntoIter<Self::Item, ROWS>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.into_iter()
+    }
+}
+
+impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
+    for &'a Matrix<T, ROWS, COLS>
+{
+    type Item = &'a [T; COLS];
+    type IntoIter = std::slice::Iter<'a, [T; COLS]>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter()
+    }
+}
+
+impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
+    for &'a mut Matrix<T, ROWS, COLS>
+{
+    type Item = &'a mut [T; COLS];
+    type IntoIter = std::slice::IterMut<'a, [T; COLS]>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter_mut()
+    }
+}
+
+/// [VectorRow] and [VectorColumn] are sub-types to [Matrix].
+/// TODO: Some duplicate code for row and column vector. Not the best,
+/// but it will make the type system happy.
+pub mod vector {
+    use super::{Matrix, MatrixDataTrait};
+
+    pub struct VectorRow<T: MatrixDataTrait, const LENGTH: usize>(pub Matrix<T, 1, LENGTH>);
+    pub struct VectorColumn<T: MatrixDataTrait, const LENGTH: usize>(pub Matrix<T, LENGTH, 1>);
+
+    impl<T: MatrixDataTrait, const LENGTH: usize> VectorRow<T, LENGTH> {
+        pub fn new(data: [[T; LENGTH]; 1]) -> Self {
+            Self (
+                Matrix::from(data),
+            )
+        }
+
+        pub fn length(&self) -> T {
+            let mut len = T::zero();
+
+            for &row in self.0.iter() {
+                for &cell in row.iter() {
+                    len += (cell) * (cell);
                 }
             }
 
-            matrix
-        }
-
-        pub fn iter<'a>(&'a self) -> std::slice::Iter<'a, [T; COLS]> {
-            self.into_iter()
-        }
-
-        pub fn iter_mut<'a>(&'a mut self) -> std::slice::IterMut<'a, [T; COLS]> {
-            self.into_iter()
+            len.sqrt()
         }
     }
 
-    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Default for Matrix<T, ROWS, COLS> {
-        fn default() -> Self {
-            Self {
-                data: [[T::zero(); COLS]; ROWS],
-            }
+    impl<T: MatrixDataTrait, const LENGTH: usize> VectorColumn<T, LENGTH> {
+        pub fn new(data: [[T; 1]; LENGTH]) -> Self {
+            Self (
+                Matrix::from(data),
+            )
         }
-    }
 
-    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<[[T; COLS]; ROWS]> for Matrix<T, ROWS, COLS> {
-        fn from(data: [[T; COLS]; ROWS]) -> Self {
-            Self {
-                data,
-            }
-        }
-    }
+        pub fn length(&self) -> T {
+            let mut len = T::zero();
 
-    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<&[Matrix<T, 1, COLS>; ROWS]> for Matrix<T, ROWS, COLS> {
-        fn from(matrices: &[Matrix<T, 1, COLS>; ROWS]) -> Self {
-            let mut data = [[T::zero(); COLS]; ROWS];
-
-            for (i, matrix) in matrices.iter().enumerate() {
-                for row in matrix.iter() {
-                    for (j, &cell) in row.iter().enumerate() {
-                        data[i][j] = cell;
-                    }
+            for &row in self.0.iter() {
+                for &cell in row.iter() {
+                    len += (cell) * (cell);
                 }
             }
 
-            Self {
-                data,
-            }
+            len.sqrt()
+        }
+    }
+
+    impl<T: MatrixDataTrait, const LENGTH: usize> From<VectorRow<T, LENGTH>> for Matrix<T, 1, LENGTH> {
+        fn from(vector: VectorRow<T, LENGTH>) -> Self {
+            vector.0
+        }
+    }
+
+    impl<T: MatrixDataTrait, const LENGTH: usize> From<VectorColumn<T, LENGTH>> for Matrix<T, LENGTH, 1> {
+        fn from(vector: VectorColumn<T, LENGTH>) -> Self {
+            vector.0
         }
     }
 
@@ -159,73 +268,85 @@ pub mod matrix2 {
         }
     }
 
-    impl<T: MatrixDataTrait, const LENGTH: usize> From<VectorRow<T, LENGTH>> for Matrix<T, 1, LENGTH> {
-        fn from(vector: VectorRow<T, LENGTH>) -> Self {
-            vector.0
+    #[cfg(test)]
+    mod tests {
+        use super::{VectorColumn, VectorRow};
+
+        #[test]
+        fn length_test() {
+            let vector_row = VectorRow::<i64, 4>::new([
+                [1, 2, 3, 4]
+            ]);
+
+            let vector_col = VectorColumn::<i64, 4>::new([
+                [1],
+                [2],
+                [3],
+                [4],
+            ]);
+
+            // floor(sqrt(1^2 + 2^2 + 3^3 + 4^3)) = floor(5.477225575) = 5
+            assert!(vector_row.length() == 5);
+            assert!(vector_col.length() == 5);
         }
-    }
 
-    impl<T: MatrixDataTrait, const LENGTH: usize> From<VectorColumn<T, LENGTH>> for Matrix<T, LENGTH, 1> {
-        fn from(vector: VectorColumn<T, LENGTH>) -> Self {
-            vector.0
+        #[test]
+        fn into_test() {
+            use super::Matrix;
+
+            let vector_row = VectorRow::<i64, 4>::new([
+                [1, 2, 3, 4]
+            ]);
+            let matrix_row: Matrix<i64, 1, 4> = vector_row.into();
+            assert!(matrix_row == Matrix::from([
+                [1, 2, 3, 4]
+            ]));
+
+            let vector_col = VectorColumn::<i64, 4>::new([
+                [1],
+                [2],
+                [3],
+                [4],
+            ]);
+            let matrix_col: Matrix<i64, 4, 1> = vector_col.into();
+            assert!(matrix_col == Matrix::from([
+                [1],
+                [2],
+                [3],
+                [4],
+            ]));
         }
-    }
 
-    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Index<usize>
-        for Matrix<T, ROWS, COLS>
-    {
-        type Output = [T; COLS];
+        #[test]
+        fn from_slice_of_row_vectors_test() {
+            use super::Matrix;
+            use super::VectorRow;
 
-        fn index(&self, index: usize) -> &Self::Output {
-            &self.data[index]
-        }
-    }
+            let vectors = [
+                VectorRow::new([[1,2,3]]),
+                VectorRow::new([[4,5,6]]),
+                VectorRow::new([[7,8,9]]),
+                VectorRow::new([[10,11,12]]),
+            ];
 
-    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IndexMut<usize>
-        for Matrix<T, ROWS, COLS>
-    {
-        fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-            &mut self.data[index]
-        }
-    }
+            let matrix = Matrix::<i64, 4, 3>::from(&vectors);
 
-    impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
-        for Matrix<T, ROWS, COLS>
-    {
-        type Item = [T; COLS];
-        type IntoIter = core::array::IntoIter<Self::Item, ROWS>;
+            assert!(matrix == Matrix::from([
+                [1,2,3],
+                [4,5,6],
+                [7,8,9],
+                [10,11,12],
+            ]));
 
-        fn into_iter(self) -> Self::IntoIter {
-            self.data.into_iter()
-        }
-    }
-
-    impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
-        for &'a Matrix<T, ROWS, COLS>
-    {
-        type Item = &'a [T; COLS];
-        type IntoIter = std::slice::Iter<'a, [T; COLS]>;
-
-        fn into_iter(self) -> Self::IntoIter {
-            self.data.iter()
-        }
-    }
-
-    impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
-        for &'a mut Matrix<T, ROWS, COLS>
-    {
-        type Item = &'a mut [T; COLS];
-        type IntoIter = std::slice::IterMut<'a, [T; COLS]>;
-
-        fn into_iter(self) -> Self::IntoIter {
-            self.data.iter_mut()
+            // let matrix = Matrix::<i64, 4, 4>::from(&vectors); // Will not even compile due to wrong dimensions (manual check)
+            // let matrix = Matrix::<i64, 3, 3>::from(&vectors); // Will not even compile due to wrong dimensions (manual check)
         }
     }
 }
 
 #[cfg(test)]
-mod matrix_tests {
-    use super::matrix2::Matrix;
+mod tests {
+    use super::Matrix;
 
     mod unit_tests {
         use super::*;
@@ -351,128 +472,5 @@ mod matrix_tests {
             // let matrix = Matrix::<i64, 4, 4>::from(&matrices); // Will not even compile due to wrong dimensions (manual check)
             // let matrix = Matrix::<i64, 3, 3>::from(&matrices); // Will not even compile due to wrong dimensions (manual check)
         }
-
-        #[test]
-        fn from_slice_of_row_vectors_test() {
-            use crate::matrix2::vector::VectorRow;
-
-            let vectors = [
-                VectorRow::new([[1,2,3]]),
-                VectorRow::new([[4,5,6]]),
-                VectorRow::new([[7,8,9]]),
-                VectorRow::new([[10,11,12]]),
-            ];
-
-            let matrix = Matrix::<i64, 4, 3>::from(&vectors);
-
-            assert!(matrix == Matrix::from([
-                [1,2,3],
-                [4,5,6],
-                [7,8,9],
-                [10,11,12],
-            ]));
-
-            // let matrix = Matrix::<i64, 4, 4>::from(&vectors); // Will not even compile due to wrong dimensions (manual check)
-            // let matrix = Matrix::<i64, 3, 3>::from(&vectors); // Will not even compile due to wrong dimensions (manual check)
-        }
-    }
-}
-
-/// TODO: Some duplicate code for row and column vector. Not the best,
-/// but it will make the type system happy.
-mod vector {
-    use super::matrix2::{Matrix, MatrixDataTrait};
-
-    pub struct VectorRow<T: MatrixDataTrait, const LENGTH: usize>(pub Matrix<T, 1, LENGTH>);
-    pub struct VectorColumn<T: MatrixDataTrait, const LENGTH: usize>(pub Matrix<T, LENGTH, 1>);
-
-    impl<T: MatrixDataTrait, const LENGTH: usize> VectorRow<T, LENGTH> {
-        pub fn new(data: [[T; LENGTH]; 1]) -> Self {
-            Self (
-                Matrix::from(data),
-            )
-        }
-
-        pub fn length(&self) -> T {
-            let mut len = T::zero();
-
-            for &row in self.0.iter() {
-                for &cell in row.iter() {
-                    len += (cell) * (cell);
-                }
-            }
-
-            len.sqrt()
-        }
-    }
-
-    impl<T: MatrixDataTrait, const LENGTH: usize> VectorColumn<T, LENGTH> {
-        pub fn new(data: [[T; 1]; LENGTH]) -> Self {
-            Self (
-                Matrix::from(data),
-            )
-        }
-
-        pub fn length(&self) -> T {
-            let mut len = T::zero();
-
-            for &row in self.0.iter() {
-                for &cell in row.iter() {
-                    len += (cell) * (cell);
-                }
-            }
-
-            len.sqrt()
-        }
-    }
-}
-
-#[cfg(test)]
-mod vector_tests {
-    use crate::matrix2::vector::{VectorColumn, VectorRow};
-
-    #[test]
-    fn length_test() {
-        let vector_row = VectorRow::<i64, 4>::new([
-            [1, 2, 3, 4]
-        ]);
-
-        let vector_col = VectorColumn::<i64, 4>::new([
-            [1],
-            [2],
-            [3],
-            [4],
-        ]);
-
-        // floor(sqrt(1^2 + 2^2 + 3^3 + 4^3)) = floor(5.477225575) = 5
-        assert!(vector_row.length() == 5);
-        assert!(vector_col.length() == 5);
-    }
-
-    #[test]
-    fn into_test() {
-        use super::matrix2::Matrix;
-
-        let vector_row = VectorRow::<i64, 4>::new([
-            [1, 2, 3, 4]
-        ]);
-        let matrix_row: Matrix<i64, 1, 4> = vector_row.into();
-        assert!(matrix_row == Matrix::from([
-            [1, 2, 3, 4]
-        ]));
-
-        let vector_col = VectorColumn::<i64, 4>::new([
-            [1],
-            [2],
-            [3],
-            [4],
-        ]);
-        let matrix_col: Matrix<i64, 4, 1> = vector_col.into();
-        assert!(matrix_col == Matrix::from([
-            [1],
-            [2],
-            [3],
-            [4],
-        ]));
     }
 }
