@@ -186,7 +186,7 @@ impl<T: MatrixDataTrait, const LHS_ROWS: usize, const LHS_COLS_RHS_ROWS: usize, 
         for product_col in 0..RHS_COLS {
             for product_row in 0..LHS_ROWS {
                 for lhs_col in 0..LHS_COLS_RHS_ROWS {
-                    product[product_row][product_col] += self[product_row][lhs_col] * rhs[lhs_col][product_row];
+                    product[product_row][product_col] += self[product_row][lhs_col] * rhs[lhs_col][product_col];
                 }
             }
         }
@@ -313,15 +313,58 @@ mod tests {
             println!("{:?}", matrix);
         }
 
-    //     #[test]
-    //     fn mul_test() {
-    //         let lhs = Matrix::from([
-    //             [1, 2, 3],
-    //         ]);
-    //         let rhs = Matrix::from([
-    //             [1], [2], [3],
-    //         ]);
+        #[test]
+        fn mul_test() {
+            let lhs = Matrix::<i64, 1, 3>::from([
+                [1, 2, 3],
+            ]);
+            let rhs = Matrix::<i64, 3, 1>::from([
+                [1], [2], [3],
+            ]);
+            assert!(&lhs * &rhs == Matrix::<i64, 1, 1>::from([
+                [1 + 4 + 9]
+            ]));
 
-    //     }
-    // }
+            let lhs = Matrix::<i64, 2, 4>::from([
+                [1, 2, 3, 4],
+                [5, 6, 7, 8],
+            ]);
+            let rhs = Matrix::<i64, 4, 2>::from([
+                [1, 5],
+                [2, 6],
+                [3, 7],
+                [4, 8],
+            ]);
+            assert!(&lhs * &rhs == Matrix::<i64, 2, 2>::from([
+                [30, 70],
+                [70, 174],
+            ]));
+
+            let lhs = Matrix::<i64, 3, 2>::from([
+                [1, 4],
+                [2, 5],
+                [3, 6],
+            ]);
+            let rhs = Matrix::<i64, 2, 4>::from([
+                [1, 2, 3, 4],
+                [5, 6, 7, 8],
+            ]);
+            assert!(&lhs * &rhs == Matrix::<i64, 3, 4>::from([
+                [21, 26, 31, 36],
+                [27, 34, 41, 48],
+                [33, 42, 51, 60],
+            ]));
+
+            // Should not compile since types (dimensions) are incompatible.
+            // let lhs = Matrix::<i64, 3, 2>::from([
+            //     [1, 4],
+            //     [2, 5],
+            //     [3, 6],
+            // ]);
+            // let rhs = Matrix::<i64, 1, 3>::from([
+            //     [1, 2, 3],
+            // ]);
+            // let fail = &lhs * &rhs;
+        }
+    }
 }
