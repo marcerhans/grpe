@@ -95,6 +95,17 @@ impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, C
         matrix
     }
 
+    /// TODO: Could not implement regular Mul operator due to generic parameters not being able to be used in const expressions.
+    pub fn mul<const LHS_ROW: usize, const LHS_COL: usize,
+               const RHS_ROW: usize, const RHS_COL: usize,
+               const PROD_ROW: usize, const PROD_COL: usize>(lhs: Matrix<T, LHS_ROW, LHS_COL>, rhs: Matrix<T, RHS_ROW, RHS_COL>) -> Matrix<T, PROD_ROW, PROD_COL> {
+        let product = Matrix::<T, PROD_ROW, PROD_COL>::zeros();
+
+        todo!("IMPLEMENT ME");
+
+        product
+    }
+
     pub fn iter<'a>(&'a self) -> std::slice::Iter<'a, [T; COLS]> {
         self.into_iter()
     }
@@ -176,7 +187,6 @@ impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
         self.data.iter_mut()
     }
 }
-
 
 #[cfg(test)]
 mod tests {
