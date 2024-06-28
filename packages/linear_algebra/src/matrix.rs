@@ -177,11 +177,21 @@ impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
     }
 }
 
-impl<T: MatrixDataTrait, const LHS_ROWS: usize, const LHS_COLS_RHS_ROWS: usize, const RHS_COLS: usize> Mul<Matrix<T, LHS_COLS_RHS_ROWS, RHS_COLS>> for Matrix<T, LHS_ROWS, LHS_COLS_RHS_ROWS> {
+impl<T: MatrixDataTrait, const LHS_ROWS: usize, const LHS_COLS_RHS_ROWS: usize, const RHS_COLS: usize> Mul<&Matrix<T, LHS_COLS_RHS_ROWS, RHS_COLS>> for &Matrix<T, LHS_ROWS, LHS_COLS_RHS_ROWS> {
     type Output = Matrix<T, LHS_ROWS, RHS_COLS>;
 
-    fn mul(self, rhs: Matrix<T, LHS_COLS_RHS_ROWS, RHS_COLS>) -> Self::Output {
-        todo!()
+    fn mul(self, rhs: &Matrix<T, LHS_COLS_RHS_ROWS, RHS_COLS>) -> Self::Output {
+        let mut product = Matrix::<T, LHS_ROWS, RHS_COLS>::zeros();
+
+        for product_col in 0..RHS_COLS {
+            for product_row in 0..LHS_ROWS {
+                for lhs_col in 0..LHS_COLS_RHS_ROWS {
+                    product[product_row][product_col] += self[product_row][lhs_col] * rhs[lhs_col][product_row];
+                }
+            }
+        }
+
+        product
     }
 }
 
@@ -278,17 +288,17 @@ mod tests {
         #[test]
         fn from_array_test() {
             let matrix = Matrix::from([
-                [1,2,3],
-                [4,5,6],
-                [7,8,9],
-                [10,11,12],
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+                [10, 11, 12],
             ]);
 
             assert!(matrix == Matrix::from([
-                [1,2,3],
-                [4,5,6],
-                [7,8,9],
-                [10,11,12],
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+                [10, 11, 12],
             ]));
         }
 
@@ -296,11 +306,22 @@ mod tests {
         fn debug_test() {
             // Manual (visual) test.
             let matrix = Matrix::from([
-                [1,2,3],
-                [4,5,6],
-                [7,8,9],
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
             ]);
             println!("{:?}", matrix);
         }
-    }
+
+    //     #[test]
+    //     fn mul_test() {
+    //         let lhs = Matrix::from([
+    //             [1, 2, 3],
+    //         ]);
+    //         let rhs = Matrix::from([
+    //             [1], [2], [3],
+    //         ]);
+
+    //     }
+    // }
 }
