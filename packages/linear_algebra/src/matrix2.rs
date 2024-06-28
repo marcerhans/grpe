@@ -198,6 +198,19 @@ pub mod vector {
 
             len.sqrt()
         }
+
+        /// Calculate the dot-product of two compatible [VectorRow]s.
+        pub fn dot(&self, rhs: &Self) -> T {
+            let mut sum = T::zero();
+
+            for (row_a, row_b) in self.0.iter().zip(rhs.0.iter()) {
+                for (&cell_a, &cell_b) in row_a.iter().zip(row_b.iter()) {
+                    sum += cell_a * cell_b;
+                }
+            }
+
+            sum
+        }
     }
 
     impl<T: MatrixDataTrait, const LENGTH: usize> VectorColumn<T, LENGTH> {
@@ -211,6 +224,33 @@ pub mod vector {
             }
 
             len.sqrt()
+        }
+
+        /// Calculate the dot-product of two compatible [VectorColumn]s.
+        pub fn dot(&self, rhs: &Self) -> T {
+            let mut sum = T::zero();
+
+            for (row_a, row_b) in self.0.iter().zip(rhs.0.iter()) {
+                for (&cell_a, &cell_b) in row_a.iter().zip(row_b.iter()) {
+                    sum += cell_a * cell_b;
+                }
+            }
+
+            sum
+        }
+    }
+
+    impl<T: MatrixDataTrait> VectorRow<T, 3> {
+        /// Calculate the cross-product of two [VectorRow]s of [LENGTH] 3.
+        pub fn cross(&self, rhs: &Self) -> T {
+            todo!()
+        }
+    }
+
+    impl<T: MatrixDataTrait> VectorColumn<T, 3> {
+        /// Calculate the cross-product of two [VectorColumn]s of [LENGTH] 3.
+        pub fn cross(&self, rhs: &Self) -> T {
+            todo!()
         }
     }
 
@@ -308,6 +348,22 @@ pub mod vector {
             ]);
             println!("{:?}", vector_row);
             println!("{:?}", vector_col);
+        }
+
+        #[test]
+        fn dot_product_test() {
+            let vector_row = VectorRow::<i64, 4>::from([1, 2, 3, 4]);
+            let dot_product_row = vector_row.dot(&VectorRow::from([1, 2, 3, 4]));
+            assert!(dot_product_row == 1 + 4 + 9 + 16, "{}", dot_product_row);
+
+            let vector_col = VectorColumn::<i64, 4>::from([[1], [2], [3], [4]]);
+            let dot_product_col = vector_col.dot(&VectorColumn::from([[1], [2], [3], [4]]));
+            assert!(dot_product_col == 1 + 4 + 9 + 16, "{}", dot_product_col);
+
+            // Would fail to compile.
+            // let vector_row = VectorRow::<i64, 4>::from([1, 2, 3, 4]);
+            // let dot_product_col = vector_row.dot(&VectorColumn::from([[1], [2], [3], [4]]));
+            // assert!(dot_product_col == 1 + 4 + 9 + 16, "{}", dot_product_col);
         }
     }
 }
