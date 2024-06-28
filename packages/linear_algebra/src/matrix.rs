@@ -177,6 +177,22 @@ impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
     }
 }
 
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Add for &Matrix<T, ROWS, COLS> {
+    type Output = Matrix<T, ROWS, COLS>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut sum = Matrix::<T, ROWS, COLS>::zeros();
+
+        for ((row_sum, row_lhs), row_rhs) in sum.iter_mut().zip(self.iter()).zip(rhs.iter()) {
+            for ((cell_sum, &cell_lhs), &cell_rhs) in row_sum.iter_mut().zip(row_lhs.iter()).zip(row_rhs.iter()) {
+                *cell_sum += cell_lhs + cell_rhs;
+            }
+        }
+
+        sum
+    }
+}
+
 impl<T: MatrixDataTrait, const LHS_ROWS: usize, const LHS_COLS_RHS_ROWS: usize, const RHS_COLS: usize> Mul<&Matrix<T, LHS_COLS_RHS_ROWS, RHS_COLS>> for &Matrix<T, LHS_ROWS, LHS_COLS_RHS_ROWS> {
     type Output = Matrix<T, LHS_ROWS, RHS_COLS>;
 
@@ -311,6 +327,25 @@ mod tests {
                 [7, 8, 9],
             ]);
             println!("{:?}", matrix);
+        }
+
+        #[test]
+        fn add_test() {
+            let lhs = Matrix::from([
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+            ]);
+            let rhs = Matrix::from([
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+            ]);
+            assert!(&lhs + &rhs == Matrix::from([
+                [2, 4, 6],
+                [8, 10, 12],
+                [14, 16, 18],
+            ]));
         }
 
         #[test]
