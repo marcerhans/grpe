@@ -177,6 +177,22 @@ impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
     }
 }
 
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Neg for Matrix<T, ROWS, COLS> {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        let mut negated = Matrix::<T, ROWS, COLS>::zeros();
+
+        for (row_negated, row) in negated.iter_mut().zip(self.iter()) {
+            for (cell_negated, cell) in row_negated.iter_mut().zip(row.iter()) {
+                *cell_negated = -*cell;
+            }
+        }
+
+        negated
+    }
+}
+
 impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Add for &Matrix<T, ROWS, COLS> {
     type Output = Matrix<T, ROWS, COLS>;
 
@@ -327,6 +343,18 @@ mod tests {
                 [7, 8, 9],
             ]);
             println!("{:?}", matrix);
+        }
+
+        #[test]
+        fn neg_test() {
+            let lhs = Matrix::from([
+                [1, 2, 3],
+                [4, 5, 6],
+            ]);
+            assert!(-lhs == Matrix::from([
+                [-1, -2, -3],
+                [-4, -5, -6],
+            ]));
         }
 
         #[test]
