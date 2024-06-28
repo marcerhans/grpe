@@ -209,6 +209,23 @@ impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Add for &Matrix<T
     }
 }
 
+/// TODO: Shameless code duplication from [Add].
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Sub for &Matrix<T, ROWS, COLS> {
+    type Output = Matrix<T, ROWS, COLS>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let mut diff = Matrix::<T, ROWS, COLS>::zeros();
+
+        for ((row_sum, row_lhs), row_rhs) in diff.iter_mut().zip(self.iter()).zip(rhs.iter()) {
+            for ((cell_sum, &cell_lhs), &cell_rhs) in row_sum.iter_mut().zip(row_lhs.iter()).zip(row_rhs.iter()) {
+                *cell_sum += cell_lhs - cell_rhs;
+            }
+        }
+
+        diff
+    }
+}
+
 impl<T: MatrixDataTrait, const LHS_ROWS: usize, const LHS_COLS_RHS_ROWS: usize, const RHS_COLS: usize> Mul<&Matrix<T, LHS_COLS_RHS_ROWS, RHS_COLS>> for &Matrix<T, LHS_ROWS, LHS_COLS_RHS_ROWS> {
     type Output = Matrix<T, LHS_ROWS, RHS_COLS>;
 
@@ -374,6 +391,21 @@ mod tests {
                 [8, 10, 12],
                 [14, 16, 18],
             ]));
+        }
+
+        #[test]
+        fn sub_test() {
+            let lhs = Matrix::from([
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+            ]);
+            let rhs = Matrix::from([
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+            ]);
+            assert!(&lhs - &rhs == Matrix::<i64, 3, 3>::zeros());
         }
 
         #[test]
