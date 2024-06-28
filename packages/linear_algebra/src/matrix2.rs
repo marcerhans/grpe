@@ -183,7 +183,9 @@ impl<'a, T: MatrixDataTrait, const ROWS: usize, const COLS: usize> IntoIterator
 pub mod vector {
     use super::*;
 
+    #[derive(PartialEq, PartialOrd)]
     pub struct VectorRow<T: MatrixDataTrait, const LENGTH: usize>(pub Matrix<T, 1, LENGTH>);
+    #[derive(PartialEq, PartialOrd)]
     pub struct VectorColumn<T: MatrixDataTrait, const LENGTH: usize>(pub Matrix<T, LENGTH, 1>);
 
     impl<T: MatrixDataTrait, const LENGTH: usize> VectorRow<T, LENGTH> {
@@ -242,15 +244,23 @@ pub mod vector {
 
     impl<T: MatrixDataTrait> VectorRow<T, 3> {
         /// Calculate the cross-product of two [VectorRow]s of [LENGTH] 3.
-        pub fn cross(&self, rhs: &Self) -> T {
-            todo!()
+        pub fn cross(&self, rhs: &Self) -> Self {
+            VectorRow::from([
+                self.0[0][1] * rhs.0[0][2] - self.0[0][2] * rhs.0[0][1],
+                self.0[0][2] * rhs.0[0][0] - self.0[0][0] * rhs.0[0][2],
+                self.0[0][0] * rhs.0[0][1] - self.0[0][1] * rhs.0[0][0],
+            ])
         }
     }
 
     impl<T: MatrixDataTrait> VectorColumn<T, 3> {
         /// Calculate the cross-product of two [VectorColumn]s of [LENGTH] 3.
-        pub fn cross(&self, rhs: &Self) -> T {
-            todo!()
+        pub fn cross(&self, rhs: &Self) -> Self {
+            VectorColumn::from([
+                [self.0[1][0] * rhs.0[2][0] - self.0[2][0] * rhs.0[1][0]],
+                [self.0[2][0] * rhs.0[0][0] - self.0[0][0] * rhs.0[2][0]],
+                [self.0[0][0] * rhs.0[1][0] - self.0[1][0] * rhs.0[0][0]],
+            ])
         }
     }
 
@@ -364,6 +374,21 @@ pub mod vector {
             // let vector_row = VectorRow::<i64, 4>::from([1, 2, 3, 4]);
             // let dot_product_col = vector_row.dot(&VectorColumn::from([[1], [2], [3], [4]]));
             // assert!(dot_product_col == 1 + 4 + 9 + 16, "{}", dot_product_col);
+        }
+
+        #[test]
+        fn cross_product_test() {
+            let vector_row = VectorRow::from([1, 2, 3]);
+            let cross_product_row = vector_row.cross(&VectorRow::from([4, 5, 6]));
+            assert!(cross_product_row == VectorRow::from([-3, 6, -3]));
+
+            let vector_col = VectorColumn::from([[1], [2], [3]]);
+            let cross_product_col = vector_col.cross(&VectorColumn::from([[4], [5], [6]]));
+            assert!(cross_product_col == VectorColumn::from([[-3], [6], [-3]]));
+
+            // Would fail to compile due to dimensions beings wrong.
+            // let vector_row = VectorRow::from([1, 2, 3, 10]);
+            // let cross_product_row = vector_row.cross(&VectorRow::from([4, 5, 6, 10]));
         }
     }
 }
