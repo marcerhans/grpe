@@ -1,4 +1,5 @@
-pub mod matrix2;
+pub mod matrix;
+pub mod vector;
 
 // pub mod matrix {
 //     use std::{
