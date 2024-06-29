@@ -68,7 +68,7 @@ pub trait RendererTrait {
     /// Index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
     /// 
     /// # Example
-    /// Draw a line from (0,0) to (1,0) and from (0,0) to (0,1) to (1,0).
+    /// Draw a line from (0,0,0) to (1,0,0) and from (0,0,0) to (0,1,0) to (1,0,0).
     /// 
     /// ```Rust
     /// let vertices = vec![VectorRow::from([0.0, 0.0, 0.0]), VectorRow::from([1.0, 0.0, 0.0]), VectorRow::from([0.0, 1.0, 0.0])]
