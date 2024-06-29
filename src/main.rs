@@ -1,11 +1,11 @@
 use std::{thread, time::{self, Duration}};
 
-use linear_algebra::matrix::Matrix;
-use renderer::{renderer::RendererBuilder, Camera, RendererBuilderTrait, RendererTrait};
+use linear_algebra::{matrix::Matrix, vector::VectorRow};
+use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait};
 
 fn main() {
     // 1. Create vertices
-    let mut vertices = vec![
+    // let mut vertices = vec![
         // A
         // Matrix::from_array([[-16.0, 0.0, 0.0]]),
         // Matrix::from_array([[-16.0, 0.0, -16.0]]),
@@ -15,7 +15,7 @@ fn main() {
         // Matrix::from_array([[15.0, 0.0, 15.0]]),
         // Matrix::from_array([[0.0, 0.0, 15.0]]),
         // Matrix::from_array([[-16.0, 0.0, 15.0]]),
-        Matrix::from_array([[0.0, 0.0, 0.0]]),
+        // Matrix::from_array([[0.0, 0.0, 0.0]]),
         // /A
 
         // B
@@ -119,19 +119,19 @@ fn main() {
 
         // Matrix::from_array([[-7.0, 10.0, 0.0]]),
         // Matrix::from_array([[8.0, -10.0, 0.0]]),
-    ];
+    // ];
 
     // 2. Define line order
     let line_draw_order = vec![vec![0, 1], vec![0, 2]];
 
     // 3. Render()
-    let mut renderer = RendererBuilder::default()
-        .with_camera(Camera::new(
-            (32, 32),
-            &[0.0, -5.0, 0.0],
-            &[0.0, 1.0, 0.0],
-            90,
-        ))
+    let mut renderer = TerminalBuilder::default()
+        .with_camera(Camera {
+            resolution: (32, 32),
+            position: VectorRow::from([0.0, -1.0, 0.0]),
+            direction: VectorRow::from([0.0, -1.0, 0.0]),
+            fov: 90,
+        })
         .build();
 
     // A
@@ -145,7 +145,7 @@ fn main() {
     loop {
         // Loop
         thread::sleep(Duration::from_millis(1000));
-        renderer.set_vertices(&vertices);
+        // renderer.set_vertices(&vertices);
         renderer.render();
         // *vertices[0].index_mut(0, 0) += 2.0;
         // // *vertices[0].index_mut(0, 1) += 5.0;
@@ -164,9 +164,9 @@ fn main() {
         // /B /C
 
         // B C | 2
-        let mut config = renderer.config();
-        *config.camera.position.index_mut(0, 1) += 0.5;
-        let _ = renderer.set_config(config);
+        // let mut config = renderer.config();
+        // *config.camera.position.index_mut(0, 1) += 0.5;
+        // let _ = renderer.set_config(config);
         // /B /C
 
 
