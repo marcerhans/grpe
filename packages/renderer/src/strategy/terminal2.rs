@@ -1,13 +1,19 @@
 use crate::{Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait};
 use linear_algebra::vector::VectorRow;
 
+#[allow(non_snake_case)]
+mod PipelineStage {
+    #![allow(non_upper_case_globals)]
+    pub const Initialize: usize = 0;
+}
+
 #[derive(Default)]
 struct TerminalBuilder {
     config: RendererConfiguration,
 }
 
 impl RendererBuilderTrait for TerminalBuilder {
-    type Renderer = Terminal;
+    type Renderer = Terminal<{PipelineStage::Initialize}>;
 
     fn with_camera(mut self, camera: Camera) -> Self {
         self.config.camera = camera;
@@ -28,15 +34,14 @@ impl RendererBuilderTrait for TerminalBuilder {
     }
 }
 
-struct Terminal {
+/// Typed state terminal renderer.
+struct Terminal<const STAGE: usize> {
     config: RendererConfiguration,
     vertices: Vec<VectorRow<f64, 3>>,
     // line_draw_order: Vec<usize>, // TODO
 }
 
-impl Terminal {}
-
-impl RendererTrait for Terminal {
+impl<const STAGE: usize> RendererTrait for Terminal<STAGE> {
     fn config(&self) -> RendererConfiguration {
         self.config.clone()
     }
@@ -59,9 +64,9 @@ impl RendererTrait for Terminal {
     }
 }
 
-impl __RendererTrait for Terminal {
+impl<const STAGE: usize> __RendererTrait for Terminal<STAGE> {
     fn new(config: RendererConfiguration) -> Self {
-        Terminal {
+        Self {
             config,
             vertices: Default::default(),
         }
