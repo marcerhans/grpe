@@ -40,11 +40,11 @@ pub struct RendererConfiguration {
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
-pub trait RendererBuilderTrait<RendererBuilderImpl>: Default {
+pub trait RendererBuilderTrait: Default {
     type Renderer: RendererTrait;
 
-    fn with_camera(self, camera: Camera) -> RendererBuilderImpl;
-    fn with_option(self, option: RenderOption) -> RendererBuilderImpl;
+    fn with_camera(self, camera: Camera) -> Self;
+    fn with_option(self, option: RenderOption) -> Self;
 
     /// Build an instance of [RendererTrait].
     fn build(self) -> Self::Renderer;
@@ -84,7 +84,7 @@ pub trait RendererTrait {
 }
 
 /// Hidden trait methods for [RendererTrait].
-trait __RendererTrait<__RendererImpl>: RendererTrait {
+trait __RendererTrait: RendererTrait {
     /// Create new instance.
-    fn new(config: RendererConfiguration) -> __RendererImpl;
+    fn new(config: RendererConfiguration) -> Self;
 }

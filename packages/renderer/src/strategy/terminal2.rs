@@ -5,14 +5,14 @@ struct TerminalBuilder;
 
 impl TerminalBuilder {}
 
-impl RendererBuilderTrait<TerminalBuilder> for TerminalBuilder {
+impl RendererBuilderTrait for TerminalBuilder {
     type Renderer = Terminal;
 
-    fn with_camera(self, camera: Camera) -> TerminalBuilder {
+    fn with_camera(self, camera: Camera) -> Self {
         todo!()
     }
 
-    fn with_option(self, option: RenderOption) -> TerminalBuilder {
+    fn with_option(self, option: RenderOption) -> Self {
         todo!()
     }
 
@@ -55,8 +55,8 @@ impl RendererTrait for Terminal {
     }
 }
 
-impl __RendererTrait<Terminal> for Terminal {
-    fn new(config: RendererConfiguration) -> Terminal {
+impl __RendererTrait for Terminal {
+    fn new(config: RendererConfiguration) -> Self {
         Terminal { }
     }
 }
