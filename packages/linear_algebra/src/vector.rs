@@ -115,6 +115,22 @@ impl<T: MatrixDataTrait, const LENGTH: usize> From<[[T; 1]; LENGTH]> for VectorC
     }
 }
 
+impl<T: MatrixDataTrait, const LENGTH: usize> From<&[T; LENGTH]> for VectorRow<T, LENGTH> {
+    fn from(data: &[T; LENGTH]) -> Self {
+        Self(
+            Matrix::from([*data]),
+        )
+    }
+}
+
+impl<T: MatrixDataTrait, const LENGTH: usize> From<&[[T; 1]; LENGTH]> for VectorColumn<T, LENGTH> {
+    fn from(data: &[[T; 1]; LENGTH]) -> Self {
+        Self(
+            Matrix::from(data),
+        )
+    }
+}
+
 impl<T: MatrixDataTrait, const LENGTH: usize> Into<Matrix<T, 1, LENGTH>> for VectorRow<T, LENGTH> {
     fn into(self) -> Matrix<T, 1, LENGTH> {
         self.0

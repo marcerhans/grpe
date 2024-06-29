@@ -126,6 +126,14 @@ impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<[[T; COLS]; 
     }
 }
 
+impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> From<&[[T; COLS]; ROWS]> for Matrix<T, ROWS, COLS> {
+    fn from(data: &[[T; COLS]; ROWS]) -> Self {
+        Self {
+            data: *data,
+        }
+    }
+}
+
 impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Index<usize>
     for Matrix<T, ROWS, COLS>
 {
