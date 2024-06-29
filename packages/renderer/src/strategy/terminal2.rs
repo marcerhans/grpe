@@ -1,4 +1,4 @@
-use crate::{RendererBuilderTrait, RendererTrait, __RendererTrait};
+use crate::{Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait};
 
 #[derive(Default)]
 struct TerminalBuilder;
@@ -8,11 +8,11 @@ impl TerminalBuilder {}
 impl RendererBuilderTrait<TerminalBuilder> for TerminalBuilder {
     type Renderer = Terminal;
 
-    fn with_camera(self, camera: crate::Camera) -> TerminalBuilder {
+    fn with_camera(self, camera: Camera) -> TerminalBuilder {
         todo!()
     }
 
-    fn with_option(self, option: crate::RenderOption) -> TerminalBuilder {
+    fn with_option(self, option: RenderOption) -> TerminalBuilder {
         todo!()
     }
 
@@ -20,22 +20,26 @@ impl RendererBuilderTrait<TerminalBuilder> for TerminalBuilder {
         todo!()
     }
 
-    fn build_with_config(self, config: crate::RendererConfiguration) -> Self::Renderer {
+    fn build_with_config(self, config: RendererConfiguration) -> Self::Renderer {
         todo!()
     }
 }
 
-struct Terminal {}
+struct Terminal {
+    // config: RendererConfiguration,
+}
 
 impl Terminal {}
 
 impl RendererTrait for Terminal {
-    fn config(&self) -> crate::RendererConfiguration {
-        todo!()
+    fn config(&self) -> RendererConfiguration {
+        // self.config.clone()
+        RendererConfiguration::default()
     }
 
-    fn set_config(&mut self, config: crate::RendererConfiguration) -> Result<(), &'static str> {
-        todo!()
+    fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str> {
+        // self.config = config;
+        Ok(())
     }
 
     fn set_vertices(&mut self, vertices: &[linear_algebra::vector::VectorRow<f64, 3>]) {
@@ -52,7 +56,19 @@ impl RendererTrait for Terminal {
 }
 
 impl __RendererTrait<Terminal> for Terminal {
-    fn new(config: crate::RendererConfiguration) -> Terminal {
-        todo!()
+    fn new(config: RendererConfiguration) -> Terminal {
+        Terminal { }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{RendererConfiguration, RendererTrait, __RendererTrait};
+    use super::Terminal;
+
+    #[test]
+    fn main() {
+        let config = RendererConfiguration::default();
+        let renderer: Box<dyn RendererTrait> = Box::new(Terminal::new(config));
     }
 }
