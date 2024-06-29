@@ -2,53 +2,24 @@
 /// and for simplicity only [f64] is used.
 
 pub mod strategy;
+
 pub use strategy::renderer;
-
-mod common;
-
-use linear_algebra::matrix::{Matrix, MatrixDataTrait};
+pub use linear_algebra::{matrix::{Matrix, MatrixDataTrait}, vector::VectorRow};
 
 #[derive(Clone)]
-pub struct Camera<T: MatrixDataTrait> {
+pub struct Camera {
     pub resolution: (u64, u64),
-    pub position: Matrix<T>,
-    pub direction: Matrix<T>,
+    pub position: VectorRow<f64, 3>,
+    pub direction: VectorRow<f64, 3>,
     pub fov: u64,
 }
 
-impl<T: MatrixDataTrait> Camera<T> {
-    pub fn new(resolution: (u64, u64), position: &[T; 3], direction: &[T; 3], fov: u64) -> Self {
-        Self {
-            resolution,
-            position: Matrix::from_slice(&[position]),
-            direction: Matrix::from_slice(&[direction]),
-            fov,
-        }
-    }
-
-    pub fn resolution(&self) -> &(u64, u64) {
-        &self.resolution
-    }
-
-    pub fn position(&self) -> &Matrix<T> {
-        &self.position
-    }
-
-    pub fn direction(&self) -> &Matrix<T> {
-        &self.direction
-    }
-    
-    pub fn fov(&self) -> &u64{
-        &self.fov
-    }
-}
-
-impl Default for Camera<f64> {
+impl Default for Camera {
     fn default() -> Self {
         Self {
             resolution: (32, 32),
-            position: Matrix::from_array([[0.0, 0.0, 0.0]]),
-            direction: Matrix::from_array([[0.0, 1.0, 0.0]]),
+            position: VectorRow::from([0.0, -1.0, 0.0]),
+            direction: VectorRow::from([0.0, 1.0, 0.0]),
             fov: 90,
         }
     }
@@ -63,41 +34,36 @@ pub enum RenderOption {
 }
 
 #[derive(Default, Clone)]
-pub struct RendererConfiguration<T: MatrixDataTrait> {
-    pub camera: Camera<f64>,
+pub struct RendererConfiguration {
+    pub camera: Camera,
     pub option: RenderOption,
-    pub(crate) viewpoint: Matrix<T>,
-    pub(crate) viewport: Matrix<T>,
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
-pub trait RendererBuilderTrait<T: MatrixDataTrait>: Default {
-    type Renderer: RendererTrait<T>;
+pub trait RendererBuilderTrait<RendererBuilderImpl>: Default {
+    type Renderer: RendererTrait;
 
-    fn with_camera(self, camera: Camera<T>) -> Self;
-    fn with_option(self, option: RenderOption) -> Self;
+    fn with_camera(self, camera: Camera) -> RendererBuilderImpl;
+    fn with_option(self, option: RenderOption) -> RendererBuilderImpl;
 
     /// Build an instance of [RendererTrait].
     fn build(self) -> Self::Renderer;
 
     /// Build an instance of [RendererTrait] using an existing [RendererConfiguration].
-    fn build_with_config(self, config: RendererConfiguration<T>) -> Self::Renderer;
+    fn build_with_config(self, config: RendererConfiguration) -> Self::Renderer;
 }
 
 /// [RendererTrait] for rendering to display.
-pub trait RendererTrait<T: MatrixDataTrait> {
-    type Vertex;
-
+pub trait RendererTrait {
     /// Get [RendererConfiguration].
-    fn config(&self) -> RendererConfiguration<T>;
+    fn config(&self) -> RendererConfiguration;
 
     /// Set a new config ([RendererConfiguration]) for the [RendererTrait].
-    /// Useful if the dimensions of the viewport ([common::PlaneTrait]) changes in size, for example.
     /// Returns [Result::Ok] if configuration is valid for current renderer.
-    fn set_config(&mut self, config: RendererConfiguration<T>) -> Result<(), &'static str>;
+    fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str>;
 
-    /// Vertices ([VertexTrait]) are used as "anchors"/"points in space" from which lines can be drawn.
-    fn set_vertices(&mut self, vertices: &[Self::Vertex]);
+    /// Vertices are used as "anchors"/"points in space" from which lines can be drawn.
+    fn set_vertices(&mut self, vertices: &[VectorRow<f64, 3>]);
 
     /// Index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
     /// 
@@ -105,7 +71,7 @@ pub trait RendererTrait<T: MatrixDataTrait> {
     /// Draw a line from (0,0) to (1,0) and from (0,0) to (0,1) to (1,0).
     /// 
     /// ```Rust
-    /// let vertices = vec![Vertex::from_array([[0.0, 0.0, 0.0]]), Vertex::from_array([[1.0, 0.0, 0.0]]), Vertex::from_array([[0.0, 1.0, 0.0]])]
+    /// let vertices = vec![VectorRow::from([0.0, 0.0, 0.0]), VectorRow::from([1.0, 0.0, 0.0]), VectorRow::from([0.0, 1.0, 0.0])]
     /// let draw_order = vec![[0,1], [0,2,1]];
     /// 
     /// some_already_configured_renderer.set_vertices(&vertices);
@@ -118,7 +84,7 @@ pub trait RendererTrait<T: MatrixDataTrait> {
 }
 
 /// Hidden trait methods for [RendererTrait].
-trait __RendererTrait<T: MatrixDataTrait>: RendererTrait<T> {
+trait __RendererTrait<__RendererImpl>: RendererTrait {
     /// Create new instance.
-    fn new(config: RendererConfiguration<T>) -> Self;
+    fn new(config: RendererConfiguration) -> __RendererImpl;
 }
