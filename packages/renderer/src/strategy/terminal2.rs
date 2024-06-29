@@ -56,14 +56,14 @@ pub struct Terminal<'a> {
     config: RendererConfiguration,
     vertices: Option<&'a [VectorRow<f64, 3>]>,
     // line_draw_order: Vec<usize>, // TODO
-    buffer: RefCell<Vec<Vec<char>>>,
+    canvas: RefCell<Vec<Vec<char>>>,
 }
 
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
 impl<'a> Terminal<'a> {
-    /// Clear the buffer and the terminal screen.
+    /// Clear the canvas buffer and the terminal screen.
     fn clear(&self) {
-        for v in self.buffer.borrow_mut().iter_mut() {
+        for v in self.canvas.borrow_mut().iter_mut() {
             for c in v.iter_mut() {
                 *c = character::EMPTY;
             }
@@ -76,8 +76,9 @@ impl<'a> Terminal<'a> {
     }
 
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera].
+    /// Returns the coordinates for the projected vertices.
     /// TODO: If viewport could be a more concrete type/member of a struct, add reference here.
-    fn project_vertices_on_viewport(&self) {
+    fn project_vertices_on_viewport(&self) -> Vec<VectorRow<f64, 3>> {
         todo!()
     }
 
@@ -89,12 +90,12 @@ impl<'a> Terminal<'a> {
         todo!()
     }
     
-    /// Print buffer to terminal.
+    /// Print canvas buffer to terminal.
     fn print_to_terminal(&self) {
         let stdout = std::io::stdout();
         let mut handle = std::io::BufWriter::new(stdout.lock());
 
-        for character_row in self.buffer.borrow().iter() {
+        for character_row in self.canvas.borrow().iter() {
             for character in character_row.iter() {
                 write!(handle, "{character}").unwrap();
             }
@@ -125,7 +126,7 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
 
     fn render(&self) {
         self.clear();
-        // self.project_vertices_on_viewport();
+        self.project_vertices_on_viewport();
         // self.render_vertices();
         // self.render_lines();
         self.print_to_terminal();
@@ -139,7 +140,7 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
         Self {
             config,
             vertices: None,
-            buffer: RefCell::new(vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize]),
+            canvas: RefCell::new(vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize]),
         }
     }
 }
