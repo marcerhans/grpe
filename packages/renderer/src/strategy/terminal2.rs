@@ -119,7 +119,7 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
         self.vertices = Some(vertices);
     }
 
-    fn set_vertices_line_draw_order(&mut self, order: &[&[usize]]) {
+    fn set_vertices_line_draw_order(&'a mut self, order: &'a [&'a [usize]]) {
         todo!("Implement this later")
     }
 
