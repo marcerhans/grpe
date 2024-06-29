@@ -1,10 +1,10 @@
-/// [VectorRow] and [VectorColumn] are sub-types to [Matrix].
-/// TODO: Some duplicate code for row and column vector. Not the best,
-/// but it will make the type system happy.
-
 use std::fmt::Debug;
 
 use crate::matrix::{Matrix, MatrixDataTrait};
+
+/// [VectorRow] and [VectorColumn] are sub-types to [Matrix].
+/// TODO: Some duplicate code for row and column vector. Not the best,
+/// but it will make the type system happy.
 
 #[derive(Clone, PartialEq, PartialOrd)]
 pub struct VectorRow<T: MatrixDataTrait, const LENGTH: usize>(pub Matrix<T, 1, LENGTH>);
