@@ -80,7 +80,7 @@ pub trait RendererTrait<'a> {
     fn set_vertices_line_draw_order(&'a mut self, order: &'a [&'a [usize]]);
 
     /// Do the render! What is rendered in the final artefact is decided the the [RenderOption]s.
-    fn render(&self);
+    fn render(&mut self);
 }
 
 /// Hidden trait methods for [RendererTrait].

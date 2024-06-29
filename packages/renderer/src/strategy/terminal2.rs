@@ -1,5 +1,5 @@
-use std::cell::RefCell;
-use std::io::Write;
+use std::{cell::RefCell, io::BufWriter};
+use std::io::{StdoutLock, Write};
 
 use crate::{Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait};
 use linear_algebra::vector::VectorRow;
@@ -57,22 +57,21 @@ pub struct Terminal<'a> {
     vertices: Option<&'a [VectorRow<f64, 3>]>,
     // line_draw_order: Vec<usize>, // TODO
     canvas: RefCell<Vec<Vec<char>>>,
+    stdout_buffer: Option<BufWriter<StdoutLock<'static>>>,
 }
 
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
 impl<'a> Terminal<'a> {
     /// Clear the canvas buffer and the terminal screen.
-    fn clear(&self) {
+    fn clear(&mut self) {
         for v in self.canvas.borrow_mut().iter_mut() {
             for c in v.iter_mut() {
                 *c = character::EMPTY;
             }
         }
 
-        let stdout = std::io::stdout();
-        let mut handle = std::io::BufWriter::new(stdout.lock());
-        write!(handle, "{}{}", ansi::CLEAR_SCREEN, ansi::GO_TO_0_0).unwrap();
-        handle.flush().unwrap() // TODO: Potentially do not flush here, but when doing the last step of the pipeline.
+        self.stdout_buffer = Some(BufWriter::new(std::io::stdout().lock()));
+        write!(self.stdout_buffer.as_mut().unwrap(), "{}{}", ansi::CLEAR_SCREEN, ansi::GO_TO_0_0).unwrap();
     }
 
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera].
@@ -91,18 +90,17 @@ impl<'a> Terminal<'a> {
     }
     
     /// Print canvas buffer to terminal.
-    fn print_to_terminal(&self) {
-        let stdout = std::io::stdout();
-        let mut handle = std::io::BufWriter::new(stdout.lock());
+    fn print_to_terminal(&mut self) {
+        let stdout = self.stdout_buffer.as_mut().unwrap();
 
         for character_row in self.canvas.borrow().iter() {
             for character in character_row.iter() {
-                write!(handle, "{character}").unwrap();
+                write!(stdout, "{character}").unwrap();
             }
-            write!(handle, "\n").unwrap();
+            write!(stdout, "\n").unwrap();
         }
 
-        handle.flush().unwrap()
+        stdout.flush().unwrap();
     }
 }
 
@@ -124,9 +122,9 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
         todo!("Implement this later")
     }
 
-    fn render(&self) {
+    fn render(&mut self) {
         self.clear();
-        self.project_vertices_on_viewport();
+        // self.project_vertices_on_viewport();
         // self.render_vertices();
         // self.render_lines();
         self.print_to_terminal();
@@ -141,6 +139,7 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
             config,
             vertices: None,
             canvas: RefCell::new(vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize]),
+            stdout_buffer: None,
         }
     }
 }

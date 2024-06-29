@@ -144,7 +144,7 @@ fn main() {
 
     loop {
         // Loop
-        thread::sleep(Duration::from_millis(1000));
+        thread::sleep(Duration::from_millis(100));
         // renderer.set_vertices(&vertices);
         renderer.render();
         // *vertices[0].index_mut(0, 0) += 2.0;
