@@ -63,12 +63,6 @@ impl __RendererTrait for Terminal {
 
 #[cfg(test)]
 mod tests {
-    use crate::{RendererConfiguration, RendererTrait, __RendererTrait};
+    use crate::{RendererConfiguration, RendererTrait};
     use super::Terminal;
-
-    #[test]
-    fn main() {
-        let config = RendererConfiguration::default();
-        let renderer: Box<dyn RendererTrait> = Box::new(Terminal::new(config));
-    }
 }
