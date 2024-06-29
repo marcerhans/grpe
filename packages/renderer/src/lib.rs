@@ -40,8 +40,8 @@ pub struct RendererConfiguration {
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
-pub trait RendererBuilderTrait: Default {
-    type Renderer: RendererTrait;
+pub trait RendererBuilderTrait<'a>: Default {
+    type Renderer: RendererTrait<'a>;
 
     fn with_camera(self, camera: Camera) -> Self;
     fn with_option(self, option: RenderOption) -> Self;
@@ -54,7 +54,7 @@ pub trait RendererBuilderTrait: Default {
 }
 
 /// [RendererTrait] for rendering to display.
-pub trait RendererTrait {
+pub trait RendererTrait<'a> {
     /// Get [RendererConfiguration].
     fn config(&self) -> RendererConfiguration;
 
@@ -63,7 +63,7 @@ pub trait RendererTrait {
     fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str>;
 
     /// Vertices are used as "anchors"/"points in space" from which lines can be drawn.
-    fn set_vertices(&mut self, vertices: &[VectorRow<f64, 3>]);
+    fn set_vertices(&'a mut self, vertices: &'a [VectorRow<f64, 3>]);
 
     /// Index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
     /// 
@@ -84,7 +84,7 @@ pub trait RendererTrait {
 }
 
 /// Hidden trait methods for [RendererTrait].
-trait __RendererTrait: RendererTrait {
+trait __RendererTrait<'a>: RendererTrait<'a> {
     /// Create new instance.
     fn new(config: RendererConfiguration) -> Self;
 }

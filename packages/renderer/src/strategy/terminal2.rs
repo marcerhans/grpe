@@ -29,8 +29,8 @@ pub struct TerminalBuilder {
     config: RendererConfiguration,
 }
 
-impl RendererBuilderTrait for TerminalBuilder {
-    type Renderer = Terminal;
+impl<'a> RendererBuilderTrait<'a> for TerminalBuilder {
+    type Renderer = Terminal<'a>;
 
     fn with_camera(mut self, camera: Camera) -> Self {
         self.config.camera = camera;
@@ -52,15 +52,15 @@ impl RendererBuilderTrait for TerminalBuilder {
 }
 
 /// Typed state terminal renderer.
-pub struct Terminal {
+pub struct Terminal<'a> {
     config: RendererConfiguration,
-    vertices: Vec<VectorRow<f64, 3>>,
+    vertices: Option<&'a [VectorRow<f64, 3>]>,
     // line_draw_order: Vec<usize>, // TODO
     buffer: RefCell<Vec<Vec<char>>>,
 }
 
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
-impl Terminal {
+impl<'a> Terminal<'a> {
     /// Clear the buffer and the terminal screen.
     fn clear(&self) {
         for v in self.buffer.borrow_mut().iter_mut() {
@@ -105,7 +105,7 @@ impl Terminal {
     }
 }
 
-impl RendererTrait for Terminal {
+impl<'a> RendererTrait<'a> for Terminal<'a> {
     fn config(&self) -> RendererConfiguration {
         self.config.clone()
     }
@@ -115,8 +115,8 @@ impl RendererTrait for Terminal {
         Ok(())
     }
 
-    fn set_vertices(&mut self, vertices: &[VectorRow<f64, 3>]) {
-        self.vertices = vertices.to_owned();
+    fn set_vertices(&'a mut self, vertices: &'a [VectorRow<f64, 3>]) {
+        self.vertices = Some(vertices);
     }
 
     fn set_vertices_line_draw_order(&mut self, order: &[&[usize]]) {
@@ -132,13 +132,13 @@ impl RendererTrait for Terminal {
     }
 }
 
-impl __RendererTrait for Terminal {
+impl<'a> __RendererTrait<'a> for Terminal<'a> {
     fn new(config: RendererConfiguration) -> Self {
         let resolution = config.camera.resolution;
 
         Self {
             config,
-            vertices: Default::default(),
+            vertices: None,
             buffer: RefCell::new(vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize]),
         }
     }
