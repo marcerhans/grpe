@@ -124,7 +124,7 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
 
     fn render(&mut self) {
         self.clear();
-        // self.project_vertices_on_viewport();
+        // let vertices_to_render = self.project_vertices_on_viewport();
         // self.render_vertices();
         // self.render_lines();
         self.print_to_terminal();
