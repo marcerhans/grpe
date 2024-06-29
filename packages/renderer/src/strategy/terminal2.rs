@@ -1,27 +1,29 @@
 use crate::{Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait};
 
 #[derive(Default)]
-struct TerminalBuilder;
-
-impl TerminalBuilder {}
+struct TerminalBuilder {
+    config: RendererConfiguration,
+}
 
 impl RendererBuilderTrait for TerminalBuilder {
     type Renderer = Terminal;
 
-    fn with_camera(self, camera: Camera) -> Self {
-        todo!()
+    fn with_camera(mut self, camera: Camera) -> Self {
+        self.config.camera = camera;
+        self
     }
 
-    fn with_option(self, option: RenderOption) -> Self {
-        todo!()
+    fn with_option(mut self, option: RenderOption) -> Self {
+        self.config.option = option;
+        self
     }
 
     fn build(self) -> Self::Renderer {
-        todo!()
+        Self::Renderer::new(self.config)
     }
 
     fn build_with_config(self, config: RendererConfiguration) -> Self::Renderer {
-        todo!()
+        Self::Renderer::new(config)
     }
 }
 
