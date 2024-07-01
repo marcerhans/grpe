@@ -48,7 +48,7 @@ impl MatrixDataTrait for i64 {
     }
 
     fn eqa(&self, rhs: &Self, accuracy: &Self) -> bool {
-        (*self - *rhs).abs() < *accuracy
+        (*self - *rhs).abs() <= *accuracy
     }
 }
 
@@ -70,7 +70,7 @@ impl MatrixDataTrait for f64 {
     }
 
     fn eqa(&self, rhs: &Self, accuracy: &Self) -> bool {
-        (*self - *rhs).abs() < *accuracy
+        (*self - *rhs).abs() <= *accuracy
     }
 }
 

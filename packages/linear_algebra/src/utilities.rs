@@ -63,7 +63,14 @@ mod gauss_elimination {
                 [6, 7, 8, 9],
             ]);
             assert!(find_pivot(&eq_system, 0, 0).unwrap() == 1);
-            // TODO: Test fails ;(
+
+            let eq_system = Matrix::from([
+                [0, 0, 4, 5],
+                [6, 7, 8, 9],
+                [0, 0, 8, 9],
+                [0, 1, 8, 9],
+            ]);
+            assert!(find_pivot(&eq_system, 2, 1).unwrap() == 3);
         }
 
         #[test]
