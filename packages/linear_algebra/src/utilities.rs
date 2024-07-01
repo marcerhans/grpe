@@ -1,11 +1,34 @@
 use crate::matrix::{Matrix, MatrixDataTrait};
 use crate::vector::{VectorColumn, VectorRow};
 
+
 /// Find the unique solution given an equation system using Gauss-elimination.
-/// Fails to compute if there are infinitely many solutions or none.
+/// Fails to compute (returns [None]) if there are infinitely many solutions or none.
 pub fn solve_eq_system<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>(
-    equation_system: Matrix<T, ROWS, COLS>,
+    equation_system: &mut Matrix<T, ROWS, COLS>,
 ) -> Option<VectorColumn<T, ROWS>> {
+    use gauss_elimination::*;
+
+    for pivot_row in  0..ROWS {
+        let found_pivot = find_pivot(&equation_system, pivot_row, pivot_row);
+
+        if found_pivot.is_none() {
+    println!("{:?}", equation_system);
+            return None;
+        }
+
+        let found_pivot = found_pivot.unwrap();
+
+        if pivot_row != found_pivot {
+            equation_system.swap_row(pivot_row, found_pivot);
+        }
+
+        for current_row in (pivot_row+1)..ROWS {
+            subtract_based_on_pivot_row(equation_system, pivot_row, pivot_row, current_row);
+        }
+    }
+
+    println!("{:?}", equation_system);
     todo!()
 }
 
@@ -15,7 +38,7 @@ mod gauss_elimination {
     /// Find next pivot point (row) given row_start and current column.
     /// Returns the row for next suitable pivot. Otherwise returns [None].
     /// Note: Want to have it as nested function, but then I cannot test it ;(.
-    fn find_pivot<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>(
+    pub fn find_pivot<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>(
         equation_system: &Matrix<T, ROWS, COLS>,
         row_start: usize,
         column: usize,
@@ -31,7 +54,7 @@ mod gauss_elimination {
 
     /// Subtract elements in current row with values from pivot row, based on pivot column.
     /// Note: Want to have it as nested function, but then I cannot test it ;(.
-    fn subtract_based_on_pivot_row<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>(
+    pub fn subtract_based_on_pivot_row<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>(
         equation_system: &mut Matrix<T, ROWS, COLS>,
         pivot_row: usize,
         pivot_column: usize,
@@ -100,3 +123,17 @@ mod gauss_elimination {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn solve_eq_system_test() {
+        let mut eq_system = Matrix::from([
+            [1, 2, 3, 4],
+            [5, 6, 7, 8],
+            [11, 12, 13, 14],
+        ]);
+        solve_eq_system(&mut eq_system);
+    }
+}
