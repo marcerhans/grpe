@@ -26,11 +26,8 @@ pub trait MatrixDataTrait:
     fn one() -> Self;
     fn epsilon() -> Self;
     fn sqrt(&self) -> Self;
-
     /// Like regular eq, but with accuracy (for [f64], for example), when needed.
-    fn eqa(&self, rhs: &Self, accuracy: &Self) -> bool {
-        (*self - *rhs) < *accuracy
-    }
+    fn eqa(&self, rhs: &Self, accuracy: &Self) -> bool;
 }
 
 impl MatrixDataTrait for i64 {
@@ -49,6 +46,10 @@ impl MatrixDataTrait for i64 {
     fn sqrt(&self) -> Self {
         (*self as f64).sqrt() as Self
     }
+
+    fn eqa(&self, rhs: &Self, accuracy: &Self) -> bool {
+        (*self - *rhs).abs() < *accuracy
+    }
 }
 
 impl MatrixDataTrait for f64 {
@@ -66,6 +67,10 @@ impl MatrixDataTrait for f64 {
 
     fn sqrt(&self) -> Self {
         (*self as f64).sqrt()
+    }
+
+    fn eqa(&self, rhs: &Self, accuracy: &Self) -> bool {
+        (*self - *rhs).abs() < *accuracy
     }
 }
 
