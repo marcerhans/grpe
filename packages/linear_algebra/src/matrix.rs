@@ -114,6 +114,26 @@ impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, C
         matrix
     }
 
+    pub fn swap_row(&mut self, row_a: usize, row_b: usize) {
+        let mut tmp;
+
+        for col in 0..COLS {
+            tmp = self[row_a][col];
+            self[row_a][col] = self[row_b][col];
+            self[row_b][col] = tmp;
+        }
+    }
+
+    pub fn swap_col(&mut self, col_a: usize, col_b: usize) {
+        let mut tmp;
+
+        for row in self.iter_mut() {
+            tmp = row[col_a];
+            row[col_a]= row[col_b];
+            row[col_b]= tmp;
+        }
+    }
+
     pub fn iter<'a>(&'a self) -> std::slice::Iter<'a, [T; COLS]> {
         self.into_iter()
     }
@@ -358,6 +378,40 @@ mod tests {
                 [2, 6],
                 [3, 7],
                 [4, 8],
+            ]));
+        }
+
+        #[test]
+        fn swap_row_test() {
+            let mut matrix = Matrix::from([
+                [1, 2, 3, 4],
+                [5, 6, 7, 8],
+                [9, 10, 11, 12],
+                [13, 14, 15, 16],
+            ]);
+            matrix.swap_row(1, 3);
+            assert!(matrix == Matrix::from([
+                [1, 2, 3, 4],
+                [13, 14, 15, 16],
+                [9, 10, 11, 12],
+                [5, 6, 7, 8],
+            ]));
+        }
+
+        #[test]
+        fn swap_col_test() {
+            let mut matrix = Matrix::from([
+                [1, 2, 3, 4],
+                [5, 6, 7, 8],
+                [9, 10, 11, 12],
+                [13, 14, 15, 16],
+            ]);
+            matrix.swap_col(1, 3);
+            assert!(matrix == Matrix::from([
+                [1, 4, 3, 2],
+                [5, 8, 7, 6],
+                [9, 12, 11, 10],
+                [13, 16, 15, 14],
             ]));
         }
 
