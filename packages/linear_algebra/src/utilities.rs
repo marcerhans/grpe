@@ -73,10 +73,21 @@ mod gauss_elimination {
                 [6, 7, 8, 9],
             ]);
             subtract_based_on_pivot_row(&mut eq_system, 0, 0, 1);
-
             assert!(eq_system == Matrix::from([
                 [2, 3, 4, 5],
                 [0, -4, -8, -12],
+            ]));
+
+            let mut eq_system = Matrix::from([
+                [2, 3, 4, 5],
+                [6, 7, 8, 9],
+                [2, 3, 4, 5],
+            ]);
+            subtract_based_on_pivot_row(&mut eq_system, 1, 1, 2);
+            assert!(eq_system == Matrix::from([
+                [2, 3, 4, 5],
+                [6, 7, 8, 9],
+                [-4, 0, 4, 8],
             ]));
         }
     }
