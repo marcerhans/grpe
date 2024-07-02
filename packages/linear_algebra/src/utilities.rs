@@ -6,7 +6,7 @@ use crate::vector::{VectorColumn, VectorRow};
 /// Fails to compute (returns [None]) if there are infinitely many solutions or none.
 pub fn solve_eq_system<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>(
     equation_system: &mut Matrix<T, ROWS, COLS>,
-) -> Option<VectorColumn<T, ROWS>> {
+) -> Option<()> {
     use gauss_elimination::*;
 
     for pivot_row in  0..ROWS {
@@ -25,10 +25,14 @@ pub fn solve_eq_system<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
         for current_row in (pivot_row+1)..ROWS {
             subtract_based_on_pivot_row(equation_system, pivot_row, pivot_row, current_row);
         }
+
+        if pivot_row == 2 {
+            break;
+        }
     }
 
     println!("{:?}", equation_system);
-    todo!()
+    Some(())
 }
 
 mod gauss_elimination {
@@ -133,6 +137,25 @@ mod gauss_elimination {
                 [4, 0, -4, -8],
                 [8, 0, -8, -16],
             ]));
+
+            let mut eq_system = Matrix::from([
+                [2, 3, 4, 5],
+                [6, 7, 8, 9],
+                [10, 12, 12, 13],
+                [14, 4, 5, 17],
+            ]);
+            subtract_based_on_pivot_row(&mut eq_system, 0, 0, 1);
+            subtract_based_on_pivot_row(&mut eq_system, 0, 0, 2);
+            subtract_based_on_pivot_row(&mut eq_system, 0, 0, 3);
+            subtract_based_on_pivot_row(&mut eq_system, 1, 1, 2);
+            subtract_based_on_pivot_row(&mut eq_system, 1, 1, 3);
+            subtract_based_on_pivot_row(&mut eq_system, 2, 2, 3);
+            assert!(eq_system == Matrix::from([
+                [2, 3, 4, 5],
+                [0, -4, -8, -12],
+                [0, 0, 16, 24],
+                [0, 0, 0, -2112],
+            ]));
         }
     }
 }
@@ -146,8 +169,8 @@ mod tests {
         let mut eq_system = Matrix::from([
             [2, 3, 4, 5],
             [6, 7, 8, 9],
-            [10, 11, 12, 13],
-            [14, 15, 16, 17],
+            [10, 12, 12, 13],
+            [14, 4, 5, 17],
         ]);
         solve_eq_system(&mut eq_system);
     }
