@@ -13,7 +13,6 @@ pub fn solve_eq_system<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
         let found_pivot = find_pivot(&equation_system, pivot_row, pivot_row);
 
         if found_pivot.is_none() {
-    println!("{:?}", equation_system);
             return None;
         }
 
@@ -119,6 +118,21 @@ mod gauss_elimination {
                 [6, 7, 8, 9],
                 [-4, 0, 4, 8],
             ]));
+
+            let mut eq_system = Matrix::from([
+                [2, 3, 4, 5],
+                [6, 7, 8, 9],
+                [10, 11, 12, 13],
+                [14, 15, 16, 17],
+            ]);
+            subtract_based_on_pivot_row(&mut eq_system, 1, 1, 2);
+            subtract_based_on_pivot_row(&mut eq_system, 1, 1, 3);
+            assert!(eq_system == Matrix::from([
+                [2, 3, 4, 5],
+                [6, 7, 8, 9],
+                [4, 0, -4, -8],
+                [8, 0, -8, -16],
+            ]));
         }
     }
 }
@@ -130,9 +144,10 @@ mod tests {
     #[test]
     fn solve_eq_system_test() {
         let mut eq_system = Matrix::from([
-            [1, 2, 3, 4],
-            [5, 6, 7, 8],
-            [11, 12, 13, 14],
+            [2, 3, 4, 5],
+            [6, 7, 8, 9],
+            [10, 11, 12, 13],
+            [14, 15, 16, 17],
         ]);
         solve_eq_system(&mut eq_system);
     }
