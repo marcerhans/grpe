@@ -3,6 +3,7 @@ use std::io::{StdoutLock, Write};
 
 use crate::{Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait};
 use linear_algebra::vector::VectorRow;
+use linear_algebra::matrix::Matrix;
 
 mod character {
     pub static LINE_HORIZONTAL: char = '\u{254c}'; // ╌
@@ -56,7 +57,9 @@ pub struct Terminal<'a> {
     config: RendererConfiguration,
     vertices: Option<&'a [VectorRow<f64, 3>]>,
     // line_draw_order: Vec<usize>, // TODO
-    canvas: RefCell<Vec<Vec<char>>>,
+    canvas: Vec<Vec<char>>,
+    /// Fn(vertex_origin, vertex_direction_vector_to_viewpoint) -> Point at which the line crosses the canvas plane.
+    canvas_line_intersection_checker: Box<dyn Fn(&mut VectorRow<f64, 3>, &mut VectorRow<f64, 3>) -> VectorRow<f64, 3>>,
     stdout_buffer: Option<BufWriter<StdoutLock<'static>>>,
 }
 
@@ -64,7 +67,7 @@ pub struct Terminal<'a> {
 impl<'a> Terminal<'a> {
     /// Clear the canvas buffer and the terminal screen.
     fn clear(&mut self) {
-        for v in self.canvas.borrow_mut().iter_mut() {
+        for v in self.canvas.iter_mut() {
             for c in v.iter_mut() {
                 *c = character::EMPTY;
             }
@@ -78,7 +81,15 @@ impl<'a> Terminal<'a> {
     /// Returns the coordinates for the projected vertices.
     /// TODO: If viewport could be a more concrete type/member of a struct, add reference here.
     fn project_vertices_on_viewport(&self) -> Vec<VectorRow<f64, 3>> {
-        todo!()
+        let projected_vertices = Vec::new();
+
+        for vertex in self.vertices.as_ref().unwrap().iter() {
+            todo!(
+                "Project each vertex on the viewport plane."
+            )
+        }
+
+        projected_vertices
     }
 
     fn render_vertices(&self) {
@@ -93,7 +104,7 @@ impl<'a> Terminal<'a> {
     fn print_to_terminal(&mut self) {
         let stdout = self.stdout_buffer.as_mut().unwrap();
 
-        for character_row in self.canvas.borrow().iter() {
+        for character_row in self.canvas.iter() {
             for character in character_row.iter() {
                 write!(stdout, "{character}").unwrap();
             }
@@ -135,10 +146,36 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
     fn new(config: RendererConfiguration) -> Self {
         let resolution = config.camera.resolution;
 
+        let normal = config.camera.position.clone();
+
+        // A(x - x0) + B(y - y0) + C(z - z0) = 0
+        // lhs = Ax + By + Cz = Ax0 + By0 + Cz0 = D0 = rhs
+        let d0 = config.camera.direction.dot(&normal);
+        // if (x,y,z) is a line with origin + direction vector (t being a scalar) then:
+        // lhs = At(x-x1) + Bt(y-y1) + Ct(z-z1) = D0 = rhs
+        // <=>
+        // lhs = Atx + Bty + Ctz - (Atx1 + Bty1 + Ctz1) = D0 = rhs
+        // <=>
+        // lhs = t(Ax + By + Cz) - t(Ax1 + By1 + Cz1) = D0 = rhs
+        // <=>
+        // lhs = t((Ax + By + Cz) - (Ax1 + By1 + Cz1)) = D0 = rhs
+        // <=>
+        // lhs = t = D0 / ((Ax + By + Cz) - (Ax1 + By1 + Cz1)) = rhs
+
         Self {
             config,
             vertices: None,
-            canvas: RefCell::new(vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize]),
+            canvas: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
+            canvas_line_intersection_checker: Box::new(move |point_origin, point_direction_vector| {
+                let t = d0 / (
+                    normal.dot(&point_direction_vector) - normal.dot(point_origin)
+                );
+
+                point_direction_vector.0.scale(t);
+                let intersection_point = &point_origin.0 + &point_direction_vector.0;
+
+                intersection_point.into()
+            }),
             stdout_buffer: None,
         }
     }

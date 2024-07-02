@@ -131,6 +131,23 @@ impl<T: MatrixDataTrait, const LENGTH: usize> From<&[[T; 1]; LENGTH]> for Vector
     }
 }
 
+impl<T: MatrixDataTrait, const LENGTH: usize> From<Matrix<T, 1, LENGTH>> for VectorRow<T, LENGTH> {
+    fn from(matrix: Matrix<T, 1, LENGTH>) -> Self {
+        Self(
+            matrix
+        )
+    }
+}
+
+// TODO: Um, why did I have to implement this? Is this not supposed to be automatically implemented?
+impl<T: MatrixDataTrait, const LENGTH: usize> From<Matrix<T, LENGTH, 1>> for VectorColumn<T, LENGTH> {
+    fn from(matrix: Matrix<T, LENGTH, 1>) -> Self {
+        Self(
+            matrix
+        )
+    }
+}
+
 impl<T: MatrixDataTrait, const LENGTH: usize> Into<Matrix<T, 1, LENGTH>> for VectorRow<T, LENGTH> {
     fn into(self) -> Matrix<T, 1, LENGTH> {
         self.0
@@ -178,6 +195,31 @@ mod tests {
         ]);
         let matrix_col: Matrix<i64, 4, 1> = vector_col.into();
         assert!(matrix_col == Matrix::from([
+            [1],
+            [2],
+            [3],
+            [4],
+        ]));
+    }
+
+    #[test]
+    fn from_test() {
+        let matrix_row: Matrix<i64, 1, 4> = Matrix::from([
+            [1, 2, 3, 4]
+        ]);
+        let vector_row = VectorRow::<i64, 4>::from(matrix_row);
+        assert!(vector_row.0 == Matrix::from([
+            [1, 2, 3, 4]
+        ]));
+
+        let matrix_col: Matrix<i64, 4, 1> = Matrix::from([
+            [1],
+            [2],
+            [3],
+            [4],
+        ]);
+        let vector_col = VectorColumn::<i64, 4>::from(matrix_col);
+        assert!(vector_col.0 == Matrix::from([
             [1],
             [2],
             [3],

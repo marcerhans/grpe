@@ -114,6 +114,14 @@ impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, C
         matrix
     }
 
+    pub fn scale(&mut self, scale: T) {
+        for row in self.iter_mut() {
+            for cell in row.iter_mut() {
+                *cell *= scale;
+            }
+        }
+    }
+
     pub fn swap_row(&mut self, row_a: usize, row_b: usize) {
         let mut tmp;
 
@@ -378,6 +386,21 @@ mod tests {
                 [2, 6],
                 [3, 7],
                 [4, 8],
+            ]));
+        }
+
+        #[test]
+        fn scale_test() {
+            let mut matrix = Matrix::from([
+                [1, 2, 3, 4],
+                [5, 6, 7, 8],
+                [9, 10, 11, 12],
+            ]);
+            matrix.scale(2);
+            assert!(matrix == Matrix::from([
+                [2, 4, 6, 8],
+                [10, 12, 14, 16],
+                [18, 20, 22, 24],
             ]));
         }
 
