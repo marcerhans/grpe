@@ -44,8 +44,12 @@ pub fn solve_eq_system<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
         }
     }
 
-    // Normalize values
+    // Normalize values and check if solution exists.
     for pivot in 0..ROWS {
+        if equation_system[pivot][pivot] == T::zero() {
+            return None;
+        }
+
         equation_system[pivot][COLS-1] = equation_system[pivot][COLS-1] / equation_system[pivot][pivot];
         equation_system[pivot][pivot] = T::one();
     }
@@ -259,6 +263,14 @@ mod tests {
             [1, -3, 1, 4],
             [-1, 2, -5, 3],
             [5, -13, 13, 8],
+        ]);
+        assert!(solve_eq_system(&mut eq_system).is_none());
+
+        // Infinitely many solutions.
+        let mut eq_system = Matrix::from([
+            [2, 1, -3, 0],
+            [4, 2, -6, 0],
+            [1, -1, 1, 0],
         ]);
         assert!(solve_eq_system(&mut eq_system).is_none());
     }
