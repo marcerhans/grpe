@@ -1,7 +1,6 @@
 use crate::matrix::{Matrix, MatrixDataTrait};
 use crate::vector::{VectorColumn, VectorRow};
 
-
 /// Find the unique solution given an equation system using Gauss-elimination.
 /// Fails to compute (returns [None]) if there are infinitely many solutions or none.
 pub fn solve_eq_system<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>(
@@ -9,8 +8,8 @@ pub fn solve_eq_system<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
 ) -> Option<()> {
     use gauss_elimination::*;
 
-    for pivot_row in  0..ROWS {
-        let found_pivot = find_pivot(&equation_system, pivot_row, pivot_row);
+    for pivot_row in  0..(ROWS-1) {
+        let found_pivot = find_pivot(&equation_system, pivot_row, pivot_row, Direction::DOWN);
 
         if found_pivot.is_none() {
             return None;
@@ -25,18 +24,42 @@ pub fn solve_eq_system<T: MatrixDataTrait, const ROWS: usize, const COLS: usize>
         for current_row in (pivot_row+1)..ROWS {
             subtract_based_on_pivot_row(equation_system, pivot_row, pivot_row, current_row);
         }
+    }
 
-        if pivot_row == 2 {
-            break;
+    for pivot_row in  (1..ROWS).rev() {
+        let found_pivot = find_pivot(&equation_system, pivot_row, pivot_row, Direction::UP);
+
+        if found_pivot.is_none() {
+            return None;
+        }
+
+        let found_pivot = found_pivot.unwrap();
+
+        if pivot_row != found_pivot {
+            equation_system.swap_row(pivot_row, found_pivot);
+        }
+
+        for current_row in (0..pivot_row).rev() {
+            subtract_based_on_pivot_row(equation_system, pivot_row, pivot_row, current_row);
         }
     }
 
-    println!("{:?}", equation_system);
+    // Normalize values
+    for pivot in 0..ROWS {
+        equation_system[pivot][COLS-1] = equation_system[pivot][COLS-1] / equation_system[pivot][pivot];
+        equation_system[pivot][pivot] = T::one();
+    }
+
     Some(())
 }
 
 mod gauss_elimination {
     use super::*;
+
+    pub enum Direction {
+        UP,
+        DOWN,
+    }
 
     /// Find next pivot point (row) given row_start and current column.
     /// Returns the row for next suitable pivot. Otherwise returns [None].
@@ -45,11 +68,23 @@ mod gauss_elimination {
         equation_system: &Matrix<T, ROWS, COLS>,
         row_start: usize,
         column: usize,
+        direction: Direction,
     ) -> Option<usize> {
-        for row in row_start..ROWS {
-            if !equation_system[row][column].eqa(&T::zero(), &T::epsilon()) {
-                return Some(row);
+        match direction {
+            Direction::UP => {
+                for row in (0..=row_start).rev() {
+                    if !equation_system[row][column].eqa(&T::zero(), &T::epsilon()) {
+                        return Some(row);
+                    }
+                }
             }
+            Direction::DOWN => {
+                for row in row_start..ROWS {
+                    if !equation_system[row][column].eqa(&T::zero(), &T::epsilon()) {
+                        return Some(row);
+                    }
+                }
+            },
         }
 
         return None;
@@ -82,13 +117,13 @@ mod gauss_elimination {
                 [2, 3, 4, 5],
                 [6, 7, 8, 9],
             ]);
-            assert!(find_pivot(&eq_system, 0, 0).unwrap() == 0);
+            assert!(find_pivot(&eq_system, 0, 0, Direction::DOWN).unwrap() == 0);
 
             let eq_system = Matrix::from([
                 [0, 3, 4, 5],
                 [6, 7, 8, 9],
             ]);
-            assert!(find_pivot(&eq_system, 0, 0).unwrap() == 1);
+            assert!(find_pivot(&eq_system, 0, 0, Direction::DOWN).unwrap() == 1);
 
             let eq_system = Matrix::from([
                 [0, 0, 4, 5],
@@ -96,7 +131,23 @@ mod gauss_elimination {
                 [0, 0, 8, 9],
                 [0, 1, 8, 9],
             ]);
-            assert!(find_pivot(&eq_system, 2, 1).unwrap() == 3);
+            assert!(find_pivot(&eq_system, 2, 1, Direction::DOWN).unwrap() == 3);
+
+            let eq_system = Matrix::from([
+                [0, 0, 4, 5],
+                [6, 7, 8, 9],
+                [0, 0, 8, 9],
+                [0, 1, 0, 0],
+            ]);
+            assert!(find_pivot(&eq_system, 3, 2, Direction::UP).unwrap() == 2);
+
+            let eq_system = Matrix::from([
+                [0, 0, 4, 5],
+                [6, 7, 0, 0],
+                [0, 0, 8, 9],
+                [0, 1, 8, 0],
+            ]);
+            assert!(find_pivot(&eq_system, 1, 2, Direction::UP).unwrap() == 0);
         }
 
         #[test]
@@ -166,12 +217,49 @@ mod tests {
 
     #[test]
     fn solve_eq_system_test() {
+        // These tests will work well with integers and have solution.
         let mut eq_system = Matrix::from([
-            [2, 3, 4, 5],
-            [6, 7, 8, 9],
-            [10, 12, 12, 13],
-            [14, 4, 5, 17],
+            [1, 1, 1, 2],
+            [6, -4, 5, 31],
+            [5, 2, 2, 13],
         ]);
-        solve_eq_system(&mut eq_system);
+        assert!(solve_eq_system(&mut eq_system).is_some());
+        assert!(eq_system == Matrix::from([
+            [1, 0, 0, 3],
+            [0, 1, 0, -2],
+            [0, 0, 1, 1],
+        ]));
+
+        let mut eq_system = Matrix::from([
+            [1, -2, 3, 9],
+            [-1, 3, -1, -6],
+            [2, -5, 5, 17],
+        ]);
+        assert!(solve_eq_system(&mut eq_system).is_some());
+        assert!(eq_system == Matrix::from([
+            [1, 0, 0, 1],
+            [0, 1, 0, -1],
+            [0, 0, 1, 2],
+        ]));
+
+        let mut eq_system = Matrix::from([
+            [2, 1, -2, -1],
+            [3, -3, -1, 5],
+            [1, -2, 3, 6],
+        ]);
+        assert!(solve_eq_system(&mut eq_system).is_some());
+        assert!(eq_system == Matrix::from([
+            [1, 0, 0, 1],
+            [0, 1, 0, -1],
+            [0, 0, 1, 1],
+        ]));
+
+        // Should have no solution(s).
+        let mut eq_system = Matrix::from([
+            [1, -3, 1, 4],
+            [-1, 2, -5, 3],
+            [5, -13, 13, 8],
+        ]);
+        assert!(solve_eq_system(&mut eq_system).is_none());
     }
 }
