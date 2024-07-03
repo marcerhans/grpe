@@ -58,8 +58,8 @@ pub struct Terminal<'a> {
     vertices: Option<&'a [VectorRow<f64, 3>]>,
     // line_draw_order: Vec<usize>, // TODO
     canvas: Vec<Vec<char>>,
-    /// Fn(vertex_origin, vertex_direction_vector_to_viewpoint) -> Point at which the line crosses the canvas plane.
-    canvas_line_intersection_checker: Box<dyn Fn(&mut VectorRow<f64, 3>, &mut VectorRow<f64, 3>) -> VectorRow<f64, 3>>,
+    /// Fn(vertex_origin) -> Point at which the line crosses the canvas plane.
+    canvas_line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>,
     stdout_buffer: Option<BufWriter<StdoutLock<'static>>>,
 }
 
@@ -146,43 +146,53 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
     fn new(config: RendererConfiguration) -> Self {
         let resolution = config.camera.resolution;
 
-        let normal = config.camera.position.clone();
+        let camera = config.camera.clone();
+        let d0 = config.camera.direction.dot(&config.camera.position);
 
-        // A(x - x0) + B(y - y0) + C(z - z0) = 0
-        // lhs = Ax + By + Cz = Ax0 + By0 + Cz0 = D0 = rhs
-        let d0 = config.camera.direction.dot(&normal);
-        // if (x,y,z) is a line with origin + direction vector (t being a scalar) then:
-        // lhs = At(x-x1) + Bt(y-y1) + Ct(z-z1) = D0 = rhs
-        // <=>
-        // lhs = Atx + Bty + Ctz - (Atx1 + Bty1 + Ctz1) = D0 = rhs
-        // <=>
-        // lhs = t(Ax + By + Cz) - t(Ax1 + By1 + Cz1) = D0 = rhs
-        // <=>
-        // lhs = t((Ax + By + Cz) - (Ax1 + By1 + Cz1)) = D0 = rhs
-        // <=>
-        // lhs = t = D0 / ((Ax + By + Cz) - (Ax1 + By1 + Cz1)) = rhs
+        // TODO: Fix a viewpoint based on configuration camera FOV. Fake one for now.
+        // Currently only written to make test behave as intended.
+        let viewpoint = VectorRow::from([-2.0, -4.0, 0.0]);
 
         Self {
-            config,
             vertices: None,
             canvas: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
-            canvas_line_intersection_checker: Box::new(move |point_origin, point_direction_vector| {
-                let t = d0 / (
-                    normal.dot(&point_direction_vector) - normal.dot(point_origin)
-                );
+            canvas_line_intersection_checker: Box::new(move |vertex_origin| {
+                // TODO: Give explanation to equation...
 
-                point_direction_vector.0.scale(t);
-                let intersection_point = &point_origin.0 + &point_direction_vector.0;
+                let normal = &camera.direction;
+                let d1 = normal.dot(&viewpoint);
+                let mut viewpoint_to_vertex_direction_vector = VectorRow::from(&vertex_origin.0 - &viewpoint.0);
+                let divisor = normal.dot(&viewpoint_to_vertex_direction_vector);
 
-                intersection_point.into()
+                if divisor.abs() < f64::EPSILON {
+                    return None;
+                }
+
+                let t = (d0 - d1) / divisor;
+                viewpoint_to_vertex_direction_vector.0.scale(t);
+                Some((&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into())
             }),
             stdout_buffer: None,
+            config,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{RendererConfiguration, RendererTrait};
-    use super::Terminal;
+    use super::*;
+
+    #[test]
+    fn canvas_line_intersection_checker_test() {
+        let renderer = TerminalBuilder::default().with_camera(Camera {
+            resolution: (32, 32),
+            position: VectorRow::from([4.0, 5.0, 0.0]),
+            direction: VectorRow::from([1.0, 3.0, 0.0]),
+            fov: 90,
+        }).build();
+        match (renderer.canvas_line_intersection_checker)(&VectorRow::from([-2.0, -3.0, 0.0])) {
+            Some(intersection_point) => assert!(intersection_point.0 == VectorRow::from([-2.0, 7.0, 0.0]).0, "{:?}", intersection_point),
+            None => panic!()
+        }
+    }
 }
