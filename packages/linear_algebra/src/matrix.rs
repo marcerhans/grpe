@@ -132,6 +132,18 @@ impl<T: MatrixDataTrait, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, C
         }
     }
 
+    pub fn eqa(&self, other: &Self, accuracy: &T) -> bool {
+        for (row_this, row_other) in self.iter().zip(other.iter()) {
+            for (cell_this, cell_other) in row_this.iter().zip(row_other.iter()) {
+                if !cell_this.eqa(cell_other, accuracy) {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+
     pub fn swap_col(&mut self, col_a: usize, col_b: usize) {
         let mut tmp;
 

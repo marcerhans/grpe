@@ -55,9 +55,11 @@ impl<'a> RendererBuilderTrait<'a> for TerminalBuilder {
 /// Canvas to draw on.
 struct Canvas {
     buffer: Vec<Vec<char>>,
+    /// Arg0: Vertex
+    /// Return: None if no intersection found. Otherwise point at which line between vertex and viewpoint intersects the viewport.
     line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>,
-    viewport: VectorRow<f64, 3>,
     viewpoint: VectorRow<f64, 3>,
+    normal: VectorRow<f64, 3>,
 }
 
 /// Terminal renderer.
@@ -74,7 +76,7 @@ impl<'a> Terminal<'a> {
     fn calc_viewpoint_position(position: &VectorRow<f64, 3>, resolution: &(u64, u64), fov: &u64) -> VectorRow<f64, 3> {
         VectorRow::<f64, 3>::from([
             position[0],
-            position[1] - resolution.0 as f64 / f64::tan(*fov as f64 / 2.0),
+            position[1] - (resolution.0 as f64 / 2.0) / f64::tan((*fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
             position[2],
         ])
     }
@@ -162,16 +164,32 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
 
         // Determine viewpoint position BEFORE rotating.
         let viewpoint = Terminal::calc_viewpoint_position(&config.camera.position, &config.camera.resolution, &config.camera.fov);
+        let normal = VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]); // This will always be true.
+        let d0 = normal.dot(&config.camera.position);
+        let d1 = normal.dot(&viewpoint);
+
+        // TODO: Perform rotations (will change viewpoint, normal, d0, d1, ...)
 
         Self {
             vertices: None,
             canvas: Canvas { 
                 buffer: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
-                line_intersection_checker: Box::new(move |_| {
-                    todo!()
+                viewpoint: viewpoint.clone(),
+                normal: normal.clone(),
+                line_intersection_checker: Box::new(move |vertex_origin| {
+                    let d0 = d0;
+                    let d1 = d1;
+                    let mut viewpoint_to_vertex_direction_vector = VectorRow::from(&vertex_origin.0 - &viewpoint.0);
+                    let divisor = normal.dot(&viewpoint_to_vertex_direction_vector);
+
+                    if divisor.abs() < f64::EPSILON {
+                        return None;
+                    }
+
+                    let t = (d0 - d1) / divisor;
+                    viewpoint_to_vertex_direction_vector.0.scale(t);
+                    Some((&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into())
                 }),
-                viewport: VectorRow::<f64, 3>::from([0.0, 0.0, 0.0]),
-                viewpoint: VectorRow::<f64, 3>::from([0.0, 0.0, 0.0]),
             },
             stdout_buffer: None,
             config,
@@ -184,15 +202,22 @@ mod tests {
     use super::*;
 
     #[test]
+    fn foo() {
+        let a = 4 as f64;
+        let b = 90 as f64 / 2.0;
+        let c = f64::tan(b * (std::f64::consts::PI / 180.0));
+        println!("foo");
+    }
+
+    #[test]
     fn canvas_line_intersection_checker_test() {
         let renderer = TerminalBuilder::default().with_camera(Camera {
-            resolution: (32, 32),
-            position: VectorRow::from([4.0, 5.0, 0.0]),
-            // rotation: VectorRow::from([1.0, 3.0, 0.0]),
+            resolution: (4, 4),
+            position: VectorRow::from([0.0, 0.0, 0.0]),
             fov: 90,
         }).build();
-        match (renderer.canvas.line_intersection_checker)(&VectorRow::from([-2.0, -3.0, 0.0])) {
-            Some(intersection_point) => assert!(intersection_point.0 == VectorRow::from([-2.0, 7.0, 0.0]).0, "{:?}", intersection_point),
+        match (renderer.canvas.line_intersection_checker)(&VectorRow::from([-2.0, 2.0, 0.0])) {
+            Some(intersection_point) => assert!(intersection_point.0.eqa(&VectorRow::from([-1.0, 0.0, 0.0]).0, &0.001), "{:?}", intersection_point),
             None => panic!()
         }
     }
