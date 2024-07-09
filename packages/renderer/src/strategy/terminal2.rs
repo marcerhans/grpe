@@ -144,33 +144,13 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
 
 impl<'a> __RendererTrait<'a> for Terminal<'a> {
     fn new(config: RendererConfiguration) -> Self {
-        let resolution = config.camera.resolution;
-
-        let camera = config.camera.clone();
-        let d0 = config.camera.direction.dot(&config.camera.position);
-
-        // TODO: Fix a viewpoint based on configuration camera FOV. Fake one for now.
-        // Currently only written to make test behave as intended.
-        let viewpoint = VectorRow::from([-2.0, -4.0, 0.0]);
+        let resolution = &config.camera.resolution;
 
         Self {
             vertices: None,
             canvas: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
-            canvas_line_intersection_checker: Box::new(move |vertex_origin| {
-                // TODO: Give explanation to equation...
-
-                let normal = &camera.direction;
-                let d1 = normal.dot(&viewpoint);
-                let mut viewpoint_to_vertex_direction_vector = VectorRow::from(&vertex_origin.0 - &viewpoint.0);
-                let divisor = normal.dot(&viewpoint_to_vertex_direction_vector);
-
-                if divisor.abs() < f64::EPSILON {
-                    return None;
-                }
-
-                let t = (d0 - d1) / divisor;
-                viewpoint_to_vertex_direction_vector.0.scale(t);
-                Some((&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into())
+            canvas_line_intersection_checker: Box::new(move |_| {
+                todo!()
             }),
             stdout_buffer: None,
             config,
@@ -187,7 +167,7 @@ mod tests {
         let renderer = TerminalBuilder::default().with_camera(Camera {
             resolution: (32, 32),
             position: VectorRow::from([4.0, 5.0, 0.0]),
-            direction: VectorRow::from([1.0, 3.0, 0.0]),
+            // rotation: VectorRow::from([1.0, 3.0, 0.0]),
             fov: 90,
         }).build();
         match (renderer.canvas_line_intersection_checker)(&VectorRow::from([-2.0, -3.0, 0.0])) {

@@ -129,7 +129,6 @@ fn main() {
         .with_camera(Camera {
             resolution: (32, 32),
             position: VectorRow::from([0.0, -1.0, 0.0]),
-            direction: VectorRow::from([0.0, -1.0, 0.0]),
             fov: 90,
         })
         .build();

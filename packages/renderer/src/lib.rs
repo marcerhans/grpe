@@ -10,7 +10,7 @@ pub use linear_algebra::{matrix::{Matrix, MatrixDataTrait}, vector::VectorRow};
 pub struct Camera {
     pub resolution: (u64, u64),
     pub position: VectorRow<f64, 3>,
-    pub direction: VectorRow<f64, 3>,
+    // pub rotation: VectorRow<f64, 3>,
     pub fov: u64,
 }
 
@@ -19,7 +19,7 @@ impl Default for Camera {
         Self {
             resolution: (32, 32),
             position: VectorRow::from([0.0, -1.0, 0.0]),
-            direction: VectorRow::from([0.0, 1.0, 0.0]),
+            // rotation: VectorRow::from([0.0, 1.0, 0.0]),
             fov: 90,
         }
     }
