@@ -165,8 +165,6 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
         // Determine viewpoint position BEFORE rotating.
         let viewpoint = Terminal::calc_viewpoint_position(&config.camera.position, &config.camera.resolution, &config.camera.fov);
         let normal = VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]); // This will always be true.
-        let d0 = normal.dot(&config.camera.position);
-        let d1 = normal.dot(&viewpoint);
 
         // TODO: Perform rotations (will change viewpoint, normal, d0, d1, ...)
 
@@ -176,20 +174,25 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
                 buffer: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
                 viewpoint: viewpoint.clone(),
                 normal: normal.clone(),
-                line_intersection_checker: Box::new(move |vertex_origin| {
-                    let d0 = d0;
-                    let d1 = d1;
-                    let mut viewpoint_to_vertex_direction_vector = VectorRow::from(&vertex_origin.0 - &viewpoint.0);
-                    let divisor = normal.dot(&viewpoint_to_vertex_direction_vector);
+                line_intersection_checker: Box::new({
+                    let viewpoint = viewpoint;
+                    let normal = normal;
+                    let d0 = normal.dot(&config.camera.position);
+                    let d1 = normal.dot(&viewpoint);
 
-                    if divisor.abs() < f64::EPSILON {
-                        return None;
+                    move |vertex_origin| {
+                        let mut viewpoint_to_vertex_direction_vector = VectorRow::from(&vertex_origin.0 - &viewpoint.0);
+                        let divisor = normal.dot(&viewpoint_to_vertex_direction_vector);
+
+                        if divisor.abs() < f64::EPSILON {
+                            return None;
+                        }
+
+                        let t = (d0 - d1) / divisor;
+                        viewpoint_to_vertex_direction_vector.0.scale(t);
+                        Some((&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into())
                     }
-
-                    let t = (d0 - d1) / divisor;
-                    viewpoint_to_vertex_direction_vector.0.scale(t);
-                    Some((&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into())
-                }),
+                })
             },
             stdout_buffer: None,
             config,
