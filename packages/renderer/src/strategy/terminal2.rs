@@ -52,22 +52,32 @@ impl<'a> RendererBuilderTrait<'a> for TerminalBuilder {
     }
 }
 
-/// Typed state terminal renderer.
+/// Canvas to draw on.
+struct Canvas {
+    buffer: Vec<Vec<char>>,
+    line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>,
+    viewport: VectorRow<f64, 3>,
+    viewpoint: VectorRow<f64, 3>,
+}
+
+/// Terminal renderer.
 pub struct Terminal<'a> {
     config: RendererConfiguration,
     vertices: Option<&'a [VectorRow<f64, 3>]>,
-    // line_draw_order: Vec<usize>, // TODO
-    canvas: Vec<Vec<char>>,
-    /// Fn(vertex_origin) -> Point at which the line crosses the canvas plane.
-    canvas_line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>,
+    canvas: Canvas,
     stdout_buffer: Option<BufWriter<StdoutLock<'static>>>,
 }
 
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
 impl<'a> Terminal<'a> {
+    /// Calculates the viewpoint position in order to fulfill the requested FOV.
+    fn calc_viewpoint_position(position: &VectorRow<f64, 3>, resolution: &(u64, u64), fov: &u64) {
+
+    }
+
     /// Clear the canvas buffer and the terminal screen.
     fn clear(&mut self) {
-        for v in self.canvas.iter_mut() {
+        for v in self.canvas.buffer.iter_mut() {
             for c in v.iter_mut() {
                 *c = character::EMPTY;
             }
@@ -104,7 +114,7 @@ impl<'a> Terminal<'a> {
     fn print_to_terminal(&mut self) {
         let stdout = self.stdout_buffer.as_mut().unwrap();
 
-        for character_row in self.canvas.iter() {
+        for character_row in self.canvas.buffer.iter() {
             for character in character_row.iter() {
                 write!(stdout, "{character}").unwrap();
             }
@@ -146,12 +156,19 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
     fn new(config: RendererConfiguration) -> Self {
         let resolution = &config.camera.resolution;
 
+        // Determine viewpoint position BEFORE rotating.
+        let viewpoint = Terminal::calc_viewpoint_position(&config.camera.position, &config.camera.resolution, &config.camera.fov);
+
         Self {
             vertices: None,
-            canvas: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
-            canvas_line_intersection_checker: Box::new(move |_| {
-                todo!()
-            }),
+            canvas: Canvas { 
+                buffer: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
+                line_intersection_checker: Box::new(move |_| {
+                    todo!()
+                }),
+                viewport: VectorRow::<f64, 3>::from([0.0, 0.0, 0.0]),
+                viewpoint: VectorRow::<f64, 3>::from([0.0, 0.0, 0.0]),
+            },
             stdout_buffer: None,
             config,
         }
@@ -170,7 +187,7 @@ mod tests {
             // rotation: VectorRow::from([1.0, 3.0, 0.0]),
             fov: 90,
         }).build();
-        match (renderer.canvas_line_intersection_checker)(&VectorRow::from([-2.0, -3.0, 0.0])) {
+        match (renderer.canvas.line_intersection_checker)(&VectorRow::from([-2.0, -3.0, 0.0])) {
             Some(intersection_point) => assert!(intersection_point.0 == VectorRow::from([-2.0, 7.0, 0.0]).0, "{:?}", intersection_point),
             None => panic!()
         }
