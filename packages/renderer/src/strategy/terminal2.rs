@@ -71,8 +71,12 @@ pub struct Terminal<'a> {
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
 impl<'a> Terminal<'a> {
     /// Calculates the viewpoint position in order to fulfill the requested FOV.
-    fn calc_viewpoint_position(position: &VectorRow<f64, 3>, resolution: &(u64, u64), fov: &u64) {
-
+    fn calc_viewpoint_position(position: &VectorRow<f64, 3>, resolution: &(u64, u64), fov: &u64) -> VectorRow<f64, 3> {
+        VectorRow::<f64, 3>::from([
+            position[0],
+            position[1] - resolution.0 as f64 / f64::tan(*fov as f64 / 2.0),
+            position[2],
+        ])
     }
 
     /// Clear the canvas buffer and the terminal screen.

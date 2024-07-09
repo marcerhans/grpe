@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::{Index, IndexMut}};
 
 use crate::matrix::{Matrix, MatrixDataTrait};
 
@@ -157,6 +157,42 @@ impl<T: MatrixDataTrait, const LENGTH: usize> Into<Matrix<T, 1, LENGTH>> for Vec
 impl<T: MatrixDataTrait, const LENGTH: usize> Into<Matrix<T, LENGTH, 1>> for VectorColumn<T, LENGTH> {
     fn into(self) -> Matrix<T, LENGTH, 1> {
         self.0
+    }
+}
+
+impl<T: MatrixDataTrait, const LENGTH: usize> Index<usize>
+    for VectorRow<T, LENGTH>
+{
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[0][index]
+    }
+}
+
+impl<T: MatrixDataTrait, const LENGTH: usize> IndexMut<usize>
+    for VectorRow<T, LENGTH>
+{
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.0[0][index]
+    }
+}
+
+impl<T: MatrixDataTrait, const LENGTH: usize> Index<usize>
+    for VectorColumn<T, LENGTH>
+{
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index][0]
+    }
+}
+
+impl<T: MatrixDataTrait, const LENGTH: usize> IndexMut<usize>
+    for VectorColumn<T, LENGTH>
+{
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.0[index][0]
     }
 }
 
