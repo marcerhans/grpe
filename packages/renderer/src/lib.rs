@@ -63,7 +63,7 @@ pub trait RendererTrait<'a> {
     fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str>;
 
     /// Vertices are used as "anchors"/"points in space" from which lines can be drawn.
-    fn set_vertices(&'a mut self, vertices: &'a [VectorRow<f64, 3>]);
+    fn set_vertices(&mut self, vertices: &'a [VectorRow<f64, 3>]);
 
     /// Index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
     /// 
@@ -77,7 +77,7 @@ pub trait RendererTrait<'a> {
     /// some_already_configured_renderer.set_vertices(&vertices);
     /// some_already_configured_renderer.set_vertices_line_draw_order(&draw_order);
     /// ```
-    fn set_vertices_line_draw_order(&'a mut self, order: &'a [&'a [usize]]);
+    fn set_vertices_line_draw_order(&mut self, order: &'a [&'a [usize]]);
 
     /// Do the render! What is rendered in the final artefact is decided the the [RenderOption]s.
     fn render(&mut self);

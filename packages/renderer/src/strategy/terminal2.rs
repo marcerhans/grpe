@@ -141,11 +141,11 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
         Ok(())
     }
 
-    fn set_vertices(&'a mut self, vertices: &'a [VectorRow<f64, 3>]) {
+    fn set_vertices(&mut self, vertices: &'a [VectorRow<f64, 3>]) {
         self.vertices = Some(vertices);
     }
 
-    fn set_vertices_line_draw_order(&'a mut self, order: &'a [&'a [usize]]) {
+    fn set_vertices_line_draw_order(&mut self, order: &'a [&'a [usize]]) {
         todo!("Implement this later")
     }
 

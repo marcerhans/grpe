@@ -120,6 +120,9 @@ fn main() {
         // Matrix::from_array([[-7.0, 10.0, 0.0]]),
         // Matrix::from_array([[8.0, -10.0, 0.0]]),
     // ];
+    let vertices = vec![
+        VectorRow::from([0.0, 0.0, 0.0]),
+    ];
 
     // 2. Define line order
     let line_draw_order = vec![vec![0, 1], vec![0, 2]];
@@ -144,7 +147,7 @@ fn main() {
     loop {
         // Loop
         thread::sleep(Duration::from_millis(100));
-        // renderer.set_vertices(&vertices);
+        renderer.set_vertices(&vertices);
         renderer.render();
         // *vertices[0].index_mut(0, 0) += 2.0;
         // // *vertices[0].index_mut(0, 1) += 5.0;
