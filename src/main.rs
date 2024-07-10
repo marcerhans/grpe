@@ -121,7 +121,7 @@ fn main() {
         // Matrix::from_array([[8.0, -10.0, 0.0]]),
     // ];
     let vertices = vec![
-        VectorRow::from([0.0, 0.0, 0.0]),
+        VectorRow::from([16.0, 100.0, 16.0]),
     ];
 
     // 2. Define line order

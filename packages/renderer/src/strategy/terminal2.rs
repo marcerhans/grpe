@@ -81,6 +81,15 @@ impl<'a> Terminal<'a> {
         ])
     }
 
+    /// Get appropriate character to use for given vertical position.
+    fn character_at(y: usize) -> char {
+        if y % 2 == 0 {
+            return character::UPPER;
+        }
+
+        character::LOWER
+    }
+
     /// Clear the canvas buffer and the terminal screen.
     fn clear(&mut self) {
         for v in self.canvas.buffer.iter_mut() {
@@ -99,7 +108,7 @@ impl<'a> Terminal<'a> {
         let mut projected_vertices = Vec::new(); // TODO: Possibly make member as self instead to not allocate memory over and over.
 
         for vertex in self.vertices.as_ref().unwrap().iter() {
-            if let Some(intersection) = (self.canvas.line_intersection_checker)(&vertex) {
+            if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
                 projected_vertices.push(intersection);
             }
         }
@@ -107,8 +116,37 @@ impl<'a> Terminal<'a> {
         projected_vertices
     }
 
-    fn render_vertices(&self) {
-        todo!()
+    fn render_vertices(&mut self, vertices: &[VectorRow<f64, 3>]) {
+        for vertex in vertices.iter() {
+            let x = vertex[0] as isize;
+            let mut z = vertex[2] as isize;
+
+            if !(z >= 0 && z < self.config.camera.resolution.1 as isize) || 
+                !(x >= 0 && x < self.config.camera.resolution.0 as isize) {
+                return;
+            }
+
+            let mut character = Self::character_at(z as usize);
+
+            z = z / 2;
+
+            let buff_val = &mut self.canvas.buffer[z as usize][x as usize];
+
+            // Is it already occupied?
+            if *buff_val == character::FULL {
+                return;
+            }
+
+            if *buff_val == character::UPPER && character == character::LOWER {
+                character = character::FULL;
+            }
+
+            if *buff_val == character::LOWER && character == character::UPPER {
+                character = character::FULL;
+            }
+
+            let _ = std::mem::replace(buff_val, character);
+        }
     }
     
     fn render_lines(&self) {
@@ -151,7 +189,7 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
     fn render(&mut self) {
         self.clear();
         let vertices_to_render = self.project_vertices_on_viewport();
-        // self.render_vertices();
+        self.render_vertices(&vertices_to_render);
         // self.render_lines();
         self.print_to_terminal();
     }
@@ -183,7 +221,7 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
 
                     // Closure.
                     move |vertex_origin| {
-                        if diff.signum() == (normal.dot(&vertex_origin) - d0).signum() {
+                        if diff.signum() == (d0 - normal.dot(&vertex_origin)).signum() {
                             // Ignore vertices which are on the wrong side of the viewport plane.
                             return None;
                         }
