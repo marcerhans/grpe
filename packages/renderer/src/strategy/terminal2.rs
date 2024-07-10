@@ -90,6 +90,12 @@ impl<'a> Terminal<'a> {
         character::LOWER
     }
 
+    fn adjust_point_to_camera_pos(camera_position: &VectorRow<f64, 3>, point: &mut VectorRow<f64, 3>) {
+        point[0] -= camera_position[0];
+        point[1] -= camera_position[1];
+        point[2] += camera_position[2]; // Terminal coordinate system is flipped in this regard.
+    }
+
     /// Clear the canvas buffer and the terminal screen.
     fn clear(&mut self) {
         for v in self.canvas.buffer.iter_mut() {
@@ -116,8 +122,10 @@ impl<'a> Terminal<'a> {
         projected_vertices
     }
 
-    fn render_vertices(&mut self, vertices: &[VectorRow<f64, 3>]) {
-        for vertex in vertices.iter() {
+    fn render_vertices(&mut self, vertices: &mut [VectorRow<f64, 3>]) {
+        for vertex in vertices.iter_mut() {
+            Terminal::adjust_point_to_camera_pos(&self.config.camera.position, vertex);
+
             let x = vertex[0] as isize;
             let mut z = vertex[2] as isize;
 
@@ -188,8 +196,8 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
 
     fn render(&mut self) {
         self.clear();
-        let vertices_to_render = self.project_vertices_on_viewport();
-        self.render_vertices(&vertices_to_render);
+        let mut vertices_to_render = self.project_vertices_on_viewport();
+        self.render_vertices(&mut vertices_to_render);
         // self.render_lines();
         self.print_to_terminal();
     }

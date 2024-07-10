@@ -121,7 +121,7 @@ fn main() {
         // Matrix::from_array([[8.0, -10.0, 0.0]]),
     // ];
     let vertices = vec![
-        VectorRow::from([16.0, 100.0, 16.0]),
+        VectorRow::from([16.0, 1.0, 16.0]),
     ];
 
     // 2. Define line order
@@ -131,7 +131,7 @@ fn main() {
     let mut renderer = TerminalBuilder::default()
         .with_camera(Camera {
             resolution: (32, 32),
-            position: VectorRow::from([0.0, -1.0, 0.0]),
+            position: VectorRow::from([0.0, 0.0, 0.0]),
             fov: 90,
         })
         .build();
@@ -146,18 +146,18 @@ fn main() {
 
     loop {
         // Loop
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(10));
         renderer.set_vertices(&vertices);
         renderer.render();
         // *vertices[0].index_mut(0, 0) += 2.0;
         // // *vertices[0].index_mut(0, 1) += 5.0;
         // *vertices[0].index_mut(0, 2) += 1.0;
 
-        // let mut config = renderer.config();
-        // *config.camera.position.index_mut(0, 0) += 0.05;
-        // *config.camera.position.index_mut(0, 1) += 0.05;
-        // *config.camera.position.index_mut(0, 2) += 0.05;
-        // let _ = renderer.set_config(config);
+        let mut config = renderer.config();
+        // config.camera.position[0] += 0.05;
+        config.camera.position[1] += 0.05;
+        // config.camera.position[2] += 0.05;
+        let _ = renderer.set_config(config.clone());
 
         // B C
         // let mut config = renderer.config();
@@ -195,5 +195,6 @@ fn main() {
         frame += 1;
 
         println!("Statistics: [FPS: {}]",  fps);
+        println!("Config: [Camera Position: {:?}]", config.camera.position);
     }
 }
