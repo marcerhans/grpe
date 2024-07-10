@@ -96,9 +96,12 @@ impl<'a> Terminal<'a> {
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera].
     /// Returns the coordinates for the projected vertices.
     fn project_vertices_on_viewport(&self) -> Vec<VectorRow<f64, 3>> {
-        let projected_vertices = Vec::new();
+        let mut projected_vertices = Vec::new(); // TODO: Possibly make member as self instead to not allocate memory over and over.
 
         for vertex in self.vertices.as_ref().unwrap().iter() {
+            if let Some(intersection) = (self.canvas.line_intersection_checker)(&vertex) {
+                projected_vertices.push(intersection);
+            }
         }
 
         projected_vertices
@@ -147,7 +150,7 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
 
     fn render(&mut self) {
         self.clear();
-        // let vertices_to_render = self.project_vertices_on_viewport();
+        let vertices_to_render = self.project_vertices_on_viewport();
         // self.render_vertices();
         // self.render_lines();
         self.print_to_terminal();
