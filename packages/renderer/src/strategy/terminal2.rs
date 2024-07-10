@@ -62,6 +62,62 @@ struct Canvas {
     normal: VectorRow<f64, 3>,
 }
 
+impl Canvas {
+    /// Calculates the viewpoint position in order to fulfill the requested FOV.
+    fn calc_viewpoint_position(position: &VectorRow<f64, 3>, resolution: &(u64, u64), fov: &u64) -> VectorRow<f64, 3> {
+        VectorRow::<f64, 3>::from([
+            position[0],
+            position[1] - (resolution.0 as f64 / 2.0) / f64::tan((*fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
+            position[2],
+        ])
+    }
+
+    fn new(config: &RendererConfiguration) -> Self {
+        let resolution = &config.camera.resolution;
+
+        // Determine viewpoint position BEFORE rotating.
+        let viewpoint = Canvas::calc_viewpoint_position(&config.camera.position, &config.camera.resolution, &config.camera.fov);
+        let normal = VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]); // This will always be true.
+
+        // TODO: Perform rotations (will change viewpoint, normal, d0, d1, ...)
+
+        Self { 
+            buffer: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
+            viewpoint: viewpoint.clone(),
+            normal: normal.clone(),
+            line_intersection_checker: Box::new({
+                // Cached values for closure.
+                let viewpoint = viewpoint;
+                let normal = normal;
+                let d0 = normal.dot(&config.camera.position);
+                let d1 = normal.dot(&viewpoint); 
+                let diff = d0 - d1;
+
+                // Closure.
+                move |vertex_origin| {
+                    if diff.signum() == (d0 - normal.dot(&vertex_origin)).signum() {
+                        // Ignore vertices which are on the wrong side of the viewport plane.
+                        return None;
+                    }
+
+                    let mut viewpoint_to_vertex_direction_vector = VectorRow::from(&vertex_origin.0 - &viewpoint.0);
+                    let divisor = normal.dot(&viewpoint_to_vertex_direction_vector);
+
+                    if divisor.abs() < f64::EPSILON {
+                        return None;
+                    }
+
+                    let t = diff / divisor;
+                    viewpoint_to_vertex_direction_vector.0.scale(t);
+
+                    Some((&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into())
+                }
+            })
+        }
+
+    }
+}
+
 /// Terminal renderer.
 pub struct Terminal<'a> {
     config: RendererConfiguration,
@@ -72,15 +128,6 @@ pub struct Terminal<'a> {
 
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
 impl<'a> Terminal<'a> {
-    /// Calculates the viewpoint position in order to fulfill the requested FOV.
-    fn calc_viewpoint_position(position: &VectorRow<f64, 3>, resolution: &(u64, u64), fov: &u64) -> VectorRow<f64, 3> {
-        VectorRow::<f64, 3>::from([
-            position[0],
-            position[1] - (resolution.0 as f64 / 2.0) / f64::tan((*fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
-            position[2],
-        ])
-    }
-
     /// Get appropriate character to use for given vertical position.
     fn character_at(y: usize) -> char {
         if y % 2 == 0 {
@@ -183,6 +230,7 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
 
     fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str> {
         self.config = config;
+        self.canvas = Canvas::new(&self.config);
         Ok(())
     }
 
@@ -205,49 +253,9 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
 
 impl<'a> __RendererTrait<'a> for Terminal<'a> {
     fn new(config: RendererConfiguration) -> Self {
-        let resolution = &config.camera.resolution;
-
-        // Determine viewpoint position BEFORE rotating.
-        let viewpoint = Terminal::calc_viewpoint_position(&config.camera.position, &config.camera.resolution, &config.camera.fov);
-        let normal = VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]); // This will always be true.
-
-        // TODO: Perform rotations (will change viewpoint, normal, d0, d1, ...)
-
         Self {
             vertices: None,
-            canvas: Canvas { 
-                buffer: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
-                viewpoint: viewpoint.clone(),
-                normal: normal.clone(),
-                line_intersection_checker: Box::new({
-                    // Cached values for closure.
-                    let viewpoint = viewpoint;
-                    let normal = normal;
-                    let d0 = normal.dot(&config.camera.position);
-                    let d1 = normal.dot(&viewpoint); 
-                    let diff = d0 - d1;
-
-                    // Closure.
-                    move |vertex_origin| {
-                        if diff.signum() == (d0 - normal.dot(&vertex_origin)).signum() {
-                            // Ignore vertices which are on the wrong side of the viewport plane.
-                            return None;
-                        }
-
-                        let mut viewpoint_to_vertex_direction_vector = VectorRow::from(&vertex_origin.0 - &viewpoint.0);
-                        let divisor = normal.dot(&viewpoint_to_vertex_direction_vector);
-
-                        if divisor.abs() < f64::EPSILON {
-                            return None;
-                        }
-
-                        let t = diff / divisor;
-                        viewpoint_to_vertex_direction_vector.0.scale(t);
-
-                        Some((&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into())
-                    }
-                })
-            },
+            canvas: Canvas::new(&config),
             stdout_buffer: None,
             config,
         }

@@ -155,7 +155,7 @@ fn main() {
 
         let mut config = renderer.config();
         // config.camera.position[0] += 0.05;
-        config.camera.position[1] += 0.05;
+        // config.camera.position[1] -= 0.05;
         // config.camera.position[2] += 0.05;
         let _ = renderer.set_config(config.clone());
 
@@ -194,7 +194,7 @@ fn main() {
 
         frame += 1;
 
-        println!("Statistics: [FPS: {}]",  fps);
+        println!("Statistics: [FPS: {}]", fps);
         println!("Config: [Camera Position: {:?}]", config.camera.position);
     }
 }
