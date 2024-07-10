@@ -95,14 +95,10 @@ impl<'a> Terminal<'a> {
 
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera].
     /// Returns the coordinates for the projected vertices.
-    /// TODO: If viewport could be a more concrete type/member of a struct, add reference here.
     fn project_vertices_on_viewport(&self) -> Vec<VectorRow<f64, 3>> {
         let projected_vertices = Vec::new();
 
         for vertex in self.vertices.as_ref().unwrap().iter() {
-            todo!(
-                "Project each vertex on the viewport plane."
-            )
         }
 
         projected_vertices
@@ -175,12 +171,20 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
                 viewpoint: viewpoint.clone(),
                 normal: normal.clone(),
                 line_intersection_checker: Box::new({
+                    // Cached values for closure.
                     let viewpoint = viewpoint;
                     let normal = normal;
                     let d0 = normal.dot(&config.camera.position);
-                    let d1 = normal.dot(&viewpoint);
+                    let d1 = normal.dot(&viewpoint); 
+                    let diff = d0 - d1;
 
+                    // Closure.
                     move |vertex_origin| {
+                        if diff.signum() == (normal.dot(&vertex_origin) - d0).signum() {
+                            // Ignore vertices which are on the wrong side of the viewport plane.
+                            return None;
+                        }
+
                         let mut viewpoint_to_vertex_direction_vector = VectorRow::from(&vertex_origin.0 - &viewpoint.0);
                         let divisor = normal.dot(&viewpoint_to_vertex_direction_vector);
 
@@ -188,8 +192,9 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
                             return None;
                         }
 
-                        let t = (d0 - d1) / divisor;
+                        let t = diff / divisor;
                         viewpoint_to_vertex_direction_vector.0.scale(t);
+
                         Some((&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into())
                     }
                 })
