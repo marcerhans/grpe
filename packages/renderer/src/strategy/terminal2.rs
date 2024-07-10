@@ -74,18 +74,29 @@ impl Canvas {
 
     fn new(config: &RendererConfiguration) -> Self {
         let resolution = &config.camera.resolution;
+        let updated = Self::update(&config);
 
+        Self { 
+            buffer: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
+            viewpoint: updated.0,
+            normal: updated.1,
+            line_intersection_checker: updated.2,
+        }
+    }
+
+    /// Returns (viewpoint, normal, line_intersection_checker).
+    /// TODO: Bit odd interaction/naming/semantics but will do for now. Split the new constructor up to avoid duplication of code...
+    fn update(config: &RendererConfiguration) -> (VectorRow<f64, 3>, VectorRow<f64, 3>, Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>) {
         // Determine viewpoint position BEFORE rotating.
         let viewpoint = Canvas::calc_viewpoint_position(&config.camera.position, &config.camera.resolution, &config.camera.fov);
         let normal = VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]); // This will always be true.
 
         // TODO: Perform rotations (will change viewpoint, normal, d0, d1, ...)
 
-        Self { 
-            buffer: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
-            viewpoint: viewpoint.clone(),
-            normal: normal.clone(),
-            line_intersection_checker: Box::new({
+        (
+            viewpoint.clone(),
+            normal.clone(),
+            Box::new({
                 // Cached values for closure.
                 let viewpoint = viewpoint;
                 let normal = normal;
@@ -113,8 +124,7 @@ impl Canvas {
                     Some((&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into())
                 }
             })
-        }
-
+        )
     }
 }
 
@@ -230,7 +240,10 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
 
     fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str> {
         self.config = config;
-        self.canvas = Canvas::new(&self.config);
+        let updated = Canvas::update(&self.config);
+        self.canvas.viewpoint = updated.0;
+        self.canvas.normal = updated.1;
+        self.canvas.line_intersection_checker = updated.2;
         Ok(())
     }
 
