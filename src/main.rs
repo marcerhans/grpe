@@ -121,7 +121,7 @@ fn main() {
         // Matrix::from_array([[8.0, -10.0, 0.0]]),
     // ];
     let vertices = vec![
-        VectorRow::from([16.0, 1.0, 16.0]),
+        VectorRow::from([0.0, 1.0, 0.0]),
     ];
 
     // 2. Define line order
@@ -154,9 +154,9 @@ fn main() {
         // *vertices[0].index_mut(0, 2) += 1.0;
 
         let mut config = renderer.config();
-        config.camera.position[0] -= 0.05;
+        // config.camera.position[0] -= 0.05;
         // config.camera.position[1] -= 0.05;
-        config.camera.position[2] += 0.05;
+        // config.camera.position[2] += 0.05;
         let _ = renderer.set_config(config.clone());
 
         // B C

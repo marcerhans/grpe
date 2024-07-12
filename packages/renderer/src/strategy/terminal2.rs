@@ -179,12 +179,17 @@ impl<'a> Terminal<'a> {
         projected_vertices
     }
 
+    /// Maps projected vertices to a canvas buffer.
+    /// TODO: Currently does not work with rotation :(((
     fn render_vertices(&mut self, vertices: &mut [VectorRow<f64, 3>]) {
         for vertex in vertices.iter_mut() {
             Terminal::adjust_point_to_camera_pos(&self.config.camera.position, vertex);
 
-            let x = vertex[0] as isize;
+            let mut x = vertex[0] as isize;
             let mut z = vertex[2] as isize;
+
+            x += (self.config.camera.resolution.0 / 2) as isize;
+            z += (self.config.camera.resolution.1 / 2) as isize;
 
             if !(z >= 0 && z < self.config.camera.resolution.1 as isize) || 
                 !(x >= 0 && x < self.config.camera.resolution.0 as isize) {
@@ -219,7 +224,7 @@ impl<'a> Terminal<'a> {
     }
     
     /// Print canvas buffer to terminal.
-    fn print_to_terminal(&mut self) {
+    fn print_to_stdout(&mut self) {
         let stdout = self.stdout_buffer.as_mut().unwrap();
 
         for character_row in self.canvas.buffer.iter() {
@@ -260,7 +265,7 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
         let mut vertices_to_render = self.project_vertices_on_viewport();
         self.render_vertices(&mut vertices_to_render);
         // self.render_lines();
-        self.print_to_terminal();
+        self.print_to_stdout();
     }
 }
 
