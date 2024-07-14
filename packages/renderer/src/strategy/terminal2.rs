@@ -114,6 +114,7 @@ impl Canvas {
 pub struct Terminal<'a> {
     config: RendererConfiguration,
     vertices: Option<&'a [VectorRow<f64, 3>]>,
+    vertices_projected: Vec<VectorRow<f64, 3>>,
     canvas: Canvas,
     stdout_buffer: Option<BufWriter<StdoutLock<'static>>>,
 }
@@ -142,22 +143,19 @@ impl<'a> Terminal<'a> {
     }
 
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera]/[Canvas].
-    /// Returns the coordinates for the projected vertices.
-    fn project_vertices_on_viewport(&self) -> Vec<VectorRow<f64, 3>> {
-        let mut projected_vertices = Vec::new(); // TODO: Possibly make member as self instead to not allocate memory over and over.
+    fn project_vertices_on_viewport(&mut self) {
+        self.vertices_projected.clear();
 
         for vertex in self.vertices.as_ref().unwrap().iter() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
-                projected_vertices.push(intersection);
+                self.vertices_projected.push(intersection);
             }
         }
-
-        projected_vertices
     }
 
     /// Maps projected vertices to a [Canvas::buffer].
-    fn map_vertices_to_canvas_buffer(&mut self, vertices: &mut [VectorRow<f64, 3>]) {
-        for vertex in vertices.iter() {
+    fn map_vertices_to_canvas_buffer(&mut self) {
+        for vertex in self.vertices_projected.iter() {
             // Extract and adjust vertex position for terminal coordinates.
             let x = (vertex[0] as isize) + (self.config.camera.resolution.0 / 2 - 1) as isize;
             let mut z = vertex[2] as isize + (self.config.camera.resolution.1 / 2 - 1) as isize;
@@ -238,9 +236,9 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
     fn render(&mut self) {
         self.clear();
         // TODO: Rotate canvas. (Step 2).
-        let mut vertices_to_render = self.project_vertices_on_viewport();
+        self.project_vertices_on_viewport();
         // TODO: Rotate canvas back to 0,0,0. (Step 4).
-        self.map_vertices_to_canvas_buffer(&mut vertices_to_render);
+        self.map_vertices_to_canvas_buffer();
         self.print_canvas_buffer_to_stdout();
     }
 }
@@ -249,6 +247,7 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
     fn new(config: RendererConfiguration) -> Self {
         Self {
             vertices: None,
+            vertices_projected: Vec::with_capacity((config.camera.resolution.0 * config.camera.resolution.1) as usize),
             canvas: Canvas::new(&config),
             stdout_buffer: None,
             config,

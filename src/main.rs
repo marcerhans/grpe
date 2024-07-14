@@ -121,11 +121,23 @@ fn main() {
         // Matrix::from_array([[8.0, -10.0, 0.0]]),
     // ];
     let vertices = vec![
-        VectorRow::from([0.0,  100.0, 0.0]),
-        VectorRow::from([-4.0, 100.0, 4.0]),
-        VectorRow::from([-4.0, 100.0, -4.0]),
-        VectorRow::from([4.0,  100.0, 4.0]),
-        VectorRow::from([4.0,  100.0, -4.0]),
+        // VectorRow::from([0.0,  50.0, 0.0]),
+        // VectorRow::from([0.0, 50.0, 4.0]),
+        // VectorRow::from([0.0, 50.0, -4.0]),
+        // VectorRow::from([4.0,  50.0, 0.0]),
+        // VectorRow::from([-4.0,  50.0, 0.0]),
+
+        // VectorRow::from([0.0,  200.0, 0.0]),
+        // VectorRow::from([-4.0, 200.0, 4.0]),
+        // VectorRow::from([-4.0, 200.0, -4.0]),
+        // VectorRow::from([4.0,  200.0, 4.0]),
+        // VectorRow::from([4.0,  200.0, -4.0]),
+
+        VectorRow::from([2.0,  50.0, 0.0]),
+        VectorRow::from([8.0,  100.0, 0.0]),
+        VectorRow::from([16.0,  200.0, 0.0]),
+        VectorRow::from([32.0,  400.0, 0.0]),
+        VectorRow::from([64.0,  800.0, 0.0]),
     ];
 
     // 2. Define line order
@@ -134,9 +146,9 @@ fn main() {
     // 3. Render()
     let mut renderer = TerminalBuilder::default()
         .with_camera(Camera {
-            resolution: (64, 64),
-            position: VectorRow::from([0.0, -1.0, 0.0]),
-            fov: 1,
+            resolution: (80, 80),
+            position: VectorRow::from([0.0, 0.0, 0.0]),
+            fov: 20,
         })
         .build();
 
@@ -150,7 +162,7 @@ fn main() {
 
     loop {
         // Loop
-        thread::sleep(Duration::from_millis(10));
+        // thread::sleep(Duration::from_millis(100));
         renderer.set_vertices(&vertices);
         renderer.render();
         // *vertices[0].index_mut(0, 0) += 2.0;
@@ -158,9 +170,9 @@ fn main() {
         // *vertices[0].index_mut(0, 2) += 1.0;
 
         let mut config = renderer.config();
-        // config.camera.position[0] -= 0.5;
+        // config.camera.position[0] -= 2.0;
         // config.camera.position[1] += 0.05;
-        // config.camera.position[2] += 0.5;
+        config.camera.position[2] += 0.5;
 
         // config.camera.fov += 1;
         // if config.camera.fov == 100 {
