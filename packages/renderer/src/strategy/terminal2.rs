@@ -61,7 +61,7 @@ impl Canvas {
     /// Calculates the viewpoint position in order to fulfill the requested FOV.
     fn calc_viewpoint_position(position: &VectorRow<f64, 3>, resolution: &(u64, u64), fov: &u64) -> VectorRow<f64, 3> {
         VectorRow::<f64, 3>::from([
-            position[0],
+            -position[0], // TODO: This feels a bit odd, but seemingly it has to be this...? I might be something in during mapping to buffer that makes this logical.
             position[1] - (resolution.0 as f64 / 2.0) / f64::tan((*fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
             position[2],
         ])
