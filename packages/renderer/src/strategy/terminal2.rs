@@ -139,7 +139,7 @@ impl<'a> Terminal<'a> {
         }
 
         self.stdout_buffer = Some(BufWriter::new(std::io::stdout().lock()));
-        write!(self.stdout_buffer.as_mut().unwrap(), "{}{}", ansi::CLEAR_SCREEN, ansi::GO_TO_0_0).unwrap();
+        write!(self.stdout_buffer.as_mut().unwrap(), "{}", ansi::GO_TO_0_0).unwrap();
     }
 
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera]/[Canvas].
@@ -245,6 +245,8 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
 
 impl<'a> __RendererTrait<'a> for Terminal<'a> {
     fn new(config: RendererConfiguration) -> Self {
+        print!("{}{}", ansi::CLEAR_SCREEN, ansi::GO_TO_0_0);
+
         Self {
             vertices: None,
             vertices_projected: Vec::with_capacity((config.camera.resolution.0 * config.camera.resolution.1) as usize),
