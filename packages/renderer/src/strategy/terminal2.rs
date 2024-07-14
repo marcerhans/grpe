@@ -69,11 +69,10 @@ impl Canvas {
 
     fn new(config: &RendererConfiguration) -> Self {
         let resolution = &config.camera.resolution;
-        let checker = Self::create_intersection_checker(&config);
 
         Self { 
             buffer: vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize],
-            line_intersection_checker: checker,
+            line_intersection_checker: Self::create_intersection_checker(&config),
         }
     }
     
@@ -81,13 +80,14 @@ impl Canvas {
     fn create_intersection_checker(config: &RendererConfiguration) -> Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>> {
         Box::new({
             // Cached values for closure.
-            let viewpoint = Canvas::calc_viewpoint_position(&config.camera.position, &config.camera.resolution, &config.camera.fov);
+            let viewpoint = Self::calc_viewpoint_position(&config.camera.position, &config.camera.resolution, &config.camera.fov);
             let normal = VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]); // This will always be true (done before rotation).
             let d0 = normal.dot(&config.camera.position);
             let d1 = normal.dot(&viewpoint); 
             let diff = d0 - d1;
 
             // Closure.
+            // (This is based on the plane formula and the parametric form of the line from the viewpoint to a vertex).
             move |vertex_origin| {
                 if diff.signum() == (d0 - normal.dot(&vertex_origin)).signum() {
                     // Ignore vertices which are on the wrong side of the viewport plane.
@@ -129,12 +129,6 @@ impl<'a> Terminal<'a> {
         character::LOWER
     }
 
-    fn adjust_point_to_camera_pos(camera_position: &VectorRow<f64, 3>, point: &mut VectorRow<f64, 3>) {
-        point[0] -= camera_position[0];
-        point[1] -= camera_position[1];
-        point[2] += camera_position[2]; // Terminal coordinate system is flipped in this regard.
-    }
-
     /// Clear the canvas buffer and the terminal screen.
     fn clear(&mut self) {
         for v in self.canvas.buffer.iter_mut() {
@@ -164,19 +158,22 @@ impl<'a> Terminal<'a> {
     /// Maps projected vertices to a [Canvas::buffer].
     fn map_vertices_to_canvas_buffer(&mut self, vertices: &mut [VectorRow<f64, 3>]) {
         for vertex in vertices.iter() {
-            let x = vertex[0] as isize;
-            let mut z = vertex[2] as isize;
+            // Extract and adjust vertex position for terminal coordinates.
+            let x = (vertex[0] as isize) + (self.config.camera.resolution.0 / 2 - 1) as isize;
+            let mut z = vertex[2] as isize + (self.config.camera.resolution.1 / 2 - 1) as isize;
 
-            if !(z >= 0 && z < self.config.camera.resolution.1 as isize) || 
-                !(x >= 0 && x < self.config.camera.resolution.0 as isize) {
+            // Only show vertices within view of [Camera].
+            if !(x >= 0 && x < self.config.camera.resolution.0 as isize) ||
+               !(z >= 0 && z < self.config.camera.resolution.1 as isize)
+            {
                 return;
             }
 
+            // (Some z-axis gymnastics below due to terminal characters always taking two slots.)
             let mut character = Self::character_at(z as usize);
             z = z / 2;
             let buff_val = &mut self.canvas.buffer[z as usize][x as usize];
 
-            // (Some z-axis gymnastics below)
             // Is it already filled?
             if *buff_val == character::FULL {
                 return;
@@ -240,8 +237,9 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
 
     fn render(&mut self) {
         self.clear();
-        // TODO: Rotate canvas.
+        // TODO: Rotate canvas. (Step 2).
         let mut vertices_to_render = self.project_vertices_on_viewport();
+        // TODO: Rotate canvas back to 0,0,0. (Step 4).
         self.map_vertices_to_canvas_buffer(&mut vertices_to_render);
         self.print_canvas_buffer_to_stdout();
     }
