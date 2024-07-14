@@ -121,7 +121,7 @@ fn main() {
         // Matrix::from_array([[8.0, -10.0, 0.0]]),
     // ];
     let vertices = vec![
-        VectorRow::from([0.0, 1.0, 0.0]),
+        VectorRow::from([16.0, 0.0, 16.0]),
     ];
 
     // 2. Define line order
@@ -131,7 +131,7 @@ fn main() {
     let mut renderer = TerminalBuilder::default()
         .with_camera(Camera {
             resolution: (32, 32),
-            position: VectorRow::from([0.0, 0.0, 0.0]),
+            position: VectorRow::from([0.0, -1.0, 0.0]),
             fov: 90,
         })
         .build();
