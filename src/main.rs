@@ -94,7 +94,7 @@ fn main() {
 
         let mut config = renderer.config();
         // config.camera.position[0] += 1.0;
-        config.camera.position[1] += 0.05;
+        // config.camera.position[1] += 0.05;
         // config.camera.position[2] += 0.5;
 
         // config.camera.fov += 1;

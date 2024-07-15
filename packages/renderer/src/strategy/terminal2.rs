@@ -1,5 +1,5 @@
-use std::io::BufWriter;
-use std::io::{StdoutLock, Write};
+use std::io::{BufWriter, Stdout};
+use std::io::Write;
 
 use crate::{Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait};
 use linear_algebra::vector::VectorRow;
@@ -117,7 +117,7 @@ pub struct Terminal<'a> {
     vertices: Option<&'a [VectorRow<f64, 3>]>,
     vertices_projected: Vec<VectorRow<f64, 3>>,
     canvas: Canvas,
-    stdout_buffer: Option<BufWriter<StdoutLock<'static>>>,
+    stdout_buffer: BufWriter<Stdout>,
     error: Option<&'static str>,
 }
 
@@ -140,8 +140,7 @@ impl<'a> Terminal<'a> {
             }
         }
 
-        self.stdout_buffer = Some(BufWriter::new(std::io::stdout().lock()));
-        write!(self.stdout_buffer.as_mut().unwrap(), "{}", ansi::GO_TO_1_0).unwrap();
+        write!(self.stdout_buffer, "{}", ansi::GO_TO_1_0).unwrap();
     }
 
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera]/[Canvas].
@@ -196,16 +195,14 @@ impl<'a> Terminal<'a> {
     
     /// Print canvas buffer to terminal.
     fn print_canvas_buffer_to_stdout(&mut self) {
-        let stdout = self.stdout_buffer.as_mut().unwrap();
-
         for character_row in self.canvas.buffer.iter().rev() {
             for character in character_row.iter() {
-                write!(stdout, "{character}").unwrap();
+                write!(self.stdout_buffer, "{character}").unwrap();
             }
-            write!(stdout, "\n").unwrap();
+            write!(self.stdout_buffer, "\n").unwrap();
         }
 
-        stdout.flush().unwrap();
+        self.stdout_buffer.flush().unwrap();
     }
 }
 
@@ -261,13 +258,13 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
         let banner_fill_width = (config.camera.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
         let banner = "=".repeat(banner_fill_width);
         print!("{}{}", ansi::CLEAR_SCREEN, ansi::GO_TO_0_0);
-        println!("{banner} {banner_text} {banner}");
+        println!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m");
 
         Self {
             vertices: None,
             vertices_projected: Vec::with_capacity((config.camera.resolution.0 * config.camera.resolution.1) as usize),
             canvas: Canvas::new(&config),
-            stdout_buffer: None,
+            stdout_buffer: BufWriter::new(std::io::stdout()),
             config,
             error: None,
         }
