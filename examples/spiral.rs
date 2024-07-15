@@ -68,7 +68,7 @@ fn main() {
         renderer.render();
 
         let mut config = renderer.config();
-        config.camera.position[1] += 0.05;
+        config.camera.position[1] = (config.camera.position[1] + 0.05) % 1000.0;
 
         if frame % 10 == 0 {
             config.camera.fov += 1;
