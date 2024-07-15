@@ -294,9 +294,15 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
     fn new(config: RendererConfiguration) -> Self {
         let banner_text = "GRPE";
         let banner_fill_width = (config.camera.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
-        let banner = "=".repeat(banner_fill_width);
+        let banner_char = "=";
+        let banner = banner_char.repeat(banner_fill_width);
         print!("{}{}", ansi::CLEAR_SCREEN, ansi::GO_TO_0_0);
-        println!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m");
+        print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m");
+        if config.camera.resolution.0 % 2 != 0 {
+            // Just make it nice even if odd.
+            print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner_char}\x1B[0m");
+        }
+        println!();
 
         let rotation_matrices = Self::quaternion_to_matrix(&config.camera.rotation_quaternion);
 
