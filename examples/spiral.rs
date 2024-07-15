@@ -1,3 +1,5 @@
+/// Somewhat cool "spiral" when zooming and mutating FOV.
+
 use std::{env, time::{self, Duration}};
 
 use linear_algebra::vector::VectorRow;
@@ -18,9 +20,7 @@ fn main() {
     let show_info: bool = args.get(args_list::SHOW_INFO).unwrap_or(&"true".to_string()).parse().unwrap();
 
     // 1. Create vertices.
-    let mut vertices = vec![
-        // VectorRow::from([0.0, 0.0, 0.0]),
-    ];
+    let mut vertices = vec![];
 
     // Spiral zooming in.
     for i in 0..1000 {
@@ -68,9 +68,7 @@ fn main() {
         renderer.render();
 
         let mut config = renderer.config();
-        // config.camera.position[0] += 1.0;
         config.camera.position[1] += 0.05;
-        // config.camera.position[2] += 0.5;
 
         if frame % 10 == 0 {
             config.camera.fov += 1;
