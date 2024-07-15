@@ -57,9 +57,9 @@ fn main() {
     // Spiral if zooming in.
     for i in 0..1000 {
         vertices.push(VectorRow::from([
-            (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).cos(), 
+            0.75 * (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).cos(), 
             i as f64,
-            (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).sin(), 
+            0.75 * (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).sin(), 
         ]));
     }
 
@@ -94,7 +94,7 @@ fn main() {
 
         let mut config = renderer.config();
         // config.camera.position[0] += 1.0;
-        // config.camera.position[1] += 0.05;
+        config.camera.position[1] += 0.05;
         // config.camera.position[2] += 0.5;
 
         // config.camera.fov += 1;
