@@ -133,11 +133,11 @@ fn main() {
         // VectorRow::from([4.0,  200.0, 4.0]),
         // VectorRow::from([4.0,  200.0, -4.0]),
 
-        VectorRow::from([2.0,  50.0, 0.0]),
-        VectorRow::from([8.0,  100.0, 0.0]),
-        VectorRow::from([16.0,  200.0, 0.0]),
-        VectorRow::from([32.0,  400.0, 0.0]),
-        VectorRow::from([64.0,  800.0, 0.0]),
+        // VectorRow::from([4.0,  10.0, 0.0]),
+        // VectorRow::from([8.0,  100.0, 5.0]),
+        // VectorRow::from([16.0,  200.0, 10.0]),
+        VectorRow::from([32.0,  400.0, -10.0]),
+        VectorRow::from([100.0,  10000.0, 0.0]),
     ];
 
     // 2. Define line order
@@ -170,7 +170,7 @@ fn main() {
         // *vertices[0].index_mut(0, 2) += 1.0;
 
         let mut config = renderer.config();
-        // config.camera.position[0] -= 2.0;
+        // config.camera.position[0] += 1.0;
         // config.camera.position[1] += 0.05;
         config.camera.position[2] += 0.5;
 

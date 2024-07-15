@@ -61,7 +61,7 @@ impl Canvas {
     /// Calculates the viewpoint position in order to fulfill the requested FOV.
     fn calc_viewpoint_position(position: &VectorRow<f64, 3>, resolution: &(u64, u64), fov: &u64) -> VectorRow<f64, 3> {
         VectorRow::<f64, 3>::from([
-            -position[0], // TODO: This feels a bit odd, but seemingly it has to be this...? I might be something in during mapping to buffer that makes this logical.
+            position[0],
             position[1] - (resolution.0 as f64 / 2.0) / f64::tan((*fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
             position[2],
         ])
@@ -123,7 +123,7 @@ pub struct Terminal<'a> {
 impl<'a> Terminal<'a> {
     /// Get appropriate character to use for given vertical position.
     fn character_at(y: usize) -> char {
-        if y % 2 == 0 {
+        if y % 2 != 0 {
             return character::UPPER;
         }
 
@@ -156,15 +156,15 @@ impl<'a> Terminal<'a> {
     /// Maps projected vertices to a [Canvas::buffer].
     fn map_vertices_to_canvas_buffer(&mut self) {
         for vertex in self.vertices_projected.iter() {
-            // Extract and adjust vertex position for terminal coordinates.
-            let x = (vertex[0] as isize) + (self.config.camera.resolution.0 / 2 - 1) as isize;
-            let mut z = vertex[2] as isize + (self.config.camera.resolution.1 / 2 - 1) as isize;
+            // Extract and adjust vertex position based on camera position and resolution.
+            let x = (vertex[0] as isize) - self.config.camera.position[0] as isize + (self.config.camera.resolution.0 / 2 - 1) as isize;
+            let mut z = vertex[2] as isize - self.config.camera.position[2] as isize + (self.config.camera.resolution.1 / 2 - 1) as isize;
 
             // Only show vertices within view of [Camera].
             if !(x >= 0 && x < self.config.camera.resolution.0 as isize) ||
                !(z >= 0 && z < self.config.camera.resolution.1 as isize)
             {
-                return;
+                continue;
             }
 
             // (Some z-axis gymnastics below due to terminal characters always taking two slots.)
@@ -174,7 +174,7 @@ impl<'a> Terminal<'a> {
 
             // Is it already filled?
             if *buff_val == character::FULL {
-                return;
+                continue;
             }
 
             // Is it partially filled?
@@ -196,7 +196,7 @@ impl<'a> Terminal<'a> {
     fn print_canvas_buffer_to_stdout(&mut self) {
         let stdout = self.stdout_buffer.as_mut().unwrap();
 
-        for character_row in self.canvas.buffer.iter() {
+        for character_row in self.canvas.buffer.iter().rev() {
             for character in character_row.iter() {
                 write!(stdout, "{character}").unwrap();
             }
