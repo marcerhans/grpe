@@ -1,9 +1,20 @@
-use std::time::{self, Duration};
+use std::{env, time::{self, Duration}};
 
 use linear_algebra::vector::VectorRow;
 use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait};
 
+mod args_list {
+    pub const RESOLUTION: (usize, usize) = (0, 1);
+}
+
 fn main() {
+    // 0. Read args
+    let args: Vec<String> = env::args().skip(1).collect();
+    let resolution: (u64, u64) = (
+        args.get(args_list::RESOLUTION.0).unwrap_or(&"32".to_string()).parse().unwrap(),
+        args.get(args_list::RESOLUTION.1).unwrap_or(&"32".to_string()).parse().unwrap(),
+    );
+
     // 1. Create vertices.
     let mut vertices = vec![
         // VectorRow::from([0.0, 0.0, 0.0]),
@@ -24,7 +35,7 @@ fn main() {
     // 3. Instantiate renderer.
     let mut renderer = TerminalBuilder::default()
         .with_camera(Camera {
-            resolution: (274, 131),
+            resolution: (resolution.0, resolution.1),
             position: VectorRow::from([0.0, 0.0, 0.0]),
             rotation_quaternion: VectorRow::from([0.0, 0.0, 0.0, 0.0]),
             fov: 164,
