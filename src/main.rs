@@ -1,4 +1,7 @@
-use std::{thread, time::{self, Duration}};
+use std::{
+    thread,
+    time::{self, Duration},
+};
 
 use linear_algebra::vector::VectorRow;
 use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait};
@@ -57,9 +60,9 @@ fn main() {
     // Spiral if zooming in.
     for i in 0..1000 {
         vertices.push(VectorRow::from([
-            0.75 * (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).cos(), 
+            0.75 * (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).cos(),
             i as f64,
-            0.75 * (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).sin(), 
+            0.75 * (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).sin(),
         ]));
     }
 
@@ -103,10 +106,13 @@ fn main() {
         config.camera.position[1] += 0.05;
         // config.camera.position[2] += 0.5;
 
-        // config.camera.fov += 1;
-        // if config.camera.fov == 100 {
-        //     config.camera.fov = 1;
-        // }
+        if frame % 10 == 0 {
+            config.camera.fov += 1;
+        }
+
+        if config.camera.fov == 170 {
+            config.camera.fov = 1;
+        }
         let _ = renderer.set_config(config.clone());
 
         // Statistics
@@ -128,6 +134,10 @@ fn main() {
         frame += 1;
 
         println!("Statistics: [Frame: {frame} | Missed Frames: {frame_missed} | FPS: {fps}]");
-        println!("Config: [Camera Position: {:?}]", config.camera.position);
+        println!(
+            "Resolution: ({},{})\nCamera Position: ({:.2},{:.2},{:.2})\nCamera Rotation: TODO",
+            config.camera.resolution.0, config.camera.resolution.1,
+            config.camera.position[0], config.camera.position[1], config.camera.position[2]
+        );
     }
 }
