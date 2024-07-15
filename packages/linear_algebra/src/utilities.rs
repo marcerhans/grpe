@@ -1,5 +1,4 @@
 use crate::matrix::{Matrix, MatrixDataTrait};
-use crate::vector::{VectorColumn, VectorRow};
 
 /// Find the unique solution given an equation system using Gauss-elimination.
 /// Fails to compute (returns [None]) if there are infinitely many solutions or none.
