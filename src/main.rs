@@ -29,24 +29,39 @@ fn main() {
         // VectorRow::from([64.0, 64.0, 0.0]),
 
         // Smiley
-        VectorRow::from([0.0, 0.0, 0.0]),
+        // VectorRow::from([-2.0,  16.0, 4.0]),
+        // VectorRow::from([-2.0,  16.0, 3.0]),
         // VectorRow::from([-2.0,  16.0, 2.0]),
         // VectorRow::from([-2.0,  16.0, 1.0]),
         // VectorRow::from([-2.0,  16.0, 0.0]),
         // VectorRow::from([-2.0,  16.0, -1.0]),
 
+        // VectorRow::from([2.0,  16.0, 4.0]),
+        // VectorRow::from([2.0,  16.0, 3.0]),
         // VectorRow::from([2.0,  16.0, 2.0]),
         // VectorRow::from([2.0,  16.0, 1.0]),
         // VectorRow::from([2.0,  16.0, 0.0]),
         // VectorRow::from([2.0,  16.0, -1.0]),
 
-        // VectorRow::from([-3.0,  16.0, -2.0]),
         // VectorRow::from([-3.0,  16.0, -3.0]),
-        // VectorRow::from([-2.0,  16.0, -4.0]),
-        // VectorRow::from([-2.0,  16.0, -4.0]),
-        // VectorRow::from([-1.0,  16.0, -4.0]),
-        // VectorRow::from([-1.0,  16.0, -4.0]),
+        // VectorRow::from([-3.0,  16.0, -4.0]),
+        // VectorRow::from([-2.0,  16.0, -5.0]),
+        // VectorRow::from([-1.0,  16.0, -5.0]),
+        // VectorRow::from([0.0,  16.0, -5.0]),
+        // VectorRow::from([1.0,  16.0, -5.0]),
+        // VectorRow::from([2.0,  16.0, -5.0]),
+        // VectorRow::from([3.0,  16.0, -4.0]),
+        // VectorRow::from([3.0,  16.0, -3.0]),
     ];
+
+    // Spiral if zooming in.
+    for i in 0..1000 {
+        vertices.push(VectorRow::from([
+            (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).cos(), 
+            i as f64,
+            (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).sin(), 
+        ]));
+    }
 
     // 2. Define line order.
     // let line_draw_order = vec![vec![0, 1], vec![0, 2]];
@@ -70,7 +85,7 @@ fn main() {
     // 4. Render
     loop {
         // Loop
-        thread::sleep(Duration::from_millis(1000));
+        // thread::sleep(Duration::from_millis(1));
         renderer.set_vertices(&vertices);
         renderer.render();
         // *vertices[0].index_mut(0, 0) += 2.0;
@@ -79,7 +94,7 @@ fn main() {
 
         let mut config = renderer.config();
         // config.camera.position[0] += 1.0;
-        // config.camera.position[1] += 1.0;
+        config.camera.position[1] += 0.05;
         // config.camera.position[2] += 0.5;
 
         // config.camera.fov += 1;
