@@ -22,6 +22,7 @@ mod character {
 mod ansi {
     pub static CLEAR_SCREEN: &str = "\x1B[2J";
     pub static GO_TO_0_0: &str = "\x1B[H";
+    pub static GO_TO_1_0: &str = "\x1B[2H";
 }
 
 #[derive(Default)]
@@ -89,11 +90,6 @@ impl Canvas {
             // Closure.
             // (This is based on the plane formula and the parametric form of the line from the viewpoint to a vertex).
             move |vertex_origin| {
-                if diff.signum() == (d0 - normal.dot(&vertex_origin)).signum() {
-                    // Ignore vertices which are on the wrong side of the viewport plane.
-                    return None;
-                }
-
                 let mut viewpoint_to_vertex_direction_vector = VectorRow::from(&vertex_origin.0 - &viewpoint.0);
                 let divisor = normal.dot(&viewpoint_to_vertex_direction_vector);
 
@@ -102,6 +98,11 @@ impl Canvas {
                 }
 
                 let t = diff / divisor;
+
+                if t < 0.0 {
+                    return None;
+                }
+
                 viewpoint_to_vertex_direction_vector.0.scale(t);
 
                 Some((&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into())
@@ -139,7 +140,7 @@ impl<'a> Terminal<'a> {
         }
 
         self.stdout_buffer = Some(BufWriter::new(std::io::stdout().lock()));
-        write!(self.stdout_buffer.as_mut().unwrap(), "{}", ansi::GO_TO_0_0).unwrap();
+        write!(self.stdout_buffer.as_mut().unwrap(), "{}", ansi::GO_TO_1_0).unwrap();
     }
 
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera]/[Canvas].
@@ -245,7 +246,11 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
 
 impl<'a> __RendererTrait<'a> for Terminal<'a> {
     fn new(config: RendererConfiguration) -> Self {
+        let banner_text = "GRPE";
+        let banner_fill_width = (config.camera.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
+        let banner = "=".repeat(banner_fill_width);
         print!("{}{}", ansi::CLEAR_SCREEN, ansi::GO_TO_0_0);
+        println!("{banner} {banner_text} {banner}");
 
         Self {
             vertices: None,
