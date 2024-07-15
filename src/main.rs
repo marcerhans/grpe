@@ -74,6 +74,7 @@ fn main() {
         .with_camera(Camera {
             resolution: (128, 128),
             position: VectorRow::from([0.0, 0.0, 0.0]),
+            rotation_quaternion: VectorRow::from([0.0, 0.0, 0.0, 0.0]),
             fov: 90,
         })
         .build();
@@ -135,9 +136,10 @@ fn main() {
 
         println!("Statistics: [Frame: {frame} | Missed Frames: {frame_missed} | FPS: {fps}]");
         println!(
-            "Resolution: ({},{})\nCamera Position: ({:.2},{:.2},{:.2})\nCamera Rotation: TODO",
+            "Resolution: ({},{})\nCamera Position: ({:.2},{:.2},{:.2})\nCamera Rotation: ({:.2},{:.2},{:.2},{:.2})",
             config.camera.resolution.0, config.camera.resolution.1,
-            config.camera.position[0], config.camera.position[1], config.camera.position[2]
+            config.camera.position[0], config.camera.position[1], config.camera.position[2],
+            config.camera.rotation_quaternion[0], config.camera.rotation_quaternion[1], config.camera.rotation_quaternion[2], config.camera.rotation_quaternion[3],
         );
     }
 }

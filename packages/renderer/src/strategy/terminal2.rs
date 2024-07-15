@@ -2,6 +2,7 @@ use std::io::{BufWriter, Stdout};
 use std::io::Write;
 
 use crate::{Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait};
+use linear_algebra::matrix::Matrix;
 use linear_algebra::vector::VectorRow;
 
 mod character {
@@ -114,6 +115,8 @@ impl Canvas {
 /// Terminal renderer.
 pub struct Terminal<'a> {
     config: RendererConfiguration,
+    camera_rotation_matrix: Matrix<f64, 3, 3>,
+    camera_rotation_matrix_inverse: Matrix<f64, 3, 3>,
     vertices: Option<&'a [VectorRow<f64, 3>]>,
     vertices_projected: Vec<VectorRow<f64, 3>>,
     canvas: Canvas,
@@ -123,6 +126,27 @@ pub struct Terminal<'a> {
 
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
 impl<'a> Terminal<'a> {
+    /// Returns the rotation matrix and its inverse.
+    fn quaternion_to_matrix(quaternion: &VectorRow<f64, 4>) -> (Matrix<f64, 3, 3>, Matrix<f64, 3, 3>) {
+        let w = quaternion[0];
+        let x = quaternion[1];
+        let y = quaternion[2];
+        let z = quaternion[3];
+
+        (
+            Matrix::from([
+                [1.0 - 2.0 * (y.powi(2) + z.powi(2)),   2.0 * (x * y - w * z),                  2.0 * (x * z + w * y)],
+                [2.0 * (x * y - w * z),                 1.0 - 2.0 * (x.powi(2) + z.powi(2)),    2.0 * (y * z - w * x)],
+                [2.0 * (x * z - w * y),                 2.0 * (y * z + w * x),                  1.0 - 2.0 * (x.powi(2) + y.powi(2))],
+            ]),
+            Matrix::from([
+                [1.0 - 2.0 * (y.powi(2) + z.powi(2)),   2.0 * (x * y - w * y),                  2.0 * (x * z + w * y)],
+                [2.0 * (x * y - w * y),                 1.0 - 2.0 * (x.powi(2) + z.powi(2)),    2.0 * (y * z - w * x)],
+                [2.0 * (x * z - w * y),                 2.0 * (y * z + w * x),                  1.0 - 2.0 * (x.powi(2) + y.powi(2))],
+            ])
+        )
+    }
+
     /// Get appropriate character to use for given vertical position.
     fn character_at(y: usize) -> char {
         if y % 2 != 0 {
@@ -225,8 +249,12 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
             return Err(error);
         }
 
+        let rotation_matrices = Self::quaternion_to_matrix(&config.camera.rotation_quaternion);
+
         self.config = config;
         self.canvas.line_intersection_checker = Canvas::create_intersection_checker(&self.config);
+        self.camera_rotation_matrix = rotation_matrices.0;
+        self.camera_rotation_matrix_inverse = rotation_matrices.1;
         Ok(())
     }
 
@@ -260,7 +288,11 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
         print!("{}{}", ansi::CLEAR_SCREEN, ansi::GO_TO_0_0);
         println!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m");
 
+        let rotation_matrices = Self::quaternion_to_matrix(&config.camera.rotation_quaternion);
+
         Self {
+            camera_rotation_matrix: rotation_matrices.0,
+            camera_rotation_matrix_inverse: rotation_matrices.1,
             vertices: None,
             vertices_projected: Vec::with_capacity((config.camera.resolution.0 * config.camera.resolution.1) as usize),
             canvas: Canvas::new(&config),
@@ -288,6 +320,7 @@ mod tests {
         let renderer = TerminalBuilder::default().with_camera(Camera {
             resolution: (4, 4),
             position: VectorRow::from([0.0, 0.0, 0.0]),
+            rotation_quaternion: VectorRow::from([0.0, 0.0, 0.0, 0.0]),
             fov: 90,
         }).build();
         match (renderer.canvas.line_intersection_checker)(&VectorRow::from([-2.0, 2.0, 0.0])) {
