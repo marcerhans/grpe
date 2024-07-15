@@ -118,6 +118,7 @@ pub struct Terminal<'a> {
     vertices_projected: Vec<VectorRow<f64, 3>>,
     canvas: Canvas,
     stdout_buffer: Option<BufWriter<StdoutLock<'static>>>,
+    error: Option<&'static str>,
 }
 
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
@@ -221,6 +222,12 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
     }
 
     fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str> {
+        if config.camera.fov > 170 {
+            let error = "FOV too high. It has to be below 170.";
+            self.error = Some(error);
+            return Err(error);
+        }
+
         self.config = config;
         self.canvas.line_intersection_checker = Canvas::create_intersection_checker(&self.config);
         Ok(())
@@ -235,6 +242,10 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
     }
 
     fn render(&mut self) {
+        if let Some(error) = self.error {
+            panic!("\x1B[1;31mRender failed due to:\x1B[0m {error}")
+        }
+
         self.clear();
         // TODO: Rotate canvas. (Step 2).
         self.project_vertices_on_viewport();
@@ -258,6 +269,7 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
             canvas: Canvas::new(&config),
             stdout_buffer: None,
             config,
+            error: None,
         }
     }
 }
