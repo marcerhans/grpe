@@ -75,22 +75,28 @@ fn main() {
         })
         .build();
 
-    // let mut angle = 0.0;
-
     let mut frame: u128 = 0;
     let mut frame_tmp: u128 = 0;
-    let mut frame_timer = time::Instant::now();
+    let mut frame_missed: u128 = 0;
+    let mut update_timer = time::Instant::now();
+    let fps_target = 120;
     let mut fps = 0;
+    let time_target = Duration::from_micros(1000000 / fps_target);
+    let mut time_wait = time_target;
 
     // 4. Render
     loop {
-        // Loop
-        // thread::sleep(Duration::from_millis(1));
+        let start = std::time::Instant::now();
+        loop {
+            // Dead simple spin sleep
+            if std::time::Instant::now() - start > time_wait {
+                break;
+            }
+        }
+        let start = std::time::Instant::now();
+
         renderer.set_vertices(&vertices);
         renderer.render();
-        // *vertices[0].index_mut(0, 0) += 2.0;
-        // // *vertices[0].index_mut(0, 1) += 5.0;
-        // *vertices[0].index_mut(0, 2) += 1.0;
 
         let mut config = renderer.config();
         // config.camera.position[0] += 1.0;
@@ -103,29 +109,25 @@ fn main() {
         // }
         let _ = renderer.set_config(config.clone());
 
-        // A
-        // let mut i: isize = 9;
-        // while i > 0 {
-        //     vertices[8+i as usize] = VectorRow::from([(5.0 + i as f64)*f64::cos(angle + angle * i as f64), 0.0, (6.0 + i as f64)*f64::sin(angle + angle * i as f64)]);
-        //     i -= 1;
-        // }
-        // angle += 0.01;
-        // if angle > 2.0 * std::f64::consts::PI {
-        //     angle = 0.0;
-        // }
-
         // Statistics
-        if frame_timer.elapsed() >= Duration::from_secs(1) {
+        if update_timer.elapsed() >= Duration::from_secs(1) {
             fps = frame_tmp;
             frame_tmp = 0;
-            frame_timer = time::Instant::now();
+            update_timer = time::Instant::now();
         } else {
             frame_tmp += 1;
         }
 
+        if let Some(time) = time_target.checked_sub(std::time::Instant::now() - start) {
+            time_wait = time;
+        } else {
+            time_wait = Duration::from_micros(0);
+            frame_missed += 1;
+        }
+
         frame += 1;
 
-        println!("Statistics: [Frame: {frame} | FPS: {fps}]");
+        println!("Statistics: [Frame: {frame} | Missed Frames: {frame_missed} | FPS: {fps}]");
         println!("Config: [Camera Position: {:?}]", config.camera.position);
     }
 }
