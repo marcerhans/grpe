@@ -1,7 +1,4 @@
-use std::{
-    thread,
-    time::{self, Duration},
-};
+use std::time::{self, Duration};
 
 use linear_algebra::vector::VectorRow;
 use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait};
@@ -9,55 +6,10 @@ use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, Renderer
 fn main() {
     // 1. Create vertices.
     let mut vertices = vec![
-        // VectorRow::from([0.0,  50.0, 0.0]),
-        // VectorRow::from([0.0, 50.0, 4.0]),
-        // VectorRow::from([0.0, 50.0, -4.0]),
-        // VectorRow::from([4.0,  50.0, 0.0]),
-        // VectorRow::from([-4.0,  50.0, 0.0]),
-
-        // VectorRow::from([0.0,  200.0, 0.0]),
-        // VectorRow::from([-4.0, 200.0, 4.0]),
-        // VectorRow::from([-4.0, 200.0, -4.0]),
-        // VectorRow::from([4.0,  200.0, 4.0]),
-        // VectorRow::from([4.0,  200.0, -4.0]),
-
-        // VectorRow::from([0.0,  4.0, 0.0]),
-        // VectorRow::from([-1.0,  8.0, 0.0]),
-        // VectorRow::from([-2.0,  16.0, 0.0]),
-        // VectorRow::from([4.0,  4.0, 0.0]),
-        // VectorRow::from([4.0,  4.0, 0.0]),
-        // VectorRow::from([8.0,  8.0, 0.0]),
-        // VectorRow::from([16.0, 16.0, 0.0]),
-        // VectorRow::from([32.0, 32.0, 0.0]),
-        // VectorRow::from([64.0, 64.0, 0.0]),
-
-        // Smiley
-        // VectorRow::from([-2.0,  16.0, 4.0]),
-        // VectorRow::from([-2.0,  16.0, 3.0]),
-        // VectorRow::from([-2.0,  16.0, 2.0]),
-        // VectorRow::from([-2.0,  16.0, 1.0]),
-        // VectorRow::from([-2.0,  16.0, 0.0]),
-        // VectorRow::from([-2.0,  16.0, -1.0]),
-
-        // VectorRow::from([2.0,  16.0, 4.0]),
-        // VectorRow::from([2.0,  16.0, 3.0]),
-        // VectorRow::from([2.0,  16.0, 2.0]),
-        // VectorRow::from([2.0,  16.0, 1.0]),
-        // VectorRow::from([2.0,  16.0, 0.0]),
-        // VectorRow::from([2.0,  16.0, -1.0]),
-
-        // VectorRow::from([-3.0,  16.0, -3.0]),
-        // VectorRow::from([-3.0,  16.0, -4.0]),
-        // VectorRow::from([-2.0,  16.0, -5.0]),
-        // VectorRow::from([-1.0,  16.0, -5.0]),
-        // VectorRow::from([0.0,  16.0, -5.0]),
-        // VectorRow::from([1.0,  16.0, -5.0]),
-        // VectorRow::from([2.0,  16.0, -5.0]),
-        // VectorRow::from([3.0,  16.0, -4.0]),
-        // VectorRow::from([3.0,  16.0, -3.0]),
+        // VectorRow::from([0.0, 0.0, 0.0]),
     ];
 
-    // Spiral if zooming in.
+    // Spiral zooming in.
     for i in 0..1000 {
         vertices.push(VectorRow::from([
             0.75 * (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).cos(),
@@ -72,10 +24,10 @@ fn main() {
     // 3. Instantiate renderer.
     let mut renderer = TerminalBuilder::default()
         .with_camera(Camera {
-            resolution: (128, 128),
+            resolution: (274, 131),
             position: VectorRow::from([0.0, 0.0, 0.0]),
             rotation_quaternion: VectorRow::from([0.0, 0.0, 0.0, 0.0]),
-            fov: 90,
+            fov: 164,
         })
         .build();
 
@@ -136,10 +88,39 @@ fn main() {
 
         println!("Statistics: [Frame: {frame} | Missed Frames: {frame_missed} | FPS: {fps}]");
         println!(
-            "Resolution: ({},{})\nCamera Position: ({:.2},{:.2},{:.2})\nCamera Rotation: ({:.2},{:.2},{:.2},{:.2})",
-            config.camera.resolution.0, config.camera.resolution.1,
+            "Resolution: ({},{}) | FOV: {}\nCamera Position: ({:.2},{:.2},{:.2})\nCamera Rotation: ({:.2},{:.2},{:.2},{:.2})",
+            config.camera.resolution.0, config.camera.resolution.1, config.camera.fov,
             config.camera.position[0], config.camera.position[1], config.camera.position[2],
             config.camera.rotation_quaternion[0], config.camera.rotation_quaternion[1], config.camera.rotation_quaternion[2], config.camera.rotation_quaternion[3],
         );
     }
+}
+
+#[allow(unused)]
+fn smiley() -> Vec<VectorRow<f64, 3>> {
+    vec![
+        VectorRow::from([-2.0,  16.0, 4.0]),
+        VectorRow::from([-2.0,  16.0, 3.0]),
+        VectorRow::from([-2.0,  16.0, 2.0]),
+        VectorRow::from([-2.0,  16.0, 1.0]),
+        VectorRow::from([-2.0,  16.0, 0.0]),
+        VectorRow::from([-2.0,  16.0, -1.0]),
+
+        VectorRow::from([2.0,  16.0, 4.0]),
+        VectorRow::from([2.0,  16.0, 3.0]),
+        VectorRow::from([2.0,  16.0, 2.0]),
+        VectorRow::from([2.0,  16.0, 1.0]),
+        VectorRow::from([2.0,  16.0, 0.0]),
+        VectorRow::from([2.0,  16.0, -1.0]),
+
+        VectorRow::from([-3.0,  16.0, -3.0]),
+        VectorRow::from([-3.0,  16.0, -4.0]),
+        VectorRow::from([-2.0,  16.0, -5.0]),
+        VectorRow::from([-1.0,  16.0, -5.0]),
+        VectorRow::from([0.0,  16.0, -5.0]),
+        VectorRow::from([1.0,  16.0, -5.0]),
+        VectorRow::from([2.0,  16.0, -5.0]),
+        VectorRow::from([3.0,  16.0, -4.0]),
+        VectorRow::from([3.0,  16.0, -3.0]),
+    ]
 }

@@ -34,7 +34,12 @@ pub struct TerminalBuilder {
 impl<'a> RendererBuilderTrait<'a> for TerminalBuilder {
     type Renderer = Terminal<'a>;
 
-    fn with_camera(mut self, camera: Camera) -> Self {
+    fn with_camera(mut self, mut camera: Camera) -> Self {
+        if camera.resolution.1 % 2 != 0 {
+            // Needed to protect against out of bounds.
+            camera.resolution.1 -= 1;
+        }
+
         self.config.camera = camera;
         self
     }
@@ -181,9 +186,9 @@ impl<'a> Terminal<'a> {
     /// Maps projected vertices to a [Canvas::buffer].
     fn map_vertices_to_canvas_buffer(&mut self) {
         for vertex in self.vertices_projected.iter() {
-            // Extract and adjust vertex position based on camera position and resolution.
-            let x = (vertex[0] as isize) - self.config.camera.position[0] as isize + (self.config.camera.resolution.0 / 2 - 1) as isize;
-            let mut z = vertex[2] as isize - self.config.camera.position[2] as isize + (self.config.camera.resolution.1 / 2 - 1) as isize;
+            // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
+            let x = (vertex[0] as isize) - self.config.camera.position[0] as isize + (self.config.camera.resolution.0 / 2) as isize - 1;
+            let mut z = vertex[2] as isize - self.config.camera.position[2] as isize + (self.config.camera.resolution.1 / 2) as isize - 1;
 
             // Only show vertices within view of [Camera].
             if !(x >= 0 && x < self.config.camera.resolution.0 as isize) ||
@@ -192,7 +197,7 @@ impl<'a> Terminal<'a> {
                 continue;
             }
 
-            // (Some z-axis gymnastics below due to terminal characters always taking two slots.)
+            // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
             let mut character = Self::character_at(z as usize);
             z = z / 2;
             let buff_val = &mut self.canvas.buffer[z as usize][x as usize];
@@ -242,11 +247,16 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
         self.config.clone()
     }
 
-    fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str> {
+    fn set_config(&mut self, mut config: RendererConfiguration) -> Result<(), &'static str> {
         if config.camera.fov > 170 {
             let error = "FOV too high. It has to be below 170.";
             self.error = Some(error);
             return Err(error);
+        }
+
+        if config.camera.resolution.1 % 2 != 0 {
+            // Needed to protect against out of bounds.
+            config.camera.resolution.1 -= 1;
         }
 
         let rotation_matrices = Self::quaternion_to_matrix(&config.camera.rotation_quaternion);
