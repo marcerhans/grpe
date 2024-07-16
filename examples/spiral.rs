@@ -112,9 +112,7 @@ fn main() {
         frame += 1;
 
         if show_info {
-            println!("Frame: {frame} | Missed Frames: {frame_missed} | FPS: {fps}");
-            println!(
-                "Resolution: ({},{}) | FOV: {:0>3}\nCamera Position: ({:.2},{:.2},{:.2})\nCamera Rotation: ({:.2},{:.2},{:.2},{:.2})",
+            println!("\x1B[2KFrame: {frame} | Missed Frames: {frame_missed} | FPS: {fps} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: ({:.2},{:.2},{:.2},{:.2})",
                 config.camera.resolution.0, config.camera.resolution.1, config.camera.fov,
                 config.camera.position[0], config.camera.position[1], config.camera.position[2],
                 config.camera.rotation_quaternion[0], config.camera.rotation_quaternion[1], config.camera.rotation_quaternion[2], config.camera.rotation_quaternion[3],
