@@ -26,9 +26,9 @@ fn main() {
     const MAX_DEPTH: i32 = 1000;
     for i in 0..MAX_DEPTH {
         vertices.push(VectorRow::from([
-            0.75 * (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).cos(),
+            (i as f64 / 2.0) * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).cos(),
             i as f64,
-            0.75 * (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).sin(),
+            (i as f64 / 2.0) * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).sin(),
         ]));
     }
 
@@ -67,6 +67,7 @@ fn main() {
     let mut time_wait = time_target;
 
     let mut angle: f64 = 0.0;
+    let fov_y_pos = (resolution.0 as f64 / 2.0) / f64::tan((renderer.config().camera.fov as f64 / 2.0) * (std::f64::consts::PI / 180.0));
 
     // 4. Render
     loop {
@@ -83,19 +84,13 @@ fn main() {
         renderer.render();
 
         let mut config = renderer.config();
-        config.camera.position[0] = 40.0 * angle.cos();
-        config.camera.position[2] = 40.0 * angle.sin();
-        angle = (angle + std::f64::consts::PI / 32.0) % (std::f64::consts::PI * 2.0);
-
         config.camera.position[1] = (config.camera.position[1] + 0.5) % 1000.0;
 
-        // if frame % 10 == 0 {
-        //     config.camera.fov += 1;
-        // }
+        let cam_pos_y_rotation = config.camera.position[1] - fov_y_pos / 2.0;
+        config.camera.position[0] = (cam_pos_y_rotation / 2.0) * ((cam_pos_y_rotation / 16.0) % (std::f64::consts::PI * 2.0)).cos();
+        config.camera.position[2] = (cam_pos_y_rotation / 2.0) * ((cam_pos_y_rotation / 16.0) % (std::f64::consts::PI * 2.0)).sin();
+        angle = (angle + std::f64::consts::PI / 32.0) % (std::f64::consts::PI * 2.0);
 
-        // if config.camera.fov == 170 {
-        //     config.camera.fov = 1;
-        // }
         let _ = renderer.set_config(config.clone());
 
         // Statistics
