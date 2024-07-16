@@ -23,12 +23,25 @@ fn main() {
     let mut vertices = vec![];
 
     // Spiral zooming in.
-    for i in 0..1000 {
+    const MAX_DEPTH: i32 = 1000;
+    for i in 0..MAX_DEPTH {
         vertices.push(VectorRow::from([
             0.75 * (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).cos(),
             i as f64,
             0.75 * (i as f64 / 1.5) * ((i as f64) % (std::f64::consts::PI * 2.0)).sin(),
         ]));
+    }
+
+    const GRID_SIZE: i32 = 200;
+    const GRID_SPACING: i32 = 100;
+    for i in 0..GRID_SIZE {
+        for j in 0..GRID_SIZE {
+            vertices.push(VectorRow::from([
+                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
+                MAX_DEPTH as f64,
+                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
+            ]));
+        }
     }
 
     // 2. Define line order.
@@ -40,7 +53,7 @@ fn main() {
             resolution: (resolution.0, resolution.1),
             position: VectorRow::from([0.0, 0.0, 0.0]),
             rotation_quaternion: VectorRow::from([0.0, 0.0, 0.0, 0.0]),
-            fov: 164,
+            fov: 135,
         })
         .build();
 
@@ -48,10 +61,12 @@ fn main() {
     let mut frame_tmp: u128 = 0;
     let mut frame_missed: u128 = 0;
     let mut update_timer = time::Instant::now();
-    let fps_target = 120;
+    let fps_target = 60;
     let mut fps = 0;
     let time_target = Duration::from_micros(1000000 / fps_target);
     let mut time_wait = time_target;
+
+    let mut angle: f64 = 0.0;
 
     // 4. Render
     loop {
@@ -68,15 +83,19 @@ fn main() {
         renderer.render();
 
         let mut config = renderer.config();
-        config.camera.position[1] = (config.camera.position[1] + 0.05) % 1000.0;
+        config.camera.position[0] = 40.0 * angle.cos();
+        config.camera.position[2] = 40.0 * angle.sin();
+        angle = (angle + std::f64::consts::PI / 32.0) % (std::f64::consts::PI * 2.0);
 
-        if frame % 10 == 0 {
-            config.camera.fov += 1;
-        }
+        config.camera.position[1] = (config.camera.position[1] + 0.5) % 1000.0;
 
-        if config.camera.fov == 170 {
-            config.camera.fov = 1;
-        }
+        // if frame % 10 == 0 {
+        //     config.camera.fov += 1;
+        // }
+
+        // if config.camera.fov == 170 {
+        //     config.camera.fov = 1;
+        // }
         let _ = renderer.set_config(config.clone());
 
         // Statistics
