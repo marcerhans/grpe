@@ -26,9 +26,9 @@ fn main() {
     const MAX_DEPTH: i32 = 1000;
     for i in 0..MAX_DEPTH {
         vertices.push(VectorRow::from([
-            (i as f64 / 2.0) * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).cos(),
+            i as f64 * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).cos(),
             i as f64,
-            (i as f64 / 2.0) * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).sin(),
+            i as f64 * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).sin(),
         ]));
     }
 
@@ -87,8 +87,8 @@ fn main() {
         config.camera.position[1] = (config.camera.position[1] + 0.5) % 1000.0;
 
         let cam_pos_y_rotation = config.camera.position[1] - fov_y_pos / 2.0;
-        config.camera.position[0] = (cam_pos_y_rotation / 2.0) * ((cam_pos_y_rotation / 16.0) % (std::f64::consts::PI * 2.0)).cos();
-        config.camera.position[2] = (cam_pos_y_rotation / 2.0) * ((cam_pos_y_rotation / 16.0) % (std::f64::consts::PI * 2.0)).sin();
+        config.camera.position[0] = cam_pos_y_rotation * ((cam_pos_y_rotation / 16.0) % (std::f64::consts::PI * 2.0)).cos();
+        config.camera.position[2] = cam_pos_y_rotation * ((cam_pos_y_rotation / 16.0) % (std::f64::consts::PI * 2.0)).sin();
         angle = (angle + std::f64::consts::PI / 32.0) % (std::f64::consts::PI * 2.0);
 
         let _ = renderer.set_config(config.clone());
