@@ -2,6 +2,7 @@
 
 use std::{env, time::{self, Duration}};
 
+use io::{platform::unix::EventHandler, EventHandlerTrait};
 use linear_algebra::vector::VectorRow;
 use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait};
 
@@ -69,6 +70,8 @@ fn main() {
     let mut angle: f64 = 0.0;
     let fov_y_pos = (resolution.0 as f64 / 2.0) / f64::tan((renderer.config().camera.fov as f64 / 2.0) * (std::f64::consts::PI / 180.0));
 
+    let event_handler = EventHandler::init();
+
     // 4. Render
     loop {
         let start = std::time::Instant::now();
@@ -84,12 +87,29 @@ fn main() {
         renderer.render();
 
         let mut config = renderer.config();
-        config.camera.position[1] = (config.camera.position[1] + 0.5) % 1000.0;
+        // config.camera.position[1] = (config.camera.position[1] + 0.5) % 1000.0;
 
-        let cam_pos_y_rotation = config.camera.position[1] - fov_y_pos / 2.0;
-        config.camera.position[0] = cam_pos_y_rotation * ((cam_pos_y_rotation / 16.0) % (std::f64::consts::PI * 2.0)).cos();
-        config.camera.position[2] = cam_pos_y_rotation * ((cam_pos_y_rotation / 16.0) % (std::f64::consts::PI * 2.0)).sin();
-        angle = (angle + std::f64::consts::PI / 32.0) % (std::f64::consts::PI * 2.0);
+        // let cam_pos_y_rotation = config.camera.position[1] - fov_y_pos / 2.0;
+        // config.camera.position[0] = cam_pos_y_rotation * ((cam_pos_y_rotation / 16.0) % (std::f64::consts::PI * 2.0)).cos();
+        // config.camera.position[2] = cam_pos_y_rotation * ((cam_pos_y_rotation / 16.0) % (std::f64::consts::PI * 2.0)).sin();
+        // angle = (angle + std::f64::consts::PI / 32.0) % (std::f64::consts::PI * 2.0);
+
+        if let Ok(event) = event_handler.receiver.try_recv() {
+            match event {
+                io::Event::Mouse(_) => todo!(),
+                io::Event::Letter(c) => {
+                    match c.0 {
+                        'a' => config.camera.position[0] -= 1.0,
+                        'd' => config.camera.position[0] += 1.0,
+                        'j' => config.camera.position[1] -= 1.0,
+                        'k' => config.camera.position[1] += 1.0,
+                        'w' => config.camera.position[2] -= 1.0,
+                        's' => config.camera.position[2] += 1.0,
+                        _ => (),
+                    }
+                }
+            }
+        }
 
         let _ = renderer.set_config(config.clone());
 
