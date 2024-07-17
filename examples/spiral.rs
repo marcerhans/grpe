@@ -2,7 +2,7 @@
 
 use std::{env, time::{self, Duration}};
 
-use io::{platform::unix::EventHandler, EventHandlerTrait};
+use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
 use linear_algebra::vector::VectorRow;
 use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait};
 
@@ -96,15 +96,15 @@ fn main() {
 
         if let Ok(event) = event_handler.receiver.try_recv() {
             match event {
-                io::Event::Mouse(_) => todo!(),
-                io::Event::Letter(c) => {
+                Event::Mouse(_) => todo!(),
+                Event::Letter(c) => {
                     match c.0 {
-                        'a' => config.camera.position[0] -= 1.0,
-                        'd' => config.camera.position[0] += 1.0,
-                        'j' => config.camera.position[1] -= 1.0,
-                        'k' => config.camera.position[1] += 1.0,
-                        'w' => config.camera.position[2] -= 1.0,
-                        's' => config.camera.position[2] += 1.0,
+                        'a' => config.camera.position[0] -= 2.0,
+                        'd' => config.camera.position[0] += 2.0,
+                        'j' => config.camera.position[1] -= 2.0,
+                        'k' => config.camera.position[1] += 2.0,
+                        'w' => config.camera.position[2] -= 2.0,
+                        's' => config.camera.position[2] += 2.0,
                         _ => (),
                     }
                 }
@@ -132,7 +132,7 @@ fn main() {
         frame += 1;
 
         if show_info {
-            println!("\x1B[2KFrame: {frame} | Missed Frames: {frame_missed} | FPS: {fps} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: ({:.2},{:.2},{:.2},{:.2})",
+            print!("\x1B[2KFrame: {frame} | Missed Frames: {frame_missed} | FPS: {fps} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: ({:.2},{:.2},{:.2},{:.2})",
                 config.camera.resolution.0, config.camera.resolution.1, config.camera.fov,
                 config.camera.position[0], config.camera.position[1], config.camera.position[2],
                 config.camera.rotation_quaternion[0], config.camera.rotation_quaternion[1], config.camera.rotation_quaternion[2], config.camera.rotation_quaternion[3],
