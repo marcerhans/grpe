@@ -19,6 +19,8 @@ void error(const char* s) {
 }
 
 void disablePartialRawMode() {
+  puts("\x1B[?1002l");
+
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1) {
     error(NULL);
   }
@@ -32,6 +34,9 @@ void enablePartialRawMode() {
   raw.c_cc[VMIN] = 1; // Wait for at least 1 byte(s) to have been written.
   raw.c_cc[VTIME] = 0; // Time to wait for input in deciseconds (i.e. 1/10:th seconds). Zero is infinite.
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+
+  // Also enable mouse tracking via ANSI escape codes (xterm).
+  puts("\x1B[?1002h"); // Track button presses + movement while pressed.
 }
 
 void setExitHandler() {

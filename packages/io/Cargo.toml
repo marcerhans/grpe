@@ -17,5 +17,3 @@ cc = { version = "1.1.5" }
 [dependencies]
 
 [features]
-# default = ["dep:bindgen", "ncurses"]
-# ncurses = []
