@@ -2,6 +2,7 @@
 
 use std::{env, time::{self, Duration}};
 
+use io::{platform::unix::EventHandler, EventHandlerTrait};
 use linear_algebra::vector::VectorRow;
 use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait};
 
@@ -72,8 +73,10 @@ fn main() {
 
     let mut angle: f64 = 0.0;
 
+    let event_handler = EventHandler::init();
+
     // 4. Render
-    // loop {
+    loop {
         let start = std::time::Instant::now();
         loop {
             // Dead simple spin sleep
@@ -87,6 +90,20 @@ fn main() {
         renderer.render();
 
         let mut config = renderer.config();
+        if let Ok(event) = event_handler.receiver.try_recv() {
+            match event {
+                io::Event::Mouse(_) => todo!(),
+                io::Event::Letter(c) => {
+                    match c.0 {
+                        'a' => config.camera.position[0] -= 1.0,
+                        'd' => config.camera.position[0] += 1.0,
+                        'w' => config.camera.position[2] -= 1.0,
+                        's' => config.camera.position[2] += 1.0,
+                        _ => (),
+                    }
+                }
+            }
+        }
         let _ = renderer.set_config(config.clone());
 
         // Statistics
@@ -116,5 +133,5 @@ fn main() {
                 config.camera.rotation_quaternion[0], config.camera.rotation_quaternion[1], config.camera.rotation_quaternion[2], config.camera.rotation_quaternion[3],
             );
         }
-    // }
+    }
 }

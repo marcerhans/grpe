@@ -21,8 +21,8 @@ version = "0.1.0"
 [workspace.dependencies]
 linear_algebra = { path = "packages/linear_algebra", version = "*" }
 renderer = { path = "packages/renderer", version = "*" }
+io = { path = "packages/io", version = "*" }
 # log = { path = "packages/log", version = "*" }
-# io = { path = "packages/io", version = "*" }
 
 [package]
 name = "grpe"
@@ -32,5 +32,5 @@ edition.workspace = true
 [dependencies]
 linear_algebra.workspace = true
 renderer.workspace = true
+io.workspace = true
 # log.workspace = true
-# io.workspace = true

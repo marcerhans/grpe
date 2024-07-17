@@ -1,19 +1,15 @@
-use io::platform::unix::*;
+use io::{platform::unix::*, EventHandlerTrait, Letter};
 use std::ffi::c_char;
 
 fn main() {
-    unsafe {
-        setExitHandler();
-        enablePartialRawMode();
-    }
-
-    // println!("\x1B[?1002h"); // Track button presses + movement while pressed.
-
-    let mut buf: c_char = 0;
-    let mut buf_ptr: *mut c_char = &mut buf as *mut c_char;
+    let event_handler = EventHandler::init();
 
     loop {
-        let success = unsafe { getNextChar(buf_ptr) };
-        println!("{}", buf.to_char());
+        match event_handler.receiver.recv().unwrap() {
+            io::Event::Mouse(_) => todo!(),
+            io::Event::Letter(c) => {
+                println!("{}", c.0);
+            },
+        }
     }
 }
