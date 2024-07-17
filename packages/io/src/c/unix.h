@@ -1,7 +1,9 @@
+#pragma once
+
 #include <stdlib.h> // exit,atexit.
 #include <termios.h> // struct termios,tcgetattr,tcsetattr,ECHO,TCSAFLUSH,etc.
 #include <unistd.h> // read,STDIN_FILENO.
-#include <stdio.h> // perror.
+#include <stdio.h> // perror, NULL.
 #include <errno.h> // errno macro,EAGAIN
 
 const char* DEFAULT_ERROR_MSG = "Terminal I/O Failed";
@@ -45,6 +47,10 @@ void setExitHandler() {
   atexit(disablePartialRawMode);
 }
 
+/**
+ * Just an example.
+ */
+#ifdef FALSE
 int main() {
   setExitHandler();
   enablePartialRawMode();
@@ -63,3 +69,4 @@ int main() {
 
   return 0;
 }
+#endif
