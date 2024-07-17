@@ -30,12 +30,16 @@ void enablePartialRawMode() {
   raw.c_iflag &= ~(ICRNL);
   raw.c_lflag &= ~(ECHO | ICANON);
   raw.c_cc[VMIN] = 1; // Wait for at least 1 byte(s) to have been written.
-  raw.c_cc[VTIME] = 1; // Time to wait for input in deciseconds (i.e. 1/10:th seconds).
+  raw.c_cc[VTIME] = 0; // Time to wait for input in deciseconds (i.e. 1/10:th seconds). Zero is infinite.
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
 void setExitHandler() {
   atexit(disablePartialRawMode);
+}
+
+bool getNextChar(char * const buf) {
+    return read(STDIN_FILENO, buf, 1) == 1;
 }
 
 /**
