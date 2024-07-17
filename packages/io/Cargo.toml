@@ -11,7 +11,7 @@ readme.workspace = true
 version.workspace = true
 
 [build-dependencies]
-# bindgen = { version = "0.65.1" }
+bindgen = { version = "0.65.1" }
 
 [dependencies]
 
