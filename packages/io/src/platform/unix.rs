@@ -10,8 +10,7 @@ use std::{
 };
 
 use crate::{
-    ansi_interpretor::{
-        is_csi_sequence, is_escape_sequence, read_csi_sequence },
+    ansi_interpretor::{is_csi_sequence, is_escape_sequence, read_csi_sequence, ascii},
     Event, EventHandlerTrait,
 };
 
@@ -105,11 +104,11 @@ impl EventHandlerTrait for EventHandler {
 
                                 if let Some(event) = event {
                                     *io_thread_buf.lock().unwrap() = Some(event);
-                                }                            
+                                }
                             }
 
                             continue;
-                        } else if buf.to_char() == 'q' {
+                        } else if buf == ascii::ESC {
                             // Since CTRL-C is disabled, have a "always-on" exit.
                             unsafe {
                                 disablePartialRawMode();

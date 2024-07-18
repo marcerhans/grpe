@@ -24,6 +24,12 @@ renderer = { path = "packages/renderer", version = "*" }
 io = { path = "packages/io", version = "*" }
 # log = { path = "packages/log", version = "*" }
 
+[profile.release]
+panic = 'abort'
+
+[profile.dev]
+panic = 'abort'
+
 [package]
 name = "grpe"
 version.workspace = true

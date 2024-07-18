@@ -3,6 +3,7 @@ use std::ffi::c_char;
 
 pub mod ascii {
     #![allow(non_upper_case_globals)]
+    pub const ESC: i8 = 0x1B; // ESCAPE
     pub const M: i8 = 0x4D; // DOWN
     pub const m: i8 = 0x6D; // RELEASE
     pub const SEMI_COLON: i8 = 0x3B; // ;

@@ -71,6 +71,10 @@ fn main() {
     let fov_y_pos = (resolution.0 as f64 / 2.0) / f64::tan((renderer.config().camera.fov as f64 / 2.0) * (std::f64::consts::PI / 180.0));
 
     let event_handler = EventHandler::init();
+    let mut mouse_x_start = 0.0;
+    let mut mouse_y_start = 0.0;
+    let mut mouse_x = 0.0;
+    let mut mouse_y = 0.0;
 
     // 4. Render
     loop {
@@ -97,7 +101,21 @@ fn main() {
         // if let Ok(event) = event_handler.receiver.try_recv() {
             // match event {
             match event_handler.get_latest_event() {
-                Some(Event::Mouse(_)) => todo!(),
+                Some(Event::Mouse(mouse_event)) => match mouse_event {
+                    io::Mouse::LeftDown(x, y) => {
+                        mouse_x_start = x as f64;
+                        mouse_y_start = y as f64;
+                    },
+                    io::Mouse::LeftMove(x, y) => {
+                        mouse_x = x as f64 - mouse_x_start;
+                        mouse_y = y as f64 - mouse_y_start;
+                    },
+                    io::Mouse::LeftUp(_, _) => {
+                        mouse_x = 0.0;
+                        mouse_y = 0.0;
+                    },
+                    _ => (),
+                },
                 Some(Event::Letter(c)) => {
                     match c {
                         // Axis movement
@@ -127,6 +145,9 @@ fn main() {
             }
         // }
 
+        config.camera.position[0] += mouse_x;
+        config.camera.position[2] -= mouse_y; // Terminal coordinates are upsidedown.
+
         let _ = renderer.set_config(config.clone());
 
         // Statistics
@@ -153,6 +174,8 @@ fn main() {
                 config.camera.position[0], config.camera.position[1], config.camera.position[2],
                 config.camera.rotation_quaternion[0], config.camera.rotation_quaternion[1], config.camera.rotation_quaternion[2], config.camera.rotation_quaternion[3],
             );
+
+            println!("{mouse_y_start} and {mouse_y}");
         }
     }
 }
