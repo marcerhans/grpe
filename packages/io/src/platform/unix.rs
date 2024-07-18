@@ -3,7 +3,7 @@
 #![allow(non_snake_case)]
 include!(concat!(env!("OUT_DIR"), "/io_bindings.rs"));
 
-use std::{ffi::c_char, sync::{atomic::{AtomicU8, Ordering}, mpsc::{self, Receiver, Sender}}, thread::{self, JoinHandle}};
+use std::{ffi::c_char, sync::{atomic::{AtomicU8, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, MutexGuard}, thread::{self, JoinHandle}};
 
 use crate::{Event, EventHandlerTrait, Letter};
 
@@ -23,6 +23,7 @@ impl ToChar for c_char {
 
 pub struct EventHandler {
     pub receiver: Receiver<Event>,
+    pub event_buf: [Arc<Mutex<Option<Event>>>; 2],
     io_thread: JoinHandle<()>,
 }
 
@@ -46,24 +47,45 @@ impl EventHandlerTrait for EventHandler {
         }
 
         let (sender, receiver): (Sender<Event>, Receiver<Event>) = mpsc::channel();
+        let event_buf = [Arc::new(Mutex::new(None)),Arc::new(Mutex::new(None))];
 
         // Each thread will send its id via the channel
         Self {
             receiver,
+            event_buf: event_buf.clone(),
             io_thread: {
                 let sender = sender.clone();
+                let eb = event_buf;
 
                 thread::spawn(move || {
                     let mut buf: c_char = 0;
                     let buf_ptr: *mut c_char = &mut buf as *mut c_char;
 
+                    let a = &eb[0];
+                    let b = &eb[1];
+
                     loop {
                         let success = unsafe { getNextChar(buf_ptr) };
-                        let _ = sender.send(Event::Letter(Letter(buf.to_char())));
+
+                        let mut lock = a.lock().unwrap();
+                        if lock.is_some() {
+                            lock = b.lock().unwrap();
+                        }
+                        *lock = Some(Event::Letter(Letter(buf.to_char())));
+
+                        // let _ = sender.send(Event::Letter(Letter(buf.to_char())));
                     }
                 })
             },
         }
+    }
+    
+    fn getCurrentEvent(&self) -> Option<Event> {
+        let mut lock = self.event_buf[0].lock().unwrap();
+        if lock.is_some() {
+            lock = self.event_buf[1].lock().unwrap();
+        }
+        lock.take()
     }
 }
 

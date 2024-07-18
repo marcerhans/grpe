@@ -94,22 +94,37 @@ fn main() {
         // config.camera.position[2] = cam_pos_y_rotation * ((cam_pos_y_rotation / 16.0) % (std::f64::consts::PI * 2.0)).sin();
         // angle = (angle + std::f64::consts::PI / 32.0) % (std::f64::consts::PI * 2.0);
 
-        if let Ok(event) = event_handler.receiver.try_recv() {
-            match event {
-                Event::Mouse(_) => todo!(),
-                Event::Letter(c) => {
+        // if let Ok(event) = event_handler.receiver.try_recv() {
+            // match event {
+            match event_handler.getCurrentEvent() {
+                Some(Event::Mouse(_)) => todo!(),
+                Some(Event::Letter(c)) => {
                     match c.0 {
+                        // Axis movement
                         'a' => config.camera.position[0] -= 2.0,
                         'd' => config.camera.position[0] += 2.0,
                         'j' => config.camera.position[1] -= 2.0,
                         'k' => config.camera.position[1] += 2.0,
-                        'w' => config.camera.position[2] -= 2.0,
-                        's' => config.camera.position[2] += 2.0,
+                        'w' => config.camera.position[2] += 2.0,
+                        's' => config.camera.position[2] -= 2.0,
+                        'A' => config.camera.position[0] -= 8.0,
+                        'D' => config.camera.position[0] += 8.0,
+                        'J' => config.camera.position[1] -= 8.0,
+                        'K' => config.camera.position[1] += 8.0,
+                        'W' => config.camera.position[2] += 8.0,
+                        'S' => config.camera.position[2] -= 8.0,
+
+                        // FOV
+                        'q' => config.camera.fov -= 1,
+                        'e' => config.camera.fov += 1,
+                        'Q' => config.camera.fov -= 2,
+                        'E' => config.camera.fov += 2,
                         _ => (),
                     }
                 }
+                None => (),
             }
-        }
+        // }
 
         let _ = renderer.set_config(config.clone());
 

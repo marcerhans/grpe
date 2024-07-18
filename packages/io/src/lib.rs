@@ -16,4 +16,5 @@ pub enum Event {
 /// Using trait as interface. What are you gonna do about it :)?
 pub trait EventHandlerTrait {
     fn init() -> Self;
+    fn getCurrentEvent(&self) -> Option<Event>;
 }
