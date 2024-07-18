@@ -2,7 +2,7 @@
 
 use std::{env, time::{self, Duration}};
 
-use io::{platform::unix::EventHandler, EventHandlerTrait};
+use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
 use linear_algebra::vector::VectorRow;
 use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait};
 
@@ -74,6 +74,10 @@ fn main() {
     let mut angle: f64 = 0.0;
 
     let event_handler = EventHandler::init();
+    let mut mouse_x_start = 0.0;
+    let mut mouse_y_start = 0.0;
+    let mut mouse_x = 0.0;
+    let mut mouse_y = 0.0;
 
     // 4. Render
     loop {
@@ -90,20 +94,63 @@ fn main() {
         renderer.render();
 
         let mut config = renderer.config();
-        if let Ok(event) = event_handler.receiver.try_recv() {
-            match event {
-                io::Event::Mouse(_) => todo!(),
-                io::Event::Letter(c) => {
-                    match c.0 {
-                        'a' => config.camera.position[0] -= 1.0,
-                        'd' => config.camera.position[0] += 1.0,
-                        'w' => config.camera.position[2] -= 1.0,
-                        's' => config.camera.position[2] += 1.0,
-                        _ => (),
-                    }
+        match event_handler.get_latest_event() {
+            Some(Event::Mouse(mouse_event)) => match mouse_event {
+                io::Mouse::LeftDown(x, y) => {
+                    mouse_x_start = x as f64;
+                    mouse_y_start = y as f64;
+                },
+                io::Mouse::LeftMove(x, y) => {
+                    mouse_x = x as f64 - mouse_x_start;
+                    mouse_y = y as f64 - mouse_y_start;
+                },
+                io::Mouse::LeftUp(_, _) => {
+                    mouse_x = 0.0;
+                    mouse_y = 0.0;
+                },
+                io::Mouse::RightDown(x, y) => {
+                    mouse_x_start = x as f64;
+                    mouse_y_start = y as f64;
+                },
+                io::Mouse::RightMove(x, y) => {
+                    mouse_x = (x as f64 - mouse_x_start) * 4.0;
+                    mouse_y = (y as f64 - mouse_y_start) * 4.0;
+                },
+                io::Mouse::RightUp(_, _) => {
+                    mouse_x = 0.0;
+                    mouse_y = 0.0;
+                },
+                _ => (),
+            },
+            Some(Event::Letter(c)) => {
+                match c {
+                    // Axis movement
+                    'a' => config.camera.position[0] -= 2.0,
+                    'd' => config.camera.position[0] += 2.0,
+                    'j' => config.camera.position[1] -= 2.0,
+                    'k' => config.camera.position[1] += 2.0,
+                    'w' => config.camera.position[2] += 2.0,
+                    's' => config.camera.position[2] -= 2.0,
+                    'A' => config.camera.position[0] -= 8.0,
+                    'D' => config.camera.position[0] += 8.0,
+                    'J' => config.camera.position[1] -= 8.0,
+                    'K' => config.camera.position[1] += 8.0,
+                    'W' => config.camera.position[2] += 8.0,
+                    'S' => config.camera.position[2] -= 8.0,
+
+                    // FOV
+                    'q' => config.camera.fov -= 1,
+                    'e' => config.camera.fov += 1,
+                    'Q' => config.camera.fov -= 2,
+                    'E' => config.camera.fov += 2,
+
+                    _ => (),
                 }
             }
+            None => (),
         }
+        config.camera.position[0] += mouse_x;
+        config.camera.position[2] -= mouse_y; // Terminal coordinates are upsidedown.
         let _ = renderer.set_config(config.clone());
 
         // Statistics
