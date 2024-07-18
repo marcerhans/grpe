@@ -5,14 +5,18 @@ include!(concat!(env!("OUT_DIR"), "/io_bindings.rs"));
 
 use std::{
     ffi::c_char,
+    panic,
     sync::{Arc, Mutex, OnceLock, RwLock},
     thread::{self, JoinHandle},
 };
 
 use crate::{
-    ansi_interpretor::{is_csi_sequence, is_escape_sequence, read_csi_sequence, ascii},
+    ansi_interpretor::{ascii, is_csi_sequence, is_escape_sequence, read_csi_sequence},
     Event, EventHandlerTrait,
 };
+
+/// Panic hook
+static PANIC_HOOK_FLAG: OnceLock<()> = OnceLock::new();
 
 /// Singleton worker thread.
 static IO_THREAD: OnceLock<Arc<Mutex<Option<JoinHandle<()>>>>> = OnceLock::new();
@@ -61,6 +65,17 @@ impl Drop for EventHandler {
 
 impl EventHandlerTrait for EventHandler {
     fn init() -> Self {
+        let _ = PANIC_HOOK_FLAG.set({
+            let old_hook = panic::take_hook();
+
+            panic::set_hook(Box::new(move |panic_info| {
+                unsafe {
+                    disablePartialRawMode();
+                }
+                old_hook(panic_info);
+            }));
+        });
+
         let io_thread_refs = IO_THREAD_REFS.get_or_init(|| Arc::new(RwLock::new(0)));
         let mut io_thread_refs_lock = io_thread_refs.write().unwrap();
 
