@@ -1,20 +1,23 @@
 pub mod platform;
 
 pub enum Mouse {
-    Down(u32, u32),
-    Move(u32, u32),
-    Up(u32, u32),
+    LeftDown(u32, u32),
+    LeftMove(u32, u32),
+    LeftUp(u32, u32),
+    MiddleDown(u32, u32),
+    MiddleMove(u32, u32),
+    MiddleUp(u32, u32),
+    RightDown(u32, u32),
+    RightMove(u32, u32),
+    RightUp(u32, u32),
 }
-
-pub struct Letter(pub char);
 
 pub enum Event {
     Mouse(Mouse),
-    Letter(Letter),
+    Letter(char),
 }
 
-/// Using trait as interface. What are you gonna do about it :)?
 pub trait EventHandlerTrait {
     fn init() -> Self;
-    fn getCurrentEvent(&self) -> Option<Event>;
+    fn get_latest_event(&self) -> Option<Event>;
 }

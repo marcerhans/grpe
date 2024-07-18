@@ -3,12 +3,22 @@
 #![allow(non_snake_case)]
 include!(concat!(env!("OUT_DIR"), "/io_bindings.rs"));
 
-use std::{ffi::c_char, sync::{atomic::{AtomicU8, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, MutexGuard}, thread::{self, JoinHandle}};
+use std::{
+    ffi::c_char,
+    sync::{Arc, Mutex, OnceLock, RwLock},
+    thread::{self, JoinHandle},
+};
 
-use crate::{Event, EventHandlerTrait, Letter};
+use crate::{Event, EventHandlerTrait};
 
-const HANDLER_COUNT_MAX: u8 = 1;
-static HANDLER_COUNT_CURRENT: AtomicU8 = AtomicU8::new(0);
+/// Singleton worker thread.
+static IO_THREAD: OnceLock<Arc<Mutex<Option<JoinHandle<()>>>>> = OnceLock::new();
+
+/// Manual reference counting of users for worker io thread.
+static IO_THREAD_REFS: OnceLock<Arc<RwLock<isize>>> = OnceLock::new();
+
+/// Buffer for [Event]s.
+static IO_THREAD_BUF: OnceLock<Arc<Mutex<Option<Event>>>> = OnceLock::new();
 
 /// Trait to convert a [c_char] to a [char].
 pub trait ToChar {
@@ -22,88 +32,90 @@ impl ToChar for c_char {
 }
 
 pub struct EventHandler {
-    pub receiver: Receiver<Event>,
-    pub event_buf: [Arc<Mutex<Option<Event>>>; 2],
-    io_thread: JoinHandle<()>,
+    pub event_buf: Arc<Mutex<Option<Event>>>,
 }
 
 impl Drop for EventHandler {
     fn drop(&mut self) {
-        unsafe {
-            disablePartialRawMode();
+        let mut io_thread = IO_THREAD.get().unwrap().lock().unwrap();
+        let mut io_thread_refs = IO_THREAD_REFS.get().unwrap().write().unwrap();
+
+        *io_thread_refs -= 1;
+
+        if *io_thread_refs < 0 {
+            panic!();
+        }
+
+        if *io_thread_refs == 0 {
+            unsafe {
+                disablePartialRawMode();
+            }
+            drop(io_thread_refs);
+            io_thread.take().unwrap().join().unwrap();
         }
     }
 }
 
 impl EventHandlerTrait for EventHandler {
     fn init() -> Self {
-        if HANDLER_COUNT_CURRENT.fetch_add(1, Ordering::SeqCst) == HANDLER_COUNT_MAX {
-            panic!("Only initialize event handler once!");
-        }
+        let io_thread_refs = IO_THREAD_REFS.get_or_init(|| {
+            unsafe {
+                setExitHandler(); // TODO: Does not work currently :(
+                enablePartialRawMode();
+            }
 
-        unsafe {
-            setExitHandler();
-            enablePartialRawMode();
-        }
+            Arc::new(RwLock::new(0))
+        });
+        *io_thread_refs.write().unwrap() += 1;
 
-        let (sender, receiver): (Sender<Event>, Receiver<Event>) = mpsc::channel();
-        let event_buf = [Arc::new(Mutex::new(None)),Arc::new(Mutex::new(None))];
+        let io_thread_buf = IO_THREAD_BUF.get_or_init(|| Arc::new(Mutex::new(None)));
 
-        // Each thread will send its id via the channel
-        Self {
-            receiver,
-            event_buf: event_buf.clone(),
-            io_thread: {
-                let sender = sender.clone();
-                let eb = event_buf;
+        let io_thread = IO_THREAD.get_or_init(|| Arc::new(Mutex::new(None)));
 
-                thread::spawn(move || {
-                    let mut buf: c_char = 0;
-                    let buf_ptr: *mut c_char = &mut buf as *mut c_char;
+        let mut io_thread_lock = io_thread.lock().unwrap();
+        if io_thread_lock.is_none() {
+            *io_thread_lock = Some(thread::spawn(move || {
+                let mut buf: c_char = 0;
+                let buf_ptr: *mut c_char = &mut buf as *mut c_char;
 
-                    let a = &eb[0];
-                    let b = &eb[1];
+                while *IO_THREAD_REFS.get().unwrap().read().unwrap() > 0 {
+                    let success = unsafe { getNextChar(buf_ptr) };
 
-                    loop {
-                        let success = unsafe { getNextChar(buf_ptr) };
-
-                        let mut lock = a.lock().unwrap();
-                        if lock.is_some() {
-                            lock = b.lock().unwrap();
+                    if success {
+                        // Since CTRL-C is disabled, have a "always-on" exit.
+                        if buf.to_char() == 'q' {
+                            unsafe {
+                                disablePartialRawMode();
+                            }
+                            std::process::exit(0);
                         }
-                        *lock = Some(Event::Letter(Letter(buf.to_char())));
 
-                        // let _ = sender.send(Event::Letter(Letter(buf.to_char())));
+                        *IO_THREAD_BUF.get().unwrap().lock().unwrap() =
+                            Some(Event::Letter(buf.to_char()));
                     }
-                })
-            },
+                }
+            }));
+        }
+
+        Self {
+            event_buf: io_thread_buf.clone(),
         }
     }
-    
-    fn getCurrentEvent(&self) -> Option<Event> {
-        let mut lock = self.event_buf[0].lock().unwrap();
-        if lock.is_some() {
-            lock = self.event_buf[1].lock().unwrap();
-        }
-        lock.take()
+
+    fn get_latest_event(&self) -> Option<Event> {
+        self.event_buf.lock().unwrap().take()
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use super::*;
 
     #[test]
     fn main() {
-        unsafe {
-            setExitHandler();
-            enablePartialRawMode();
-
-            let mut buf: i8 = 0;
-
-            loop {
-                let success = getNextChar(&mut buf as *mut i8);
-            }
-        }
+        let event_handler = EventHandler::init();
+        let event_handler2 = EventHandler::init();
     }
 }

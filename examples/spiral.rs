@@ -96,10 +96,10 @@ fn main() {
 
         // if let Ok(event) = event_handler.receiver.try_recv() {
             // match event {
-            match event_handler.getCurrentEvent() {
+            match event_handler.get_latest_event() {
                 Some(Event::Mouse(_)) => todo!(),
                 Some(Event::Letter(c)) => {
-                    match c.0 {
+                    match c {
                         // Axis movement
                         'a' => config.camera.position[0] -= 2.0,
                         'd' => config.camera.position[0] += 2.0,
@@ -119,6 +119,7 @@ fn main() {
                         'e' => config.camera.fov += 1,
                         'Q' => config.camera.fov -= 2,
                         'E' => config.camera.fov += 2,
+
                         _ => (),
                     }
                 }

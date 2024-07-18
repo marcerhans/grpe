@@ -29,10 +29,10 @@ void disablePartialRawMode() {
 void enablePartialRawMode() {
   tcgetattr(STDIN_FILENO, &orig_termios);
   struct termios raw = orig_termios;
-  raw.c_iflag &= ~(ICRNL);
-  raw.c_lflag &= ~(ECHO | ICANON);
+  raw.c_iflag &= ~(ICRNL | IXON);
+  raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG );
   raw.c_cc[VMIN] = 1; // Wait for at least 1 byte(s) to have been written.
-  raw.c_cc[VTIME] = 0; // Time to wait for input in deciseconds (i.e. 1/10:th seconds). Zero is infinite.
+  raw.c_cc[VTIME] = 1; // Time to wait for input in deciseconds (i.e. 1/10:th seconds). Zero is infinite.
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 
   // Also enable mouse tracking via ANSI escape codes (xterm).
@@ -46,27 +46,3 @@ void setExitHandler() {
 bool getNextChar(char * const buf) {
     return read(STDIN_FILENO, buf, 1) == 1;
 }
-
-/**
- * Just an example.
- */
-#ifdef FALSE
-int main() {
-  setExitHandler();
-  enablePartialRawMode();
-
-  char c;
-
-  while (1) {
-    if (read(STDIN_FILENO, &c, 1) == -1) {
-      error(NULL);
-    }
-
-    if (c == 'q') {
-      break;
-    }
-  }
-
-  return 0;
-}
-#endif
