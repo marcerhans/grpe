@@ -1,4 +1,5 @@
 pub mod platform;
+mod ansi_interpretor;
 
 pub enum Mouse {
     LeftDown(u32, u32),

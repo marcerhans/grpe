@@ -9,7 +9,11 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use crate::{Event, EventHandlerTrait};
+use crate::{
+    ansi_interpretor::{
+        is_csi_sequence, is_escape_sequence, read_csi_sequence },
+    Event, EventHandlerTrait,
+};
 
 /// Singleton worker thread.
 static IO_THREAD: OnceLock<Arc<Mutex<Option<JoinHandle<()>>>>> = OnceLock::new();
@@ -84,16 +88,36 @@ impl EventHandlerTrait for EventHandler {
                     let success = unsafe { getNextChar(buf_ptr) };
 
                     if success {
-                        // Since CTRL-C is disabled, have a "always-on" exit.
-                        if buf.to_char() == 'q' {
+                        if is_escape_sequence(buf) {
+                            let success = unsafe { getNextChar(buf_ptr) };
+
+                            if is_csi_sequence(buf) {
+                                let event = read_csi_sequence(|| {
+                                    let mut buf: c_char = 0;
+                                    let buf_ptr: *mut c_char = &mut buf as *mut c_char;
+
+                                    if !(unsafe { getNextChar(buf_ptr) }) {
+                                        panic!("opsie"); // TODO: Possible to handle? I think there WILL be characters in buffer by this point.
+                                    }
+
+                                    buf
+                                });
+
+                                if let Some(event) = event {
+                                    *io_thread_buf.lock().unwrap() = Some(event);
+                                }                            
+                            }
+
+                            continue;
+                        } else if buf.to_char() == 'q' {
+                            // Since CTRL-C is disabled, have a "always-on" exit.
                             unsafe {
                                 disablePartialRawMode();
                             }
                             std::process::exit(0);
                         }
 
-                        *io_thread_buf.lock().unwrap() =
-                            Some(Event::Letter(buf.to_char()));
+                        *io_thread_buf.lock().unwrap() = Some(Event::Letter(buf.to_char()));
                     }
                 }
             }));

@@ -20,6 +20,7 @@ void error(const char* s) {
 
 void disablePartialRawMode() {
   puts("\x1B[?1002l");
+  puts("\x1B[?1006l");
 
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1) {
     error(NULL);
@@ -37,6 +38,7 @@ void enablePartialRawMode() {
 
   // Also enable mouse tracking via ANSI escape codes (xterm).
   puts("\x1B[?1002h"); // Track button presses + movement while pressed.
+  puts("\x1B[?1006h"); // Enable SGR mouse mode to support large terminals (> char/u8 size coordinates).
 }
 
 void setExitHandler() {
