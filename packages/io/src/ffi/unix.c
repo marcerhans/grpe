@@ -31,7 +31,7 @@ void enablePartialRawMode() {
   struct termios raw = orig_termios;
   raw.c_iflag &= ~(ICRNL | IXON);
   raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG );
-  raw.c_cc[VMIN] = 1; // Wait for at least 1 byte(s) to have been written.
+  raw.c_cc[VMIN] = 0; // Only return from read when at least one character is ready.
   raw.c_cc[VTIME] = 1; // Time to wait for input in deciseconds (i.e. 1/10:th seconds). Zero is infinite.
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 

@@ -121,6 +121,5 @@ mod tests {
     fn main() {
         let event_handler = EventHandler::init();
         sleep(Duration::from_secs(2));
-        let event_handler = EventHandler::init();
     }
 }
