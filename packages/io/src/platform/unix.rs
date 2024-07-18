@@ -105,15 +105,15 @@ impl EventHandlerTrait for EventHandler {
                                 if let Some(event) = event {
                                     *io_thread_buf.lock().unwrap() = Some(event);
                                 }
+                            } else if buf == ascii::ESC {
+                                // Since CTRL-C is disabled, have a "always-on" exit.
+                                unsafe {
+                                    disablePartialRawMode();
+                                }
+                                std::process::exit(0);
                             }
 
                             continue;
-                        } else if buf == ascii::ESC {
-                            // Since CTRL-C is disabled, have a "always-on" exit.
-                            unsafe {
-                                disablePartialRawMode();
-                            }
-                            std::process::exit(0);
                         }
 
                         *io_thread_buf.lock().unwrap() = Some(Event::Letter(buf.to_char()));

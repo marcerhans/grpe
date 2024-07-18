@@ -72,8 +72,8 @@ pub fn read_csi_sequence<F: Fn() -> c_char>(reader: F) -> Option<Event> {
     } else {
         match button {
             0 => Some(Event::Mouse(Mouse::LeftUp(x, y))),
-            1 => Some(Event::Mouse(Mouse::RightDown(x, y))),
-            2 => Some(Event::Mouse(Mouse::MiddleDown(x, y))),
+            1 => Some(Event::Mouse(Mouse::MiddleUp(x, y))),
+            2 => Some(Event::Mouse(Mouse::RightUp(x, y))),
             _ => None
         }
     };

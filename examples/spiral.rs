@@ -114,6 +114,18 @@ fn main() {
                         mouse_x = 0.0;
                         mouse_y = 0.0;
                     },
+                    io::Mouse::RightDown(x, y) => {
+                        mouse_x_start = x as f64;
+                        mouse_y_start = y as f64;
+                    },
+                    io::Mouse::RightMove(x, y) => {
+                        mouse_x = (x as f64 - mouse_x_start) * 4.0;
+                        mouse_y = (y as f64 - mouse_y_start) * 4.0;
+                    },
+                    io::Mouse::RightUp(_, _) => {
+                        mouse_x = 0.0;
+                        mouse_y = 0.0;
+                    },
                     _ => (),
                 },
                 Some(Event::Letter(c)) => {
