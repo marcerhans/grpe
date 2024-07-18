@@ -58,21 +58,23 @@ impl Drop for EventHandler {
 
 impl EventHandlerTrait for EventHandler {
     fn init() -> Self {
-        let io_thread_refs = IO_THREAD_REFS.get_or_init(|| {
+        let io_thread_refs = IO_THREAD_REFS.get_or_init(|| Arc::new(RwLock::new(0)));
+        let mut io_thread_refs_lock = io_thread_refs.write().unwrap();
+
+        *io_thread_refs_lock += 1;
+
+        if *io_thread_refs_lock == 1 {
             unsafe {
-                setExitHandler(); // TODO: Does not work currently :(
+                // setExitHandler(); // TODO: Does not work currently :(
                 enablePartialRawMode();
             }
-
-            Arc::new(RwLock::new(0))
-        });
-        *io_thread_refs.write().unwrap() += 1;
+        }
+        drop(io_thread_refs_lock);
 
         let io_thread_buf = IO_THREAD_BUF.get_or_init(|| Arc::new(Mutex::new(None)));
-
         let io_thread = IO_THREAD.get_or_init(|| Arc::new(Mutex::new(None)));
-
         let mut io_thread_lock = io_thread.lock().unwrap();
+
         if io_thread_lock.is_none() {
             *io_thread_lock = Some(thread::spawn(move || {
                 let mut buf: c_char = 0;
@@ -90,7 +92,7 @@ impl EventHandlerTrait for EventHandler {
                             std::process::exit(0);
                         }
 
-                        *IO_THREAD_BUF.get().unwrap().lock().unwrap() =
+                        *io_thread_buf.lock().unwrap() =
                             Some(Event::Letter(buf.to_char()));
                     }
                 }
@@ -111,11 +113,14 @@ impl EventHandlerTrait for EventHandler {
 mod tests {
     use std::time::Duration;
 
+    use thread::sleep;
+
     use super::*;
 
     #[test]
     fn main() {
         let event_handler = EventHandler::init();
-        let event_handler2 = EventHandler::init();
+        sleep(Duration::from_secs(2));
+        let event_handler = EventHandler::init();
     }
 }
