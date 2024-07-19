@@ -1,6 +1,8 @@
+use std::cell::RefCell;
 use std::io::{BufWriter, Stdout};
 use std::io::Write;
 use std::panic;
+use std::rc::Rc;
 use std::sync::OnceLock;
 
 use crate::{Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait, __RendererTrait};
@@ -11,9 +13,9 @@ use linear_algebra::vector::VectorRow;
 static PANIC_HOOK_FLAG: OnceLock<()> = OnceLock::new();
 
 mod character {
-    pub static LINE_HORIZONTAL: char = '\u{254c}'; // ╌
-    pub static LINE_VERTICAL: char = '\u{2506}'; // ┆
-    pub static CENTER: char = '\u{253c}'; // ┼
+    // pub static LINE_HORIZONTAL: char = '\u{254c}'; // ╌
+    // pub static LINE_VERTICAL: char = '\u{2506}'; // ┆
+    // pub static CENTER: char = '\u{253c}'; // ┼
     pub static UPPER: char = '\u{2580}'; // ▀
     // pub static UPPER: char = '\u{1FB91}'; // ▀
     pub static LOWER: char = '\u{2584}'; // ▄
@@ -28,7 +30,7 @@ mod character {
 
 mod ansi {
     pub static CLEAR_SCREEN: &str = "\x1B[2J";
-    pub static GO_TO_0_0: &str = "\x1B[H";
+    // pub static GO_TO_0_0: &str = "\x1B[H";
     pub static GO_TO_1_0: &str = "\x1B[2H";
 }
 
@@ -37,15 +39,10 @@ pub struct TerminalBuilder {
     config: RendererConfiguration,
 }
 
-impl<'a> RendererBuilderTrait<'a> for TerminalBuilder {
-    type Renderer = Terminal<'a>;
+impl RendererBuilderTrait for TerminalBuilder {
+    type Renderer = Terminal;
 
-    fn with_camera(mut self, mut camera: Camera) -> Self {
-        if camera.resolution.1 % 2 != 0 {
-            // Needed to protect against out of bounds.
-            camera.resolution.1 -= 1;
-        }
-
+    fn with_camera(mut self, camera: Camera) -> Self {
         self.config.camera = camera;
         self
     }
@@ -55,11 +52,11 @@ impl<'a> RendererBuilderTrait<'a> for TerminalBuilder {
         self
     }
 
-    fn build(self) -> Self::Renderer {
+    fn build(self) -> Result<Self::Renderer, &'static str> {
         Self::Renderer::new(self.config)
     }
 
-    fn build_with_config(self, config: RendererConfiguration) -> Self::Renderer {
+    fn build_with_config(self, config: RendererConfiguration) -> Result<Self::Renderer, &'static str> {
         Self::Renderer::new(config)
     }
 }
@@ -124,19 +121,20 @@ impl Canvas {
 }
 
 /// Terminal renderer.
-pub struct Terminal<'a> {
+/// TODO: Split config and pipeline stuff up?
+/// (struct TerminalCOnfiguration(RendererConfiguration, OtherDerivedConfigs, canvas(?)) and struct Pipeline(vertices, vertices_projected, canvas(?), stdout_buffer)
+pub struct Terminal {
     config: RendererConfiguration,
     camera_rotation_matrix: Matrix<f64, 3, 3>,
     camera_rotation_matrix_inverse: Matrix<f64, 3, 3>,
-    vertices: Option<&'a [VectorRow<f64, 3>]>,
+    vertices: Option<Rc<RefCell<Vec<VectorRow<f64, 3>>>>>,
     vertices_projected: Vec<VectorRow<f64, 3>>,
     canvas: Canvas,
     stdout_buffer: BufWriter<Stdout>,
-    error: Option<&'static str>,
 }
 
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
-impl<'a> Terminal<'a> {
+impl Terminal {
     /// Returns the rotation matrix and its inverse.
     fn quaternion_to_matrix(quaternion: &VectorRow<f64, 3>) -> (Matrix<f64, 3, 3>, Matrix<f64, 3, 3>) {
         let w = 0.0;
@@ -182,7 +180,7 @@ impl<'a> Terminal<'a> {
     fn project_vertices_on_viewport(&mut self) {
         self.vertices_projected.clear();
 
-        for vertex in self.vertices.as_ref().unwrap().iter() {
+        for vertex in self.vertices.as_ref().unwrap().borrow().iter() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
                 self.vertices_projected.push(intersection);
             }
@@ -192,13 +190,15 @@ impl<'a> Terminal<'a> {
     /// Maps projected vertices to a [Canvas::buffer].
     fn map_vertices_to_canvas_buffer(&mut self) {
         for vertex in self.vertices_projected.iter() {
+            let camera = &self.config.camera;
+
             // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
-            let x = (vertex[0] as isize) - self.config.camera.position[0] as isize + (self.config.camera.resolution.0 / 2) as isize - 1;
-            let mut z = vertex[2] as isize - self.config.camera.position[2] as isize + (self.config.camera.resolution.1 / 2) as isize - 1;
+            let x = (vertex[0] as isize) - camera.position[0] as isize + (camera.resolution.0 / 2) as isize - 1;
+            let mut z = vertex[2] as isize - camera.position[2] as isize + (camera.resolution.1 / 2) as isize - 1;
 
             // Only show vertices within view of [Camera].
-            if !(x >= 0 && x < self.config.camera.resolution.0 as isize) ||
-               !(z >= 0 && z < self.config.camera.resolution.1 as isize)
+            if !(x >= 0 && x < camera.resolution.0 as isize) ||
+               !(z >= 0 && z < camera.resolution.1 as isize)
             {
                 continue;
             }
@@ -241,52 +241,53 @@ impl<'a> Terminal<'a> {
     }
 }
 
-/// General process should be:
-/// 1. Setup/Update and configure.
-/// 2. Rotate [Canvas] as described by [RendererConfiguration].
-/// 3. Project on [Canvas].
-/// 4. Rotate [Canvas] back. (This makes mapping to 2d array buffer a lot easier).
-/// 5. Map to 2d array buffer ([Canvas::buffer]).
-/// 6. Print array to stdout.
-impl<'a> RendererTrait<'a> for Terminal<'a> {
-    fn config(&self) -> RendererConfiguration {
-        self.config.clone()
+impl RendererTrait for Terminal {
+    fn config(&self) -> &RendererConfiguration {
+        &self.config
     }
 
-    fn set_config(&mut self, mut config: RendererConfiguration) -> Result<(), &'static str> {
-        if config.camera.fov > 170 {
-            let error = "FOV too high. It has to be below 170.";
-            self.error = Some(error);
-            return Err(error);
+    fn set_camera(mut self, mut camera: Camera) -> Result<Self, &'static str> {
+        if camera.fov > 170 {
+            return Err("FOV too high. It has to be below 170.");
         }
 
-        if config.camera.resolution.1 % 2 != 0 {
+        if camera.resolution.1 % 2 != 0 {
             // Needed to protect against out of bounds.
-            config.camera.resolution.1 -= 1;
+            // I.e, when mapping from intersection/viewport plane to the array buffer
+            // the indexing cannot be uneven.
+            camera.resolution.1 -= 1;
         }
 
-        let rotation_matrices = Self::quaternion_to_matrix(&config.camera.rotation);
+        let rotation_matrices = Self::quaternion_to_matrix(&camera.rotation);
 
-        self.config = config;
+        self.config.camera = camera;
         self.canvas.line_intersection_checker = Canvas::create_intersection_checker(&self.config);
         self.camera_rotation_matrix = rotation_matrices.0;
         self.camera_rotation_matrix_inverse = rotation_matrices.1;
-        Ok(())
+
+        Ok(self)
     }
 
-    fn set_vertices(&mut self, vertices: &'a [VectorRow<f64, 3>]) {
+    fn set_option(mut self, option: RenderOption) -> Result<Self, &'static str> {
+        self.config.option = option;
+        Ok(self)
+    }
+
+    fn set_config(mut self, config: RendererConfiguration) -> Result<Self, &'static str> {
+        self = self.set_camera(config.camera)?;
+        self = self.set_option(config.option)?;
+        Ok(self)
+    }
+
+    fn set_vertices(&mut self, vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>) {
         self.vertices = Some(vertices);
     }
 
-    fn set_vertices_line_draw_order(&mut self, order: &'a [&'a [usize]]) {
+    fn set_vertices_line_draw_order(&mut self, order: Rc<RefCell<[Box<[usize]>]>>) {
         todo!("Implement this later")
     }
 
     fn render(&mut self) {
-        if let Some(error) = self.error {
-            panic!("\x1B[1;31mRender failed due to:\x1B[0m {error}")
-        }
-
         self.clear();
         // TODO: Rotate canvas. (Step 2).
         self.project_vertices_on_viewport();
@@ -296,11 +297,12 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
     }
 }
 
-impl<'a> __RendererTrait<'a> for Terminal<'a> {
-    fn new(config: RendererConfiguration) -> Self {
+impl __RendererTrait for Terminal {
+    fn new(config: RendererConfiguration) -> Result<Self, &'static str> {
         let _ = PANIC_HOOK_FLAG.set({
             let old_hook = panic::take_hook();
 
+            // TODO: Realized that this panic hook still will be in use even if [Terminal] is dropped. Should be fixed/considered.
             panic::set_hook(Box::new(move |panic_info| {
                 println!("{}", ansi::CLEAR_SCREEN);
                 old_hook(panic_info);
@@ -309,42 +311,16 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
 
         let rotation_matrices = Self::quaternion_to_matrix(&config.camera.rotation);
 
-        Self {
+        let terminal = Self {
             camera_rotation_matrix: rotation_matrices.0,
             camera_rotation_matrix_inverse: rotation_matrices.1,
             vertices: None,
             vertices_projected: Vec::with_capacity((config.camera.resolution.0 * config.camera.resolution.1) as usize),
             canvas: Canvas::new(&config),
             stdout_buffer: BufWriter::new(std::io::stdout()),
-            config,
-            error: None,
-        }
-    }
-}
+            config: Default::default(),
+        };
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn foo() {
-        let a = 4 as f64;
-        let b = 90 as f64 / 2.0;
-        let c = f64::tan(b * (std::f64::consts::PI / 180.0));
-        println!("foo");
-    }
-
-    #[test]
-    fn canvas_line_intersection_checker_test() {
-        let renderer = TerminalBuilder::default().with_camera(Camera {
-            resolution: (4, 4),
-            position: VectorRow::from([0.0, 0.0, 0.0]),
-            rotation: VectorRow::from([0.0, 0.0, 0.0]),
-            fov: 90,
-        }).build();
-        match (renderer.canvas.line_intersection_checker)(&VectorRow::from([-2.0, 2.0, 0.0])) {
-            Some(intersection_point) => assert!(intersection_point.0.eqa(&VectorRow::from([-1.0, 0.0, 0.0]).0, &0.001), "{:?}", intersection_point),
-            None => panic!()
-        }
+        Ok(terminal.set_config(config)?)
     }
 }

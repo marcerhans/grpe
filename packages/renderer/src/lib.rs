@@ -3,6 +3,8 @@
 
 pub mod strategy;
 
+use std::{cell::RefCell, rc::Rc};
+
 pub use strategy::renderer;
 pub use linear_algebra::{matrix::{Matrix, MatrixDataTrait}, vector::VectorRow};
 
@@ -40,30 +42,35 @@ pub struct RendererConfiguration {
 }
 
 /// [RendererBuilderTrait] are categorized settings and initial values for a renderer ([RendererTrait]).
-pub trait RendererBuilderTrait<'a>: Default {
-    type Renderer: RendererTrait<'a>;
+pub trait RendererBuilderTrait: Default {
+    type Renderer: RendererTrait;
 
     fn with_camera(self, camera: Camera) -> Self;
     fn with_option(self, option: RenderOption) -> Self;
 
     /// Build an instance of [RendererTrait].
-    fn build(self) -> Self::Renderer;
+    fn build(self) -> Result<Self::Renderer, &'static str>;
 
     /// Build an instance of [RendererTrait] using an existing [RendererConfiguration].
-    fn build_with_config(self, config: RendererConfiguration) -> Self::Renderer;
+    fn build_with_config(self, config: RendererConfiguration) -> Result<Self::Renderer, &'static str>;
 }
 
 /// [RendererTrait] for rendering to display.
-pub trait RendererTrait<'a> {
-    /// Get [RendererConfiguration].
-    fn config(&self) -> RendererConfiguration;
+pub trait RendererTrait where Self: Sized {
+    /// Get reference to [RendererConfiguration].
+    fn config(&self) -> &RendererConfiguration;
+
+    /// Set a new [Camera].
+    fn set_camera(self, camera: Camera) -> Result<Self, &'static str>;
+
+    /// Set a new [RenderOption].
+    fn set_option(self, option: RenderOption) -> Result<Self, &'static str>;
 
     /// Set a new config ([RendererConfiguration]) for the [RendererTrait].
-    /// Returns [Result::Ok] if configuration is valid for current renderer.
-    fn set_config(&mut self, config: RendererConfiguration) -> Result<(), &'static str>;
+    fn set_config(self, config: RendererConfiguration) -> Result<Self, &'static str>;
 
     /// Vertices are used as "anchors"/"points in space" from which lines can be drawn.
-    fn set_vertices(&mut self, vertices: &'a [VectorRow<f64, 3>]);
+    fn set_vertices(&mut self, vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>);
 
     /// Index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
     /// 
@@ -76,15 +83,17 @@ pub trait RendererTrait<'a> {
     /// 
     /// some_already_configured_renderer.set_vertices(&vertices);
     /// some_already_configured_renderer.set_vertices_line_draw_order(&draw_order);
+    /// 
+    /// TODO: Update doc!
     /// ```
-    fn set_vertices_line_draw_order(&mut self, order: &'a [&'a [usize]]);
+    fn set_vertices_line_draw_order(&mut self, order: Rc<RefCell<[Box<[usize]>]>>); // TODO: Probably not right :))
 
     /// Do the render! What is rendered in the final artefact is decided the the [RenderOption]s.
     fn render(&mut self);
 }
 
 /// Hidden trait methods for [RendererTrait].
-trait __RendererTrait<'a>: RendererTrait<'a> {
+trait __RendererTrait: RendererTrait {
     /// Create new instance.
-    fn new(config: RendererConfiguration) -> Self;
+    fn new(config: RendererConfiguration) -> Result<Self, &'static str>;
 }
