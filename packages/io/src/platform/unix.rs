@@ -128,8 +128,11 @@ impl EventHandlerTrait for EventHandler {
                                 println!("{}", "\x1B[2J"); // TODO: This clears the screen before exit, but it should not be HERE.
                                 std::process::exit(0);
                             }
-
                             continue;
+                        }
+
+                        if buf == 'P' as i8 {
+                            panic!("Manually triggered panic by pressing 'P'!")
                         }
 
                         *io_thread_buf.lock().unwrap() = Some(Event::Letter(buf.to_char()));
