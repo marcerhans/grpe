@@ -194,8 +194,6 @@ fn main() {
                 config.camera.position[0], config.camera.position[1], config.camera.position[2],
                 config.camera.rotation[0], config.camera.rotation[1], config.camera.rotation[2]
             );
-
-            println!("{mouse_y_start} and {mouse_y}");
         }
 
         let banner_text = "GRPE";

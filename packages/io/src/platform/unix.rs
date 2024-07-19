@@ -125,6 +125,7 @@ impl EventHandlerTrait for EventHandler {
                                 unsafe {
                                     disablePartialRawMode();
                                 }
+                                println!("{}", "\x1B[2J"); // TODO: This clears the screen before exit, but it should not be HERE.
                                 std::process::exit(0);
                             }
 
