@@ -57,7 +57,7 @@ fn main() {
         .with_camera(Camera {
             resolution: (resolution.0, resolution.1),
             position: VectorRow::from([80.0, -1000.0, 0.0]),
-            rotation_quaternion: VectorRow::from([0.0, 0.0, 0.0, 0.0]),
+            rotation: VectorRow::from([0.0, 0.0, 0.0]),
             fov: 1,
         })
         .build();

@@ -133,11 +133,11 @@ pub struct Terminal<'a> {
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
 impl<'a> Terminal<'a> {
     /// Returns the rotation matrix and its inverse.
-    fn quaternion_to_matrix(quaternion: &VectorRow<f64, 4>) -> (Matrix<f64, 3, 3>, Matrix<f64, 3, 3>) {
-        let w = quaternion[0];
-        let x = quaternion[1];
-        let y = quaternion[2];
-        let z = quaternion[3];
+    fn quaternion_to_matrix(quaternion: &VectorRow<f64, 3>) -> (Matrix<f64, 3, 3>, Matrix<f64, 3, 3>) {
+        let w = 0.0;
+        let x = quaternion[0];
+        let y = quaternion[1];
+        let z = quaternion[2];
 
         (
             Matrix::from([
@@ -260,7 +260,7 @@ impl<'a> RendererTrait<'a> for Terminal<'a> {
             config.camera.resolution.1 -= 1;
         }
 
-        let rotation_matrices = Self::quaternion_to_matrix(&config.camera.rotation_quaternion);
+        let rotation_matrices = Self::quaternion_to_matrix(&config.camera.rotation);
 
         self.config = config;
         self.canvas.line_intersection_checker = Canvas::create_intersection_checker(&self.config);
@@ -305,7 +305,7 @@ impl<'a> __RendererTrait<'a> for Terminal<'a> {
         }
         println!();
 
-        let rotation_matrices = Self::quaternion_to_matrix(&config.camera.rotation_quaternion);
+        let rotation_matrices = Self::quaternion_to_matrix(&config.camera.rotation);
 
         Self {
             camera_rotation_matrix: rotation_matrices.0,
@@ -337,7 +337,7 @@ mod tests {
         let renderer = TerminalBuilder::default().with_camera(Camera {
             resolution: (4, 4),
             position: VectorRow::from([0.0, 0.0, 0.0]),
-            rotation_quaternion: VectorRow::from([0.0, 0.0, 0.0, 0.0]),
+            rotation: VectorRow::from([0.0, 0.0, 0.0]),
             fov: 90,
         }).build();
         match (renderer.canvas.line_intersection_checker)(&VectorRow::from([-2.0, 2.0, 0.0])) {
