@@ -110,7 +110,7 @@ impl EventHandlerTrait for EventHandler {
                                     let mut buf: c_char = 0;
                                     let buf_ptr: *mut c_char = &mut buf as *mut c_char;
 
-                                    if !(unsafe { getNextChar(buf_ptr) }) {
+                                    if !(unsafe { getNextChar(buf_ptr) }) { // TODO: getNextChar might need to be update to fulfill its contract/description.
                                         panic!("opsie"); // TODO: Possible to handle? I think there WILL be characters in buffer by this point.
                                     }
 
