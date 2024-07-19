@@ -117,16 +117,23 @@ impl Canvas {
             }
         })
     }
+    
+    fn update(&mut self, config: &RendererConfiguration) -> Result<(), &'static str> {
+        Ok(self.line_intersection_checker = Canvas::create_intersection_checker(config))
+    }
 }
 
 /// Terminal renderer.
 /// TODO: Split config and pipeline stuff up?
 /// (struct TerminalConfiguration(RendererConfiguration, OtherDerivedConfigs, canvas(?)) and struct Pipeline(vertices, vertices_projected, canvas(?), stdout_buffer)
 pub struct Terminal {
+    // Affected by config.
     config: RendererConfiguration,
+    canvas: Canvas,
+
+    // Pipeline stuff. Not directly affected by [Self::config].
     vertices: Option<Rc<RefCell<Vec<VectorRow<f64, 3>>>>>,
     vertices_projected: Vec<VectorRow<f64, 3>>,
-    canvas: Canvas,
     stdout_buffer: BufWriter<Stdout>,
 }
 
@@ -235,7 +242,7 @@ impl RendererTrait for Terminal {
         }
 
         self.config.camera = camera;
-        self.canvas.line_intersection_checker = Canvas::create_intersection_checker(&self.config);
+        self.canvas.update(&self.config)?;
 
         Ok(self)
     }
@@ -284,7 +291,7 @@ impl __RendererTrait for Terminal {
         let terminal = Self {
             vertices: None,
             vertices_projected: Vec::with_capacity((config.camera.resolution.0 * config.camera.resolution.1) as usize),
-            canvas: Canvas::new(&config),
+            canvas: Canvas::new(&config), // TODO: This is a bit ugly, since [Self::canvas] will be updated in [Self::set_config], but I don't want [Option].
             stdout_buffer: BufWriter::new(std::io::stdout()),
             config: Default::default(),
         };
