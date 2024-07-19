@@ -128,8 +128,8 @@ impl Canvas {
 /// (struct TerminalConfiguration(RendererConfiguration, OtherDerivedConfigs, canvas(?)) and struct Pipeline(vertices, vertices_projected, canvas(?), stdout_buffer)
 pub struct Terminal {
     // Affected by config.
-    config: RendererConfiguration,
-    canvas: Canvas,
+    config: Option<RendererConfiguration>,
+    canvas: Option<Canvas>,
 
     // Pipeline stuff. Not directly affected by [Self::config].
     vertices: Option<Rc<RefCell<Vec<VectorRow<f64, 3>>>>>,
@@ -150,7 +150,7 @@ impl Terminal {
 
     /// Clear the canvas buffer and the terminal screen.
     fn clear(&mut self) {
-        for v in self.canvas.buffer.iter_mut() {
+        for v in self.canvas.as_mut().unwrap().buffer.iter_mut() {
             for c in v.iter_mut() {
                 *c = character::EMPTY;
             }
@@ -164,7 +164,7 @@ impl Terminal {
         self.vertices_projected.clear();
 
         for vertex in self.vertices.as_ref().unwrap().borrow().iter() {
-            if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
+            if let Some(intersection) = (self.canvas.as_ref().unwrap().line_intersection_checker)(vertex) {
                 self.vertices_projected.push(intersection);
             }
         }
@@ -173,7 +173,7 @@ impl Terminal {
     /// Maps projected vertices to a [Canvas::buffer].
     fn map_vertices_to_canvas_buffer(&mut self) {
         for vertex in self.vertices_projected.iter() {
-            let camera = &self.config.camera;
+            let camera = &self.config.as_ref().unwrap().camera;
 
             // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
             let x = (vertex[0] as isize) - camera.position[0] as isize + (camera.resolution.0 / 2) as isize - 1;
@@ -189,7 +189,7 @@ impl Terminal {
             // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
             let mut character = Self::character_at(z as usize);
             z = z / 2;
-            let buff_val = &mut self.canvas.buffer[z as usize][x as usize];
+            let buff_val = &mut self.canvas.as_mut().unwrap().buffer[z as usize][x as usize];
 
             // Is it already filled?
             if *buff_val == character::FULL {
@@ -213,7 +213,7 @@ impl Terminal {
     
     /// Print canvas buffer to terminal.
     fn print_canvas_buffer_to_stdout(&mut self) {
-        for character_row in self.canvas.buffer.iter().rev() {
+        for character_row in self.canvas.as_ref().unwrap().buffer.iter().rev() {
             for character in character_row.iter() {
                 write!(self.stdout_buffer, "{character}").unwrap();
             }
@@ -226,7 +226,7 @@ impl Terminal {
 
 impl RendererTrait for Terminal {
     fn config(&self) -> &RendererConfiguration {
-        &self.config
+        self.config.as_ref().unwrap()
     }
 
     fn set_camera(mut self, mut camera: Camera) -> Result<Self, &'static str> {
@@ -241,14 +241,14 @@ impl RendererTrait for Terminal {
             camera.resolution.1 -= 1;
         }
 
-        self.config.camera = camera;
-        self.canvas.update(&self.config)?;
+        self.config.as_mut().unwrap().camera = camera;
+        self.canvas.as_mut().unwrap().update(self.config.as_ref().unwrap())?;
 
         Ok(self)
     }
 
     fn set_option(mut self, option: RenderOption) -> Result<Self, &'static str> {
-        self.config.option = option;
+        self.config.as_mut().unwrap().option = option;
         Ok(self)
     }
 
@@ -289,11 +289,11 @@ impl __RendererTrait for Terminal {
         });
 
         let terminal = Self {
-            vertices: None,
             vertices_projected: Vec::with_capacity((config.camera.resolution.0 * config.camera.resolution.1) as usize),
-            canvas: Canvas::new(&config), // TODO: This is a bit ugly, since [Self::canvas] will be updated in [Self::set_config], but I don't want [Option].
             stdout_buffer: BufWriter::new(std::io::stdout()),
-            config: Default::default(),
+            vertices: None,
+            canvas: None,
+            config: None,
         };
 
         Ok(terminal.set_config(config)?)
