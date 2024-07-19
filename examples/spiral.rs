@@ -11,6 +11,12 @@ mod args_list {
     pub const SHOW_INFO: usize = 2;
 }
 
+mod ansi {
+    pub static CLEAR_SCREEN: &str = "\x1B[2J";
+    pub static GO_TO_0_0: &str = "\x1B[H";
+    pub static GO_TO_1_0: &str = "\x1B[2H";
+}
+
 fn main() {
     // 0. Read args
     let args: Vec<String> = env::args().skip(1).collect();
@@ -75,6 +81,8 @@ fn main() {
     let mut mouse_y_start = 0.0;
     let mut mouse_x = 0.0;
     let mut mouse_y = 0.0;
+
+    print!("{}", ansi::CLEAR_SCREEN);
 
     // 4. Render
     loop {
@@ -189,5 +197,17 @@ fn main() {
 
             println!("{mouse_y_start} and {mouse_y}");
         }
+
+        let banner_text = "GRPE";
+        let banner_fill_width = (config.camera.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
+        let banner_char = "=";
+        let banner = banner_char.repeat(banner_fill_width);
+        print!("{}", ansi::GO_TO_0_0);
+        print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m");
+        if config.camera.resolution.0 % 2 != 0 {
+            // Just make it nice even if odd.
+            print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner_char}\x1B[0m");
+        }
+        println!();
     }
 }
