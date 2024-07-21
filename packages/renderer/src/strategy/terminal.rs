@@ -44,14 +44,16 @@ pub struct TerminalBuilder {
 impl RendererBuilderTrait for TerminalBuilder {
     type Renderer = Terminal;
 
-    fn with_camera(mut self, camera: Camera) -> Self {
+    fn with_camera(mut self, mut camera: Camera) -> Result<Self, &'static str> {
+        Terminal::check_config_camera(&mut camera)?;
         self.config.camera = camera;
-        self
+        Ok(self)
     }
 
-    fn with_option(mut self, option: RenderOption) -> Self {
+    fn with_option(mut self, mut option: RenderOption) -> Result<Self, &'static str> {
+        Terminal::check_config_option(&mut option)?;
         self.config.option = option;
-        self
+        Ok(self)
     }
 
     fn build(self) -> Result<Self::Renderer, &'static str> {

@@ -75,6 +75,7 @@ fn main() {
             rotation: VectorRow::from([0.0, 0.0, 0.0]),
             fov: 135,
         })
+        .expect("Bad camera config.")
         .build()
         .unwrap();
 

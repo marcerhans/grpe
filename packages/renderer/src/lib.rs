@@ -45,8 +45,8 @@ pub struct RendererConfiguration {
 pub trait RendererBuilderTrait: Default {
     type Renderer: RendererTrait;
 
-    fn with_camera(self, camera: Camera) -> Self;
-    fn with_option(self, option: RenderOption) -> Self;
+    fn with_camera(self, camera: Camera) -> Result<Self, &'static str>;
+    fn with_option(self, option: RenderOption) -> Result<Self, &'static str>;
 
     /// Build an instance of [RendererTrait].
     fn build(self) -> Result<Self::Renderer, &'static str>;
