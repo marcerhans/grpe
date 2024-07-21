@@ -66,7 +66,7 @@ pub trait RendererTrait where Self: Sized {
     /// Set a new [RenderOption].
     fn set_option(self, option: RenderOption) -> Result<Self, &'static str>;
 
-    /// Set a new config ([RendererConfiguration]) for the [RendererTrait].
+    /// Set a new config [RendererConfiguration].
     fn set_config(self, config: RendererConfiguration) -> Result<Self, &'static str>;
 
     /// Vertices are used as "anchors"/"points in space" from which lines can be drawn.
@@ -76,19 +76,10 @@ pub trait RendererTrait where Self: Sized {
     /// 
     /// # Example
     /// Draw a line from (0,0,0) to (1,0,0) and from (0,0,0) to (0,1,0) to (1,0,0).
-    /// 
-    /// ```Rust
-    /// let vertices = vec![VectorRow::from([0.0, 0.0, 0.0]), VectorRow::from([1.0, 0.0, 0.0]), VectorRow::from([0.0, 1.0, 0.0])]
-    /// let draw_order = vec![[0,1], [0,2,1]];
-    /// 
-    /// some_already_configured_renderer.set_vertices(&vertices);
-    /// some_already_configured_renderer.set_vertices_line_draw_order(&draw_order);
-    /// 
-    /// TODO: Update doc!
     /// ```
     fn set_vertices_line_draw_order(&mut self, order: Rc<RefCell<[Box<[usize]>]>>); // TODO: Probably not right :))
 
-    /// Do the render! What is rendered in the final artefact is decided the the [RenderOption]s.
+    /// Do the render! What is rendered in the final artefact is decided by the [RenderOption]s.
     fn render(&mut self);
 }
 
