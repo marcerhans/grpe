@@ -2,5 +2,5 @@
 // pub mod terminal;
 // pub use terminal as renderer;
 
-pub mod terminal2;
-pub use terminal2 as renderer;
+pub mod terminal;
+pub use terminal as renderer;
