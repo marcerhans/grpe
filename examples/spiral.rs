@@ -23,6 +23,17 @@ mod ansi {
 fn main() {
     // 0. Read args
     let args: Vec<String> = env::args().skip(1).collect();
+
+    if let Some(first_arg) = args.get(0) {
+        match first_arg.as_str() {
+            "-h" | "--help" => {
+                println!("TODO: Add help section.");
+                return;
+            }
+            _ => (),
+        }
+    }
+
     let resolution: (u64, u64) = (
         args.get(args_list::RESOLUTION.0)
             .unwrap_or(&"32".to_string())
