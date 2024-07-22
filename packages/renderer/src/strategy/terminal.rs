@@ -164,8 +164,8 @@ pub struct Terminal {
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
 impl Terminal {
     fn check_config_camera(camera: &mut Camera) -> Result<(), &'static str> {
-        if camera.fov > 170 {
-            return Err("FOV too high. It has to be below 170.");
+        if camera.fov < 1 || camera.fov > 170 {
+            return Err("FOV has to be kept in the range [1,170].");
         }
 
         if camera.resolution.1 % 2 != 0 {
