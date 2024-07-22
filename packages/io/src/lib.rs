@@ -1,7 +1,7 @@
 pub mod platform;
 mod ansi_interpretor;
 
-pub enum Mouse {
+pub enum MouseEvent {
     LeftDown(u32, u32),
     LeftMove(u32, u32),
     LeftUp(u32, u32),
@@ -14,7 +14,7 @@ pub enum Mouse {
 }
 
 pub enum Event {
-    Mouse(Mouse),
+    Mouse(MouseEvent),
     Letter(char),
 }
 

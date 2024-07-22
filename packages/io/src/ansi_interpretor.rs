@@ -1,4 +1,4 @@
-use crate::{Event, Mouse};
+use crate::{Event, MouseEvent};
 use std::ffi::c_char;
 
 pub mod ascii {
@@ -61,19 +61,19 @@ pub fn read_csi_sequence<F: Fn() -> c_char>(reader: F) -> Option<Event> {
     // 0 = MB1, 1 = MB3, 2 = MB2, 32 = MB1_DRAG, 33, MB3_DRAG, 34, MB4_DRAG
     let ret = if *sequence.last().unwrap() == ascii::M {
         match button {
-            0 => Some(Event::Mouse(Mouse::LeftDown(x, y))),
-            1 => Some(Event::Mouse(Mouse::MiddleDown(x, y))),
-            2 => Some(Event::Mouse(Mouse::RightDown(x, y))),
-            32 => Some(Event::Mouse(Mouse::LeftMove(x, y))),
-            33 => Some(Event::Mouse(Mouse::MiddleMove(x, y))),
-            34 => Some(Event::Mouse(Mouse::RightMove(x, y))),
+            0 => Some(Event::Mouse(MouseEvent::LeftDown(x, y))),
+            1 => Some(Event::Mouse(MouseEvent::MiddleDown(x, y))),
+            2 => Some(Event::Mouse(MouseEvent::RightDown(x, y))),
+            32 => Some(Event::Mouse(MouseEvent::LeftMove(x, y))),
+            33 => Some(Event::Mouse(MouseEvent::MiddleMove(x, y))),
+            34 => Some(Event::Mouse(MouseEvent::RightMove(x, y))),
             _ => None
         }
     } else {
         match button {
-            0 => Some(Event::Mouse(Mouse::LeftUp(x, y))),
-            1 => Some(Event::Mouse(Mouse::MiddleUp(x, y))),
-            2 => Some(Event::Mouse(Mouse::RightUp(x, y))),
+            0 => Some(Event::Mouse(MouseEvent::LeftUp(x, y))),
+            1 => Some(Event::Mouse(MouseEvent::MiddleUp(x, y))),
+            2 => Some(Event::Mouse(MouseEvent::RightUp(x, y))),
             _ => None
         }
     };

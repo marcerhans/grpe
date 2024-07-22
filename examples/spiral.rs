@@ -171,27 +171,27 @@ This includes fps, missed frames, fov, etc.
 
         match event_handler.get_latest_event() {
             Some(Event::Mouse(mouse_event)) => match mouse_event {
-                io::Mouse::LeftDown(x, y) => {
+                io::MouseEvent::LeftDown(x, y) => {
                     mouse_x_start = x as f64;
                     mouse_y_start = y as f64;
                 }
-                io::Mouse::LeftMove(x, y) => {
+                io::MouseEvent::LeftMove(x, y) => {
                     mouse_x = x as f64 - mouse_x_start;
                     mouse_y = y as f64 - mouse_y_start;
                 }
-                io::Mouse::LeftUp(_, _) => {
+                io::MouseEvent::LeftUp(_, _) => {
                     mouse_x = 0.0;
                     mouse_y = 0.0;
                 }
-                io::Mouse::RightDown(x, y) => {
+                io::MouseEvent::RightDown(x, y) => {
                     mouse_x_start = x as f64;
                     mouse_y_start = y as f64;
                 }
-                io::Mouse::RightMove(x, y) => {
+                io::MouseEvent::RightMove(x, y) => {
                     mouse_x = (x as f64 - mouse_x_start) * 4.0;
                     mouse_y = (y as f64 - mouse_y_start) * 4.0;
                 }
-                io::Mouse::RightUp(_, _) => {
+                io::MouseEvent::RightUp(_, _) => {
                     mouse_x = 0.0;
                     mouse_y = 0.0;
                 }

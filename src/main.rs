@@ -5,7 +5,7 @@ use std::{
     time::{self, Duration},
 };
 
-use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
+use io::{platform::unix::EventHandler, Event, EventHandlerTrait, MouseEvent};
 use linear_algebra::vector::VectorRow;
 use renderer::{
     renderer::TerminalBuilder, Camera, RenderOption, RendererBuilderTrait, RendererTrait,
@@ -170,27 +170,27 @@ This includes fps, missed frames, fov, etc.
 
         match event_handler.get_latest_event() {
             Some(Event::Mouse(mouse_event)) => match mouse_event {
-                io::Mouse::LeftDown(x, y) => {
+                MouseEvent::LeftDown(x, y) => {
                     mouse_x_start = x as f64;
                     mouse_y_start = y as f64;
                 }
-                io::Mouse::LeftMove(x, y) => {
+                MouseEvent::LeftMove(x, y) => {
                     mouse_x = x as f64 - mouse_x_start;
                     mouse_y = y as f64 - mouse_y_start;
                 }
-                io::Mouse::LeftUp(_, _) => {
+                MouseEvent::LeftUp(_, _) => {
                     mouse_x = 0.0;
                     mouse_y = 0.0;
                 }
-                io::Mouse::RightDown(x, y) => {
+                MouseEvent::RightDown(x, y) => {
                     mouse_x_start = x as f64;
                     mouse_y_start = y as f64;
                 }
-                io::Mouse::RightMove(x, y) => {
+                MouseEvent::RightMove(x, y) => {
                     mouse_x = (x as f64 - mouse_x_start) * 4.0;
                     mouse_y = (y as f64 - mouse_y_start) * 4.0;
                 }
-                io::Mouse::RightUp(_, _) => {
+                MouseEvent::RightUp(_, _) => {
                     mouse_x = 0.0;
                     mouse_y = 0.0;
                 }
