@@ -27,7 +27,7 @@ impl Default for Camera {
     }
 }
 
-#[derive(Default, Clone, PartialEq, Eq, Hash)]
+#[derive(Default, Clone)]
 pub enum RenderOption {
     All,
     #[default]

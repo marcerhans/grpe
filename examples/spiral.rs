@@ -1,6 +1,9 @@
 /// Somewhat cool "spiral" when zooming and mutating FOV.
 use std::{
-    cell::RefCell, collections::HashSet, env, rc::Rc, time::{self, Duration}
+    cell::RefCell,
+    env,
+    rc::Rc,
+    time::{self, Duration},
 };
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
@@ -9,17 +12,18 @@ use renderer::{
     renderer::TerminalBuilder, Camera, RenderOption, RendererBuilderTrait, RendererTrait,
 };
 
-mod args_list {
-    pub const RESOLUTION: (usize, usize) = (0, 1);
-    pub const SHOW_INFO: usize = 2;
+enum Arg {
+    Help,
+    Resolution,
+    RenderOption,
+    Info,
 }
 
-#[derive(PartialEq, Eq, Hash)]
-enum Args {
-    Help,
-    Resolution(Option<(usize, usize)>),
-    RenderOption(Option<RenderOption>),
-    Info(Option<bool>),
+#[derive(Default)]
+struct ArgValue {
+    resolution: Option<(u64, u64)>,
+    render_option: Option<RenderOption>,
+    info: Option<()>,
 }
 
 mod ansi {
@@ -29,25 +33,26 @@ mod ansi {
 
 fn main() {
     // 0. Read args
-    let args: Vec<String> = env::args().skip(1).collect();
-    let mut args_parsed: HashSet<Args> = HashSet::new();
+    let args_raw: Vec<String> = env::args().skip(1).collect();
+    let mut args = ArgValue::default();
 
-    let mut arg_it = args.iter();
+    let mut arg_it = args_raw.iter();
     while let Some(option) = arg_it.next() {
-        let option= match option.as_str() {
-            "-h" | "--help" => Args::Help,
-            "-r" | "--resolution" => Args::Resolution(None),
-            "-o" | "--option" => Args::RenderOption(None),
-            "-i" | "--info" => Args::Info(None),
+        let option = match option.as_str() {
+            "-h" | "--help" => Arg::Help,
+            "-r" | "--resolution" => Arg::Resolution,
+            "-o" | "--option" => Arg::RenderOption,
+            "-i" | "--info" => Arg::Info,
             _ => {
                 println!("Unknown option \"{}\"", option);
                 return;
-            },
+            }
         };
 
         match option {
-            Args::Help => {
-                println!("GRPE Usage:
+            Arg::Help => {
+                println!(
+                    "GRPE Usage:
 grpe [OPTION]
 
 OPTIONS:
@@ -70,41 +75,24 @@ vertices - Renders only vertices.
 Default: true
 During execution, print additional information at the bottom.
 This includes fps, missed frames, fov, etc.
-                    ");
-                    return;
-                },
-            Args::Resolution(_) => {
-                let width: usize = arg_it.next().unwrap().parse().unwrap();
-                let height: usize = arg_it.next().unwrap().parse().unwrap();
-                args_parsed.insert(Args::Resolution(Some((width, height))));
+                    "
+                );
+                return;
             }
-            Args::RenderOption(_) => {
+            Arg::Resolution => {
+                let width: u64 = arg_it.next().unwrap().parse().unwrap();
+                let height: u64 = arg_it.next().unwrap().parse().unwrap();
+                args.resolution = Some((width, height));
+            }
+            Arg::RenderOption => {
                 let option: RenderOption = arg_it.next().unwrap().parse().unwrap();
-                args_parsed.insert(Args::RenderOption(Some(option)));
+                args.render_option = Some(option);
             }
-            Args::Info(_) => {
-                let info: bool = arg_it.next().unwrap().parse().unwrap();
-                args_parsed.insert(Args::Info(Some(info)));
+            Arg::Info => {
+                args.info = Some(());
             }
         }
     }
-
-    let resolution: (u64, u64) = (
-        args.get(args_list::RESOLUTION.0)
-            .unwrap_or(&"32".to_string())
-            .parse()
-            .unwrap(),
-        args.get(args_list::RESOLUTION.1)
-            .unwrap_or(&"32".to_string())
-            .parse()
-            .unwrap(),
-    );
-
-    let show_info: bool = args
-        .get(args_list::SHOW_INFO)
-        .unwrap_or(&"true".to_string())
-        .parse()
-        .unwrap();
 
     // 1. Create vertices.
     let vertices = Rc::new(RefCell::new(vec![]));
@@ -137,7 +125,7 @@ This includes fps, missed frames, fov, etc.
     // 3. Instantiate renderer.
     let mut renderer = TerminalBuilder::default()
         .with_camera(Camera {
-            resolution: (resolution.0, resolution.1),
+            resolution: args.resolution.unwrap_or((64, 64)),
             position: VectorRow::from([0.0, 0.0, 0.0]),
             rotation: VectorRow::from([0.0, 0.0, 0.0]),
             fov: 135,
@@ -160,6 +148,8 @@ This includes fps, missed frames, fov, etc.
     let mut mouse_y_start = 0.0;
     let mut mouse_x = 0.0;
     let mut mouse_y = 0.0;
+
+    let show_info = args.info.is_some();
 
     print!("{}", ansi::CLEAR_SCREEN); // TODO: Should be something like renderer.clear_screen().
 
