@@ -3,7 +3,7 @@
 
 pub mod strategy;
 
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, str::FromStr};
 
 pub use strategy::renderer;
 pub use linear_algebra::{matrix::{Matrix, MatrixDataTrait}, vector::VectorRow};
@@ -33,6 +33,29 @@ pub enum RenderOption {
     #[default]
     Line,
     Vertices,
+}
+
+impl FromStr for RenderOption {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "all" => Ok(RenderOption::All),
+            "line" => Ok(RenderOption::Line),
+            "vertices" => Ok(RenderOption::Vertices),
+            _ => Err("Could not convert from string"),
+        }
+    }
+}
+
+impl ToString for RenderOption {
+    fn to_string(&self) -> String {
+        match self {
+            RenderOption::All => "all".to_owned(),
+            RenderOption::Line => "line".to_owned(),
+            RenderOption::Vertices => "vertices".to_owned(),
+        }
+    }
 }
 
 #[derive(Default, Clone)]

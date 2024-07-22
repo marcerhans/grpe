@@ -1,18 +1,24 @@
 /// Somewhat cool "spiral" when zooming and mutating FOV.
 use std::{
-    cell::RefCell,
-    env,
-    rc::Rc,
-    time::{self, Duration},
+    cell::RefCell, collections::HashSet, env, rc::Rc, str::FromStr, time::{self, Duration}
 };
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
 use linear_algebra::vector::VectorRow;
-use renderer::{renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait};
+use renderer::{
+    renderer::TerminalBuilder, Camera, RenderOption, RendererBuilderTrait, RendererTrait,
+};
 
 mod args_list {
     pub const RESOLUTION: (usize, usize) = (0, 1);
     pub const SHOW_INFO: usize = 2;
+}
+
+enum Args {
+    Help,
+    Resolution(Option<(usize, usize)>),
+    RenderOption(Option<RenderOption>),
+    Info(Option<bool>),
 }
 
 mod ansi {
@@ -23,14 +29,52 @@ mod ansi {
 fn main() {
     // 0. Read args
     let args: Vec<String> = env::args().skip(1).collect();
+    let mut args_parsed: HashSet<Args>;
 
-    if let Some(first_arg) = args.get(0) {
-        match first_arg.as_str() {
-            "-h" | "--help" => {
-                println!("TODO: Add help section.");
+    let mut arg_it = args.iter();
+    while let Some(option) = arg_it.next() {
+        let option= match option.as_str() {
+            "-h" | "--help" => Args::Help,
+            "-r" | "--resolution" => Args::Resolution(None),
+            "-o" | "--option" => Args::RenderOption(None),
+            "-i" | "--info" => Args::Info(None),
+            _ => {
+                println!("Unknown option \"{}\"", option);
                 return;
-            }
-            _ => (),
+            },
+        };
+
+        match option {
+            Args::Help => {
+                println!("GRPE Usage:
+grpe [OPTION]
+
+OPTIONS:
+-h, --help
+Default: false
+Print this help section.
+
+-r <(width, height)>, --resolution<=(width, height)>
+Default: (64, 64)
+Set the resolution.
+
+-o <render option>, --render-option <option>
+Default: vertices
+Available options:
+all - Renders everything possible.
+line - Renders only lines between vertices.
+vertices - Renders only vertices.
+
+-i, --info
+Default: true
+During execution, print additional information at the bottom.
+This includes fps, missed frames, fov, etc.
+                    ");
+                    return;
+                },
+            Args::Resolution(res) => todo!(),
+            Args::RenderOption(option) => todo!(),
+            Args::Info(boolean) => todo!(),
         }
     }
 
@@ -44,6 +88,7 @@ fn main() {
             .parse()
             .unwrap(),
     );
+
     let show_info: bool = args
         .get(args_list::SHOW_INFO)
         .unwrap_or(&"true".to_string())
@@ -128,27 +173,27 @@ fn main() {
                 io::Mouse::LeftDown(x, y) => {
                     mouse_x_start = x as f64;
                     mouse_y_start = y as f64;
-                },
+                }
                 io::Mouse::LeftMove(x, y) => {
                     mouse_x = x as f64 - mouse_x_start;
                     mouse_y = y as f64 - mouse_y_start;
-                },
+                }
                 io::Mouse::LeftUp(_, _) => {
                     mouse_x = 0.0;
                     mouse_y = 0.0;
-                },
+                }
                 io::Mouse::RightDown(x, y) => {
                     mouse_x_start = x as f64;
                     mouse_y_start = y as f64;
-                },
+                }
                 io::Mouse::RightMove(x, y) => {
                     mouse_x = (x as f64 - mouse_x_start) * 4.0;
                     mouse_y = (y as f64 - mouse_y_start) * 4.0;
-                },
+                }
                 io::Mouse::RightUp(_, _) => {
                     mouse_x = 0.0;
                     mouse_y = 0.0;
-                },
+                }
                 _ => (),
             },
             Some(Event::Letter(c)) => {
