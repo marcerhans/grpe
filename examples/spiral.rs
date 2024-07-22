@@ -1,6 +1,6 @@
 /// Somewhat cool "spiral" when zooming and mutating FOV.
 use std::{
-    cell::RefCell, collections::HashSet, env, rc::Rc, str::FromStr, time::{self, Duration}
+    cell::RefCell, collections::HashSet, env, rc::Rc, time::{self, Duration}
 };
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
@@ -14,6 +14,7 @@ mod args_list {
     pub const SHOW_INFO: usize = 2;
 }
 
+#[derive(PartialEq, Eq, Hash)]
 enum Args {
     Help,
     Resolution(Option<(usize, usize)>),
@@ -29,7 +30,7 @@ mod ansi {
 fn main() {
     // 0. Read args
     let args: Vec<String> = env::args().skip(1).collect();
-    let mut args_parsed: HashSet<Args>;
+    let mut args_parsed: HashSet<Args> = HashSet::new();
 
     let mut arg_it = args.iter();
     while let Some(option) = arg_it.next() {
@@ -54,11 +55,11 @@ OPTIONS:
 Default: false
 Print this help section.
 
--r <(width, height)>, --resolution<=(width, height)>
-Default: (64, 64)
+-r <width height>, --resolution <width height>
+Default: 64 64
 Set the resolution.
 
--o <render option>, --render-option <option>
+-o <option>, --render-option <option>
 Default: vertices
 Available options:
 all - Renders everything possible.
@@ -72,9 +73,19 @@ This includes fps, missed frames, fov, etc.
                     ");
                     return;
                 },
-            Args::Resolution(res) => todo!(),
-            Args::RenderOption(option) => todo!(),
-            Args::Info(boolean) => todo!(),
+            Args::Resolution(_) => {
+                let width: usize = arg_it.next().unwrap().parse().unwrap();
+                let height: usize = arg_it.next().unwrap().parse().unwrap();
+                args_parsed.insert(Args::Resolution(Some((width, height))));
+            }
+            Args::RenderOption(_) => {
+                let option: RenderOption = arg_it.next().unwrap().parse().unwrap();
+                args_parsed.insert(Args::RenderOption(Some(option)));
+            }
+            Args::Info(_) => {
+                let info: bool = arg_it.next().unwrap().parse().unwrap();
+                args_parsed.insert(Args::Info(Some(info)));
+            }
         }
     }
 
