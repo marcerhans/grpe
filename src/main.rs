@@ -100,7 +100,7 @@ struct ArgValue {
     render_option: Option<RenderOption>,
     info: Option<()>,
     model: Option<Model>,
-    fps: Option<usize>,
+    fps: Option<u64>,
 }
 
 mod ansi {
