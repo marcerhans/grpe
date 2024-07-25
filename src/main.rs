@@ -52,6 +52,10 @@ fn model(model: &Model) -> Vec<VectorRow<f64, 3>> {
                 VectorRow::from([15.2 / 2.0 + 0.4, 0.0, 4.3 / 1.75]),
                 VectorRow::from([15.2 / 2.0 + 2.0, 0.0, 1.0]),
             ];
+
+            for vertex in vertices.iter_mut() {
+                vertex.0.scale(10.0);
+            }
         }
         Model::Spiral => {
             // Spiral zooming in.
