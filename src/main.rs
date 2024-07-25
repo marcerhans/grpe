@@ -91,6 +91,7 @@ enum Arg {
     RenderOption,
     Info,
     Model,
+    Fps,
 }
 
 #[derive(Default)]
@@ -99,6 +100,7 @@ struct ArgValue {
     render_option: Option<RenderOption>,
     info: Option<()>,
     model: Option<Model>,
+    fps: Option<usize>,
 }
 
 mod ansi {
@@ -119,6 +121,7 @@ fn main() {
             "-o" | "--option" => Arg::RenderOption,
             "-i" | "--info" => Arg::Info,
             "-m" | "--model" => Arg::Model,
+            "-f" | "--fps" => Arg::Fps,
             _ => {
                 println!("Unknown option \"{}\"", option);
                 return;
@@ -151,6 +154,17 @@ vertices - Renders only vertices.
 Default: true
 During execution, print additional information at the bottom.
 This includes fps, missed frames, fov, etc.
+
+-m, --model
+Default: \"plane\"
+What to display.
+Available models:
+plane
+spiral
+
+-f, --fps
+Default: 60
+Set the frames per second.
                     "
                 );
                 return;
@@ -170,6 +184,10 @@ This includes fps, missed frames, fov, etc.
             Arg::Model => {
                 let model = arg_it.next().unwrap().parse().unwrap();
                 args.model = Some(model);
+            }
+            Arg::Fps => {
+                let fps = arg_it.next().unwrap().parse().unwrap();
+                args.fps = Some(fps);
             }
         }
     }
@@ -196,7 +214,7 @@ This includes fps, missed frames, fov, etc.
     let mut frame_tmp: u128 = 0;
     let mut frame_missed: u128 = 0;
     let mut update_timer = time::Instant::now();
-    let fps_target = 60;
+    let fps_target = args.fps.unwrap_or(60);
     let mut fps = 0;
     let time_target = Duration::from_micros(1000000 / fps_target);
     let mut time_wait = time_target;
