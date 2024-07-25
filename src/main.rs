@@ -1,8 +1,5 @@
 use std::{
-    cell::RefCell,
-    env,
-    rc::Rc,
-    time::{self, Duration},
+    cell::RefCell, env, rc::Rc, str::FromStr, time::{self, Duration}
 };
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait, MouseEvent};
@@ -11,11 +8,85 @@ use renderer::{
     renderer::TerminalBuilder, Camera, RenderOption, RendererBuilderTrait, RendererTrait,
 };
 
+enum Model {
+    Plane,
+    Spiral,
+}
+
+impl FromStr for Model {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "plane" => Ok(Model::Plane),
+            "spiral" => Ok(Model::Spiral),
+            _ => Err("Could not convert to string.")
+        }
+    }
+}
+
+fn model(model: &Model) -> Vec<VectorRow<f64, 3>> {
+    let mut vertices = Vec::new();
+
+    match model {
+        Model::Plane => {
+            vertices = vec![
+                // Sidroder
+                VectorRow::from([0.6, 3.0, 0.0]),
+                VectorRow::from([1.0, 3.0, 0.0]),
+                VectorRow::from([1.4, 0.5, 0.0]),
+
+                // Fuselage
+                VectorRow::from([0.0, 0.0, 0.0]),   // Exhaust
+                VectorRow::from([15.2, 0.0, 0.0]),  // Tip
+                VectorRow::from([15.7, 0.0, 0.0]),  // Tip + pitot
+                VectorRow::from([15.2 / 2.0, -1.0, 0.0]),  // Bottom at middle
+
+                // Left wing
+                VectorRow::from([1.2, 0.0, 4.3]),   // Wing span is 8.6 (/ 2 = 4.3)
+                VectorRow::from([2.0, 0.0, 4.3]),
+                VectorRow::from([15.2 / 2.0, 0.0, 1.0]),
+
+                // Left canard wing
+                VectorRow::from([15.2 / 2.0, 0.0, 4.3 / 1.75]),   // Wing span is 8.6 (/ 2 = 4.3)
+                VectorRow::from([15.2 / 2.0 + 0.4, 0.0, 4.3 / 1.75]),
+                VectorRow::from([15.2 / 2.0 + 2.0, 0.0, 1.0]),
+            ];
+        }
+        Model::Spiral => {
+            // Spiral zooming in.
+            const MAX_DEPTH: i32 = 1000;
+            for i in 0..MAX_DEPTH {
+                vertices.push(VectorRow::from([
+                    i as f64 * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).cos(),
+                    i as f64,
+                    i as f64 * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).sin(),
+                ]));
+            }
+
+            const GRID_SIZE: i32 = 200;
+            const GRID_SPACING: i32 = 100;
+            for i in 0..GRID_SIZE {
+                for j in 0..GRID_SIZE {
+                    vertices.push(VectorRow::from([
+                        (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
+                        MAX_DEPTH as f64,
+                        (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
+                    ]));
+                }
+            }
+        }
+    }
+
+    vertices
+}
+
 enum Arg {
     Help,
     Resolution,
     RenderOption,
     Info,
+    Model,
 }
 
 #[derive(Default)]
@@ -23,6 +94,7 @@ struct ArgValue {
     resolution: Option<(u64, u64)>,
     render_option: Option<RenderOption>,
     info: Option<()>,
+    model: Option<Model>,
 }
 
 mod ansi {
@@ -42,6 +114,7 @@ fn main() {
             "-r" | "--resolution" => Arg::Resolution,
             "-o" | "--option" => Arg::RenderOption,
             "-i" | "--info" => Arg::Info,
+            "-m" | "--model" => Arg::Model,
             _ => {
                 println!("Unknown option \"{}\"", option);
                 return;
@@ -90,33 +163,15 @@ This includes fps, missed frames, fov, etc.
             Arg::Info => {
                 args.info = Some(());
             }
+            Arg::Model => {
+                let model = arg_it.next().unwrap().parse().unwrap();
+                args.model = Some(model);
+            }
         }
     }
 
     // 1. Create vertices.
-    let vertices = Rc::new(RefCell::new(vec![]));
-
-    // Spiral zooming in.
-    const MAX_DEPTH: i32 = 1000;
-    for i in 0..MAX_DEPTH {
-        vertices.borrow_mut().push(VectorRow::from([
-            i as f64 * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).cos(),
-            i as f64,
-            i as f64 * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).sin(),
-        ]));
-    }
-
-    const GRID_SIZE: i32 = 200;
-    const GRID_SPACING: i32 = 100;
-    for i in 0..GRID_SIZE {
-        for j in 0..GRID_SIZE {
-            vertices.borrow_mut().push(VectorRow::from([
-                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
-                MAX_DEPTH as f64,
-                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
-            ]));
-        }
-    }
+    let vertices = Rc::new(RefCell::new(model(args.model.as_ref().unwrap_or(&Model::Plane))));
 
     // 2. Define line order.
     // let line_draw_order = vec![vec![0, 1], vec![0, 2]];
