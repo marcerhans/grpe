@@ -202,10 +202,15 @@ This includes fps, missed frames, fov, etc.
     let mut time_wait = time_target;
 
     let event_handler = EventHandler::init();
-    let mut mouse_x_start = 0.0;
-    let mut mouse_y_start = 0.0;
-    let mut mouse_x = 0.0;
-    let mut mouse_y = 0.0;
+    let mut mouse_left_x_start = 0.0;
+    let mut mouse_left_y_start = 0.0;
+    let mut mouse_left_x = 0.0;
+    let mut mouse_left_y = 0.0;
+
+    let mut mouse_right_x_start = 0.0;
+    let mut mouse_right_y_start = 0.0;
+    let mut mouse_right_x = 0.0;
+    let mut mouse_right_y = 0.0;
 
     let show_info = args.info.is_some();
 
@@ -230,28 +235,28 @@ This includes fps, missed frames, fov, etc.
         match event_handler.get_latest_event() {
             Some(Event::Mouse(mouse_event)) => match mouse_event {
                 MouseEvent::LeftDown(x, y) => {
-                    mouse_x_start = x as f64;
-                    mouse_y_start = y as f64;
+                    mouse_left_x_start = x as f64;
+                    mouse_left_y_start = y as f64;
                 }
                 MouseEvent::LeftMove(x, y) => {
-                    mouse_x = x as f64 - mouse_x_start;
-                    mouse_y = y as f64 - mouse_y_start;
+                    mouse_left_x = x as f64 - mouse_left_x_start;
+                    mouse_left_y = y as f64 - mouse_left_y_start;
                 }
                 MouseEvent::LeftUp(_, _) => {
-                    mouse_x = 0.0;
-                    mouse_y = 0.0;
+                    mouse_left_x = 0.0;
+                    mouse_left_y = 0.0;
                 }
                 MouseEvent::RightDown(x, y) => {
-                    mouse_x_start = x as f64;
-                    mouse_y_start = y as f64;
+                    mouse_right_x_start = x as f64;
+                    mouse_right_y_start = y as f64;
                 }
                 MouseEvent::RightMove(x, y) => {
-                    mouse_x = (x as f64 - mouse_x_start) * 4.0;
-                    mouse_y = (y as f64 - mouse_y_start) * 4.0;
+                    mouse_right_x = (x as f64 - mouse_right_x_start) * 0.001;
+                    mouse_right_y = (y as f64 - mouse_right_y_start) * 0.001;
                 }
                 MouseEvent::RightUp(_, _) => {
-                    mouse_x = 0.0;
-                    mouse_y = 0.0;
+                    mouse_right_x = 0.0;
+                    mouse_right_y = 0.0;
                 }
                 _ => (),
             },
@@ -260,16 +265,22 @@ This includes fps, missed frames, fov, etc.
                     // Axis movement
                     'a' => camera.position[0] -= 2.0,
                     'd' => camera.position[0] += 2.0,
-                    'j' => camera.position[1] -= 2.0,
-                    'k' => camera.position[1] += 2.0,
+                    // 'j' => camera.position[1] -= 2.0,
+                    // 'k' => camera.position[1] += 2.0,
                     'w' => camera.position[2] += 2.0,
                     's' => camera.position[2] -= 2.0,
                     'A' => camera.position[0] -= 8.0,
                     'D' => camera.position[0] += 8.0,
-                    'J' => camera.position[1] -= 8.0,
-                    'K' => camera.position[1] += 8.0,
+                    // 'J' => camera.position[1] -= 8.0,
+                    // 'K' => camera.position[1] += 8.0,
                     'W' => camera.position[2] += 8.0,
                     'S' => camera.position[2] -= 8.0,
+
+                    // Rotation
+                    'i' => camera.rotation[0] -= 0.01,
+                    'j' => camera.rotation[2] -= 0.01,
+                    'k' => camera.rotation[0] += 0.01,
+                    'l' => camera.rotation[2] += 0.01,
 
                     // FOV
                     'q' => camera.fov -= 1,
@@ -283,8 +294,11 @@ This includes fps, missed frames, fov, etc.
             None => (),
         }
 
-        camera.position[0] += mouse_x;
-        camera.position[2] -= mouse_y; // Terminal coordinates are upsidedown.
+        camera.position[0] += mouse_left_x;
+        camera.position[2] -= mouse_left_y; // Terminal coordinates are upsidedown.
+
+        camera.rotation[2] += mouse_right_x;
+        camera.rotation[0] -= mouse_right_y; // Terminal coordinates are upsidedown.
 
         renderer = renderer.set_camera(camera.clone()).unwrap();
 
