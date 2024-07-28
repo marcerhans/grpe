@@ -101,9 +101,21 @@ impl Canvas {
         let w = 1.0 - (x + y + z);
 
         Matrix::from([
-            [1.0 - 2.0 * y.powi(2) - 2.0 * z.powi(2), 2.0 * x * y - 2.0 * z * w, 2.0 * x * z + 2.0 * y * w],
-            [2.0 * x * y + 2.0 * z * w, 1.0 - 2.0 * x.powi(2) - 2.0 * z.powi(2), 2.0 * y * z - 2.0 * x * w],
-            [2.0 * x * z - 2.0 * y * w, 2.0 * y * z + 2.0 * x * w, 1.0 - 2.0 * x.powi(2) - 2.0 * y.powi(2)]
+            [
+                1.0 - 2.0 * y.powi(2) - 2.0 * z.powi(2),
+                2.0 * x * y - 2.0 * z * w,
+                2.0 * x * z + 2.0 * y * w,
+            ],
+            [
+                2.0 * x * y + 2.0 * z * w,
+                1.0 - 2.0 * x.powi(2) - 2.0 * z.powi(2),
+                2.0 * y * z - 2.0 * x * w,
+            ],
+            [
+                2.0 * x * z - 2.0 * y * w,
+                2.0 * y * z + 2.0 * x * w,
+                1.0 - 2.0 * x.powi(2) - 2.0 * y.powi(2),
+            ],
         ])
     }
 
@@ -140,9 +152,12 @@ impl Canvas {
             let normal = VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]);
 
             // With rotation applied.
-            let viewpoint: VectorRow<f64, 3> = (rotation * &viewpoint.0.transpose()).transpose().into();
+            let viewpoint: VectorRow<f64, 3> =
+                (rotation * &viewpoint.0.transpose()).transpose().into();
             let normal: VectorRow<f64, 3> = (rotation * &normal.0.transpose()).transpose().into();
-            let position: VectorRow<f64, 3> = (rotation * &config.camera.position.0.transpose()).transpose().into();
+            let position: VectorRow<f64, 3> = (rotation * &config.camera.position.0.transpose())
+                .transpose()
+                .into();
             let d0 = normal.dot(&position);
             let d1 = normal.dot(&viewpoint);
             let diff = d0 - d1;
@@ -174,7 +189,8 @@ impl Canvas {
     fn update(&mut self, config: &RendererConfiguration) -> Result<(), &'static str> {
         self.rotation = Self::calc_rotation_matrix(&config.camera.rotation);
         self.rotation_inverse = self.rotation.transpose();
-        self.line_intersection_checker = Canvas::create_intersection_checker(config, &self.rotation);
+        self.line_intersection_checker =
+            Canvas::create_intersection_checker(config, &self.rotation);
         Ok(())
     }
 }
@@ -241,7 +257,7 @@ impl Terminal {
         for vertex in self.vertices.as_ref().unwrap().borrow().iter() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
                 // Undo any rotation made on points.
-                let intersection = (&self.canvas.rotation_inverse * &intersection.0.transpose()).transpose().into();
+                // let intersection = (&self.canvas.rotation_inverse * &intersection.0.transpose()).transpose().into();
                 self.vertices_projected.push(intersection);
             }
         }
