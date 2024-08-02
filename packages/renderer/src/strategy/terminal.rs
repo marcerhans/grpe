@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::io::Write;
 use std::io::{BufWriter, Stdout};
@@ -9,8 +10,7 @@ use crate::{
     Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait,
     __RendererTrait,
 };
-use linear_algebra::matrix::Matrix;
-use linear_algebra::vector::VectorRow;
+use linear_algebra::{matrix::Matrix, quaternion::Quaternion, vector::VectorRow};
 
 /// Panic hook
 static PANIC_HOOK_FLAG: OnceLock<()> = OnceLock::new();
@@ -73,8 +73,8 @@ struct Canvas {
     buffer: Vec<Vec<char>>,
     /// Return: None if no intersection found. Otherwise point at which line between vertex and viewpoint intersects the viewport.
     line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>,
-    rotation: Matrix<f64, 3, 3>,
-    rotation_inverse: Matrix<f64, 3, 3>,
+    rotation: Quaternion<f64>,
+    rotation_inverse: Quaternion<f64>,
 }
 
 impl Canvas {
@@ -93,44 +93,20 @@ impl Canvas {
         ])
     }
 
-    // Caclulates the rotation matrix based on given quaternion rotation.
-    fn calc_rotation_matrix(quaternion: &VectorRow<f64, 3>) -> Matrix<f64, 3, 3> {
-        let x = quaternion[0];
-        let y = quaternion[1];
-        let z = quaternion[2];
-        let w = 1.0 - (x + y + z);
-
-        Matrix::from([
-            [
-                1.0 - 2.0 * y.powi(2) - 2.0 * z.powi(2),
-                2.0 * x * y - 2.0 * z * w,
-                2.0 * x * z + 2.0 * y * w,
-            ],
-            [
-                2.0 * x * y + 2.0 * z * w,
-                1.0 - 2.0 * x.powi(2) - 2.0 * z.powi(2),
-                2.0 * y * z - 2.0 * x * w,
-            ],
-            [
-                2.0 * x * z - 2.0 * y * w,
-                2.0 * y * z + 2.0 * x * w,
-                1.0 - 2.0 * x.powi(2) - 2.0 * y.powi(2),
-            ],
-        ])
-    }
-
     fn new(config: &RendererConfiguration) -> Self {
         let resolution = &config.camera.resolution;
-
-        let rotation = Self::calc_rotation_matrix(&config.camera.rotation);
-        let rotation_inverse = rotation.transpose();
+        let (rotation, rotation_inverse) = Self::calc_rotation(&config);
 
         Self {
             buffer: vec![
                 vec![character::EMPTY; resolution.0 as usize];
                 (resolution.1 / 2) as usize
             ],
-            line_intersection_checker: Self::create_intersection_checker(&config, &rotation),
+            line_intersection_checker: Self::create_intersection_checker(
+                &config,
+                &rotation,
+                &rotation_inverse,
+            ),
             rotation,
             rotation_inverse,
         }
@@ -139,7 +115,8 @@ impl Canvas {
     /// Returns checker for line intersection with canvas plane.
     fn create_intersection_checker(
         config: &RendererConfiguration,
-        rotation: &Matrix<f64, 3, 3>,
+        rotation: &Quaternion<f64>,
+        rotation_inverse: &Quaternion<f64>,
     ) -> Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>> {
         Box::new({
             // Cached values for closure.
@@ -153,11 +130,11 @@ impl Canvas {
 
             // With rotation applied.
             let viewpoint: VectorRow<f64, 3> =
-                (rotation * &viewpoint.0.transpose()).transpose().into();
-            let normal: VectorRow<f64, 3> = (rotation * &normal.0.transpose()).transpose().into();
-            let position: VectorRow<f64, 3> = (rotation * &config.camera.position.0.transpose())
-                .transpose()
-                .into();
+                (&(rotation * &viewpoint.borrow().into()) * &rotation_inverse).into();
+            let normal: VectorRow<f64, 3> =
+                (&(rotation * &normal.borrow().into()) * &rotation_inverse).into();
+            let position: VectorRow<f64, 3> =
+                (&(rotation * &config.camera.position.borrow().into()) * &rotation_inverse).into();
             let d0 = normal.dot(&position);
             let d1 = normal.dot(&viewpoint);
             let diff = d0 - d1;
@@ -187,11 +164,38 @@ impl Canvas {
     }
 
     fn update(&mut self, config: &RendererConfiguration) -> Result<(), &'static str> {
-        self.rotation = Self::calc_rotation_matrix(&config.camera.rotation);
-        self.rotation_inverse = self.rotation.transpose();
+        let (rotation, rotation_inverse) = Self::calc_rotation(&config);
+        self.rotation = rotation;
+        self.rotation_inverse = rotation_inverse;
         self.line_intersection_checker =
-            Canvas::create_intersection_checker(config, &self.rotation);
+            Canvas::create_intersection_checker(config, &self.rotation, &self.rotation_inverse);
         Ok(())
+    }
+
+    fn calc_rotation(config: &RendererConfiguration) -> (Quaternion<f64>, Quaternion<f64>) {
+        let rotation = (config.camera.rotation.0 / 2.0, config.camera.rotation.1 / 2.0);
+
+        let pitch = Quaternion {
+            q0: rotation.0.cos(),
+            q1: rotation.0.sin(),
+            q2: 0.0,
+            q3: 0.0,
+        };
+        let yaw = Quaternion {
+            q0: rotation.1.cos(),
+            q1: 0.0,
+            q2: 0.0,
+            q3: rotation.1.sin(),
+        };
+        let rotation = &pitch * &yaw;
+        let rotation_inverse = Quaternion {
+            q0: rotation.q0,
+            q1: -rotation.q1,
+            q2: -rotation.q2,
+            q3: -rotation.q3,
+        };
+
+        (rotation, rotation_inverse)
     }
 }
 
@@ -222,6 +226,10 @@ impl Terminal {
             // the indexing cannot be uneven.
             camera.resolution.1 -= 1;
         }
+
+        // Limit angle. TODO!!!!
+        // camera.rotation.0 %= std::f64::consts::PI;
+        // camera.rotation.1 %= std::f64::consts::PI;
 
         Ok(())
     }
@@ -254,10 +262,15 @@ impl Terminal {
     fn project_vertices_on_viewport(&mut self) {
         self.vertices_projected.clear();
 
-        for vertex in self.vertices.as_ref().unwrap().borrow().iter() {
+        let vertices = self.vertices.as_ref().unwrap().as_ref().borrow();
+
+        for vertex in vertices.iter() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
-                // Undo any rotation made on points.
-                // let intersection = (&self.canvas.rotation_inverse * &intersection.0.transpose()).transpose().into();
+                // Undo any rotation made on vertex.
+                let intersection = (&(&self.canvas.rotation_inverse
+                    * &intersection.borrow().into())
+                    * &self.canvas.rotation)
+                    .into();
                 self.vertices_projected.push(intersection);
             }
         }
@@ -355,9 +368,7 @@ impl RendererTrait for Terminal {
 
     fn render(&mut self) {
         self.clear();
-        // TODO: Rotate canvas. (Step 2).
         self.project_vertices_on_viewport();
-        // TODO: Rotate canvas back to 0,0,0. (Step 4).
         self.map_vertices_to_canvas_buffer();
         self.print_canvas_buffer_to_stdout();
     }

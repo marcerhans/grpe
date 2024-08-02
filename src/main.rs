@@ -11,6 +11,10 @@ use renderer::{
 enum Model {
     Plane,
     Spiral,
+
+    /// Easiest to test by setting the default value for initial rotation
+    /// and see if the resulting render is expected.
+    TestRotation,
 }
 
 impl FromStr for Model {
@@ -20,6 +24,7 @@ impl FromStr for Model {
         match s.to_lowercase().as_str() {
             "plane" => Ok(Model::Plane),
             "spiral" => Ok(Model::Spiral),
+            "test_rotation" => Ok(Model::TestRotation),
             _ => Err("Could not convert to string.")
         }
     }
@@ -79,6 +84,11 @@ fn model(model: &Model) -> Vec<VectorRow<f64, 3>> {
                     ]));
                 }
             }
+        }
+        Model::TestRotation => {
+            vertices = vec![
+                VectorRow::from([0.0, 0.0, 0.0]),
+            ]
         }
     }
 
@@ -193,7 +203,7 @@ Set the frames per second.
     }
 
     // 1. Create vertices.
-    let vertices = Rc::new(RefCell::new(model(args.model.as_ref().unwrap_or(&Model::Plane))));
+    let vertices = Rc::new(RefCell::new(model(args.model.as_ref().unwrap_or(&Model::TestRotation))));
 
     // 2. Define line order.
     // let line_draw_order = vec![vec![0, 1], vec![0, 2]];
@@ -203,7 +213,7 @@ Set the frames per second.
         .with_camera(Camera {
             resolution: args.resolution.unwrap_or((64, 64)),
             position: VectorRow::from([0.0, 0.0, 0.0]),
-            rotation: VectorRow::from([0.0, 0.0, 0.0]),
+            rotation: (0.0, 0.0),
             fov: 135,
         })
         .expect("Bad camera config.")
@@ -269,8 +279,8 @@ Set the frames per second.
                     mouse_right_y_start = y as f64;
                 }
                 MouseEvent::RightMove(x, y) => {
-                    mouse_right_x = (x as f64 - mouse_right_x_start) * 0.001;
-                    mouse_right_y = (y as f64 - mouse_right_y_start) * 0.001;
+                    mouse_right_x = (x as f64 - mouse_right_x_start) * 0.01;
+                    mouse_right_y = (y as f64 - mouse_right_y_start) * 0.01;
                 }
                 MouseEvent::RightUp(_, _) => {
                     mouse_right_x = 0.0;
@@ -295,10 +305,10 @@ Set the frames per second.
                     'S' => camera.position[2] -= 8.0,
 
                     // Rotation
-                    'i' => camera.rotation[0] -= 0.01,
-                    'j' => camera.rotation[2] -= 0.01,
-                    'k' => camera.rotation[0] += 0.01,
-                    'l' => camera.rotation[2] += 0.01,
+                    'i' => camera.rotation.0 -= std::f64::consts::FRAC_PI_8 / 16.0,
+                    'j' => camera.rotation.1 -= std::f64::consts::FRAC_PI_8 / 16.0,
+                    'k' => camera.rotation.0 += std::f64::consts::FRAC_PI_8 / 16.0,
+                    'l' => camera.rotation.1 += std::f64::consts::FRAC_PI_8 / 16.0,
 
                     // FOV
                     'q' => camera.fov -= 1,
@@ -315,8 +325,8 @@ Set the frames per second.
         camera.position[0] += mouse_left_x;
         camera.position[2] -= mouse_left_y; // Terminal coordinates are upsidedown.
 
-        camera.rotation[2] += mouse_right_x;
-        camera.rotation[0] -= mouse_right_y; // Terminal coordinates are upsidedown.
+        camera.rotation.0 = -mouse_right_y;
+        camera.rotation.1 = -mouse_right_x;
 
         renderer = renderer.set_camera(camera.clone()).unwrap();
 
@@ -339,10 +349,10 @@ Set the frames per second.
         frame += 1;
 
         if show_info {
-            print!("\x1B[2KFrame: {frame} | Missed Frames: {frame_missed} | FPS: {fps} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: ({:.2},{:.2},{:.2})",
+            print!("\x1B[2KFrame: {frame} | Missed Frames: {frame_missed} | FPS: {fps} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
                 camera.resolution.0, camera.resolution.1, camera.fov,
                 camera.position[0], camera.position[1], camera.position[2],
-                camera.rotation[0], camera.rotation[1], camera.rotation[2]
+                camera.rotation.0, camera.rotation.1
             );
         }
 
