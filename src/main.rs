@@ -279,8 +279,10 @@ Set the frames per second.
                     mouse_right_y_start = y as f64;
                 }
                 MouseEvent::RightMove(x, y) => {
-                    mouse_right_x += (x as f64 - mouse_right_x_start) * 0.01;
-                    mouse_right_y += (y as f64 - mouse_right_y_start) * 0.01;
+                    mouse_right_x += (x as f64 - mouse_right_x_start) * 0.08;
+                    mouse_right_y += (y as f64 - mouse_right_y_start) * 0.08;
+                    mouse_right_x_start = x as f64;
+                    mouse_right_y_start = y as f64;
                 }
                 MouseEvent::RightUp(_, _) => {
                     // mouse_right_x = 0.0;
