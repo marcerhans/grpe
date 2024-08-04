@@ -84,17 +84,25 @@ mod tests {
 
     #[test]
     fn rotation_test() {
-        let r = Quaternion {
+        let r1 = Quaternion {
             q0: (std::f64::consts::FRAC_PI_2 / 2.0).cos(),
             q1: 0.0,
             q2: 0.0,
             q3: (std::f64::consts::FRAC_PI_2 / 2.0).sin(),
         };
-        let r_prim = Quaternion {
+        let r2 = Quaternion {
             q0: (std::f64::consts::FRAC_PI_2 / 2.0).cos(),
-            q1: 0.0,
+            q1: (std::f64::consts::FRAC_PI_2 / 2.0).sin(),
             q2: 0.0,
-            q3: (-std::f64::consts::FRAC_PI_2 / 2.0).sin(),
+            q3: 0.0,
+        };
+        let r = &r1 * &r2;
+        println!("{:?}", r);
+        let r_prim = Quaternion {
+            q0: r.q0,
+            q1: -r.q1,
+            q2: -r.q2,
+            q3: -r.q3,
         };
         let p = Quaternion {
             q0: 0.0,

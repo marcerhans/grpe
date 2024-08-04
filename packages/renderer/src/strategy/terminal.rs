@@ -177,8 +177,8 @@ impl Canvas {
 
         let pitch = Quaternion {
             q0: rotation.0.cos(),
-            q1: rotation.0.sin(),
-            q2: 0.0,
+            q1: rotation.0.sin() * (rotation.1 * 2.0).cos(),
+            q2: rotation.0.sin() * (rotation.1 * 2.0).sin(),
             q3: 0.0,
         };
         let yaw = Quaternion {
