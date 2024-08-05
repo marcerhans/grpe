@@ -192,7 +192,10 @@ Set the frames per second.
                 args.info = Some(());
             }
             Arg::Model => {
-                let model = arg_it.next().unwrap().parse().unwrap();
+                let model = arg_it.next().unwrap().parse().unwrap_or_else(|_| {
+                    println!("Unkown model type given. Please run with '-h' or '--help' option for full list.");
+                    std::process::exit(0);
+                });
                 args.model = Some(model);
             }
             Arg::Fps => {
