@@ -277,7 +277,7 @@ impl Terminal {
     /// Maps projected vertices to a [Canvas::buffer].
     fn map_vertices_to_canvas_buffer(&mut self) {
         for vertex in self.vertices_projected.iter() {
-            // Undo any rotation made on vertex.
+            // Rotate vertex to "local coordinates" (so that they easily map to 2d-array).
             let vertex: VectorRow<f64, 3> =
                 (&(&self.canvas.rotation_inverse * &vertex.into()) * &self.canvas.rotation).into();
 
