@@ -221,7 +221,7 @@ Set the frames per second.
     let mut renderer = TerminalBuilder::default()
         .with_camera(Camera {
             resolution: args.resolution.unwrap_or((64, 64)),
-            position: VectorRow::from([40.0, -2000.0, 0.0]),
+            position: VectorRow::from([0.0, -2000.0, 0.0]),
             rotation: (0.0, 0.0),
             fov: 90,
         })
