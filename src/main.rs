@@ -223,7 +223,7 @@ Set the frames per second.
             resolution: args.resolution.unwrap_or((64, 64)),
             position: VectorRow::from([40.0, -100.0, 0.0]),
             rotation: (0.0, 0.0),
-            fov: 1,
+            fov: 90,
         })
         .expect("Bad camera config.")
         .build()

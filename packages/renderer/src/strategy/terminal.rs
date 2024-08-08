@@ -173,7 +173,10 @@ impl Canvas {
     }
 
     fn calc_rotation(config: &RendererConfiguration) -> (Quaternion<f64>, Quaternion<f64>) {
-        let rotation = (config.camera.rotation.0 / 2.0, config.camera.rotation.1 / 2.0);
+        let rotation = (
+            config.camera.rotation.0 / 2.0,
+            config.camera.rotation.1 / 2.0,
+        );
 
         let pitch = Quaternion {
             q0: rotation.0.cos(),
@@ -266,11 +269,6 @@ impl Terminal {
 
         for vertex in vertices.iter() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
-                // Undo any rotation made on vertex.
-                let intersection = (&(&self.canvas.rotation_inverse
-                    * &intersection.borrow().into())
-                    * &self.canvas.rotation)
-                    .into();
                 self.vertices_projected.push(intersection);
             }
         }
@@ -279,9 +277,12 @@ impl Terminal {
     /// Maps projected vertices to a [Canvas::buffer].
     fn map_vertices_to_canvas_buffer(&mut self) {
         for vertex in self.vertices_projected.iter() {
-            let camera = &self.config.camera;
+            // Undo any rotation made on vertex.
+            let vertex: VectorRow<f64, 3> =
+                (&(&self.canvas.rotation_inverse * &vertex.into()) * &self.canvas.rotation).into();
 
             // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
+            let camera = &self.config.camera;
             let x = (vertex[0] as isize) - camera.position[0] as isize
                 + (camera.resolution.0 / 2) as isize
                 - 1;
