@@ -112,4 +112,32 @@ mod tests {
         };
         println!("{:?}", &(&r * &p) * &r_prim);
     }
+
+    #[test]
+    fn pure_vector_test() {
+        let v = Quaternion {
+            q0: 0.0,
+            q1: 1.0,
+            q2: 2.0,
+            q3: 3.0,
+        };
+
+        let r = Quaternion {
+            q0: (std::f64::consts::FRAC_PI_2 / 2.0).cos(),
+            q1: 0.0,
+            q2: 0.0,
+            q3: (std::f64::consts::FRAC_PI_2 / 2.0).sin(),
+        };
+        let r_prim = Quaternion {
+            q0: r.q0,
+            q1: -r.q1,
+            q2: -r.q2,
+            q3: -r.q3,
+        };
+        
+        let a = &(&r * &v) * &r_prim;
+        let b = &r * &v;
+
+        println!("{a:?} and {b:?}");
+    }
 }

@@ -96,6 +96,10 @@ fn model(model: &Model) -> Vec<VectorRow<f64, 3>> {
                 VectorRow::from([0.0, 0.0, -10.0]),
             ];
 
+            for vertex in &mut vertices {
+                vertex[0] = 40.0;
+            }
+
             const MAX_DEPTH: i32 = 10;
             const GRID_SIZE: i32 = 10;
             const GRID_SPACING: i32 = 1;
@@ -232,8 +236,8 @@ Set the frames per second.
 
     // 3. Instantiate renderer.
     let camera_default = Camera {
-        resolution: args.resolution.unwrap_or((300, 128)),
-        position: VectorRow::from([0.0, 0.0, 0.0]),
+        resolution: args.resolution.unwrap_or((32, 32)),
+        position: VectorRow::from([40.0, 0.0, 0.0]),
         rotation: (0.0, 0.0),
         fov: 90,
     };
@@ -302,8 +306,8 @@ Set the frames per second.
                     mouse_right_y_start = y as f64;
                 }
                 MouseEvent::RightMove(x, y) => {
-                    mouse_right_x += (x as f64 - mouse_right_x_start) * 0.08;
-                    mouse_right_y += (y as f64 - mouse_right_y_start) * 0.08;
+                    mouse_right_x += (x as f64 - mouse_right_x_start) * 0.01;
+                    mouse_right_y += (y as f64 - mouse_right_y_start) * 0.01;
                     mouse_right_x_start = x as f64;
                     mouse_right_y_start = y as f64;
                 }
@@ -357,8 +361,8 @@ Set the frames per second.
         camera.position[0] += mouse_left_x;
         camera.position[2] -= mouse_left_y; // Terminal coordinates are upsidedown.
 
-        // camera.rotation.0 = -mouse_right_y;
-        // camera.rotation.1 = -mouse_right_x;
+        camera.rotation.0 = -mouse_right_y;
+        camera.rotation.1 = -mouse_right_x;
 
         if reset {
             reset = false;

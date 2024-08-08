@@ -78,8 +78,8 @@ struct Canvas {
 }
 
 impl Canvas {
-    /// Calculates the viewpoint position in order to fulfill the requested FOV.
-    fn calc_viewpoint_position(
+    /// Calculates the viewport position in order to fulfill the requested FOV.
+    fn calc_viewport_origin(
         position: &VectorRow<f64, 3>,
         resolution: &(u64, u64),
         fov: &u64,
@@ -87,7 +87,7 @@ impl Canvas {
         VectorRow::<f64, 3>::from([
             position[0],
             position[1]
-                - (resolution.0 as f64 / 2.0)
+                + (resolution.0 as f64 / 2.0)
                     / f64::tan((*fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
             position[2],
         ])
@@ -120,22 +120,31 @@ impl Canvas {
     ) -> Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>> {
         Box::new({
             // Cached values for closure.
-            // Without rotation
-            let viewpoint = Self::calc_viewpoint_position(
-                &config.camera.position,
-                &config.camera.resolution,
-                &config.camera.fov,
-            );
             let normal = VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]);
-
-            // With rotation applied.
-            let viewpoint: VectorRow<f64, 3> =
-                (&(rotation * &viewpoint.borrow().into()) * &rotation_inverse).into();
             let normal: VectorRow<f64, 3> =
                 (&(rotation * &normal.borrow().into()) * &rotation_inverse).into();
-            let position: VectorRow<f64, 3> =
-                (&(rotation * &config.camera.position.borrow().into()) * &rotation_inverse).into();
-            let d0 = normal.dot(&position);
+            println!("Normal: {normal:?}");
+
+            let viewpoint: VectorRow<f64, 3> = config.camera.position.clone();
+            println!("Viewpoint: {viewpoint:?}");
+
+            // let position: VectorRow<f64, 3> = Self::calc_viewport_position(
+            //     &viewpoint,
+            //     &config.camera.resolution,
+            //     &config.camera.fov,
+            // );
+            let viewport_origin: VectorRow<f64, 3> = (&Self::calc_viewport_origin(
+                &viewpoint,
+                &config.camera.resolution,
+                &config.camera.fov,
+            ).0 - &viewpoint.0).into();
+            println!("ViewportOrigin: {viewport_origin:?}");
+            let viewport_origin: VectorRow<f64, 3> =
+                (&(rotation * &viewport_origin.borrow().into()) * &rotation_inverse).into();
+            let viewport_origin = (&viewport_origin.0 + &viewpoint.0).into();
+            println!("ViewportOrigin: {viewport_origin:?}");
+
+            let d0 = normal.dot(&viewport_origin);
             let d1 = normal.dot(&viewpoint);
             let diff = d0 - d1;
 
@@ -278,8 +287,8 @@ impl Terminal {
     fn map_vertices_to_canvas_buffer(&mut self) {
         for vertex in self.vertices_projected.iter() {
             // Rotate vertex to "local coordinates" (so that they easily map to 2d-array).
-            let vertex: VectorRow<f64, 3> =
-                (&(&self.canvas.rotation_inverse * &vertex.into()) * &self.canvas.rotation).into();
+            // let vertex: VectorRow<f64, 3> =
+            //     (&(&self.canvas.rotation_inverse * &vertex.into()) * &self.canvas.rotation).into();
 
             // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
             let camera = &self.config.camera;
