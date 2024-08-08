@@ -88,6 +88,12 @@ fn model(model: &Model) -> Vec<VectorRow<f64, 3>> {
         Model::TestRotation => {
             vertices = vec![
                 VectorRow::from([0.0, 0.0, 0.0]),
+                VectorRow::from([10.0, 0.0, 0.0]),
+                VectorRow::from([-10.0, 0.0, 0.0]),
+                VectorRow::from([0.0, 10.0, 0.0]),
+                VectorRow::from([0.0, -10.0, 0.0]),
+                VectorRow::from([0.0, 0.0, 10.0]),
+                VectorRow::from([0.0, 0.0, -10.0]),
             ]
         }
     }
@@ -215,9 +221,9 @@ Set the frames per second.
     let mut renderer = TerminalBuilder::default()
         .with_camera(Camera {
             resolution: args.resolution.unwrap_or((64, 64)),
-            position: VectorRow::from([0.0, 0.0, 0.0]),
+            position: VectorRow::from([40.0, -100.0, 0.0]),
             rotation: (0.0, 0.0),
-            fov: 135,
+            fov: 1,
         })
         .expect("Bad camera config.")
         .build()
