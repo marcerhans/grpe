@@ -302,13 +302,10 @@ impl Terminal {
             z = z / 2;
             let buff_val = &mut self.canvas.buffer[z as usize][x as usize];
 
-            // Is it already filled?
             if *buff_val == character::FULL {
+                // Is it already filled.
                 continue;
-            }
-
-            // Is it partially filled?
-            if *buff_val == character::UPPER && character == character::LOWER {
+            } else if *buff_val == character::UPPER && character == character::LOWER {
                 character = character::FULL;
             } else if *buff_val == character::LOWER && character == character::UPPER {
                 character = character::FULL;
