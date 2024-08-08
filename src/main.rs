@@ -314,6 +314,10 @@ Set the frames per second.
                     // 'K' => camera.position[1] += 8.0,
                     'W' => camera.position[2] += 8.0,
                     'S' => camera.position[2] -= 8.0,
+                    '+' => camera.position[1] += 8.0,
+                    '?' => camera.position[1] += 16.0,
+                    '-' => camera.position[1] -= 8.0,
+                    '_' => camera.position[1] -= 16.0,
 
                     // Rotation
                     'i' => camera.rotation.0 -= std::f64::consts::FRAC_PI_8 / 16.0,
