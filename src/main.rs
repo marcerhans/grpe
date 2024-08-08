@@ -218,14 +218,14 @@ Set the frames per second.
     // let line_draw_order = vec![vec![0, 1], vec![0, 2]];
 
     // 3. Instantiate renderer.
+    let camera_default = Camera {
+        resolution: args.resolution.unwrap_or((300, 128)),
+        position: VectorRow::from([0.0, -2000.0, 0.0]),
+        rotation: (0.0, 0.0),
+        fov: 90,
+    };
     let mut renderer = TerminalBuilder::default()
-        .with_camera(Camera {
-            resolution: args.resolution.unwrap_or((64, 64)),
-            position: VectorRow::from([0.0, -2000.0, 0.0]),
-            rotation: (0.0, 0.0),
-            fov: 90,
-        })
-        .expect("Bad camera config.")
+        .with_camera(camera_default.clone()).expect("Bad camera config.")
         .build()
         .unwrap();
 
@@ -250,6 +250,7 @@ Set the frames per second.
     let mut mouse_right_y = 0.0;
 
     let show_info = args.info.is_some();
+    let mut reset = false;
 
     print!("{}", ansi::CLEAR_SCREEN); // TODO: Should be something like renderer.clear_screen().
 
@@ -331,6 +332,9 @@ Set the frames per second.
                     'Q' => camera.fov -= 2,
                     'E' => camera.fov += 2,
 
+                    // Utils
+                    'R' => reset = true,
+
                     _ => (),
                 }
             }
@@ -342,6 +346,19 @@ Set the frames per second.
 
         camera.rotation.0 = -mouse_right_y;
         camera.rotation.1 = -mouse_right_x;
+
+        if reset {
+            reset = false;
+            mouse_left_x_start = 0.0;
+            mouse_left_y_start = 0.0;
+            mouse_left_x = 0.0;
+            mouse_left_y = 0.0;
+            mouse_right_x_start = 0.0;
+            mouse_right_y_start = 0.0;
+            mouse_right_x = 0.0;
+            mouse_right_y = 0.0;
+            camera = camera_default.clone();
+        }
 
         renderer = renderer.set_camera(camera.clone()).unwrap();
 
