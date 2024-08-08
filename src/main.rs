@@ -94,7 +94,20 @@ fn model(model: &Model) -> Vec<VectorRow<f64, 3>> {
                 VectorRow::from([0.0, -10.0, 0.0]),
                 VectorRow::from([0.0, 0.0, 10.0]),
                 VectorRow::from([0.0, 0.0, -10.0]),
-            ]
+            ];
+
+            const MAX_DEPTH: i32 = 10;
+            const GRID_SIZE: i32 = 10;
+            const GRID_SPACING: i32 = 1;
+            for i in 0..GRID_SIZE {
+                for j in 0..GRID_SIZE {
+                    vertices.push(VectorRow::from([
+                        (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
+                        MAX_DEPTH as f64,
+                        (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
+                    ]));
+                }
+            }
         }
     }
 
