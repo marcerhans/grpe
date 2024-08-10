@@ -338,10 +338,10 @@ Set the frames per second.
                     '_' => camera.position[1] -= 16.0,
 
                     // Rotation
-                    'i' => camera.rotation.0 -= std::f64::consts::FRAC_PI_2,
-                    'j' => camera.rotation.1 -= std::f64::consts::FRAC_PI_2,
-                    'k' => camera.rotation.0 += std::f64::consts::FRAC_PI_2,
-                    'l' => camera.rotation.1 += std::f64::consts::FRAC_PI_2,
+                    'i' => camera.rotation.0 -= std::f64::consts::FRAC_PI_8,
+                    'j' => camera.rotation.1 -= std::f64::consts::FRAC_PI_8,
+                    'k' => camera.rotation.0 += std::f64::consts::FRAC_PI_8,
+                    'l' => camera.rotation.1 += std::f64::consts::FRAC_PI_8,
 
                     // FOV
                     'q' => camera.fov -= 1,
@@ -361,8 +361,8 @@ Set the frames per second.
         camera.position[0] += mouse_left_x;
         camera.position[2] -= mouse_left_y; // Terminal coordinates are upsidedown.
 
-        camera.rotation.0 = -mouse_right_y;
-        camera.rotation.1 = -mouse_right_x;
+        // camera.rotation.0 = -mouse_right_y;
+        // camera.rotation.1 = -mouse_right_x;
 
         if reset {
             reset = false;

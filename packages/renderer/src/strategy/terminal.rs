@@ -287,8 +287,10 @@ impl Terminal {
     fn map_vertices_to_canvas_buffer(&mut self) {
         for vertex in self.vertices_projected.iter() {
             // Rotate vertex to "local coordinates" (so that they easily map to 2d-array).
-            // let vertex: VectorRow<f64, 3> =
-            //     (&(&self.canvas.rotation_inverse * &vertex.into()) * &self.canvas.rotation).into();
+            let vertex = VectorRow::<f64, 3>::from(&vertex.0 - &self.config.camera.position.0);
+            let vertex: VectorRow<f64, 3> =
+                (&(&self.canvas.rotation_inverse * &((&vertex).into())) * &self.canvas.rotation).into();
+            let vertex = VectorRow::<f64, 3>::from(&vertex.0 + &self.config.camera.position.0);
 
             // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
             let camera = &self.config.camera;
