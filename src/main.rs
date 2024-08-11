@@ -1,140 +1,17 @@
+mod arg;
+mod model;
+
 use std::{
-    cell::RefCell, env, rc::Rc, str::FromStr, time::{self, Duration}
+    cell::RefCell,
+    rc::Rc,
+    time::{self, Duration},
 };
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait, MouseEvent};
 use linear_algebra::vector::VectorRow;
 use renderer::{
-    renderer::TerminalBuilder, Camera, RenderOption, RendererBuilderTrait, RendererTrait,
+    renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait,
 };
-
-enum Model {
-    Plane,
-    Spiral,
-
-    /// Easiest to test by setting the default value for initial rotation
-    /// and see if the resulting render is expected.
-    TestRotation,
-}
-
-impl FromStr for Model {
-    type Err = &'static str;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "plane" => Ok(Model::Plane),
-            "spiral" => Ok(Model::Spiral),
-            "test_rotation" => Ok(Model::TestRotation),
-            _ => Err("Could not convert to string.")
-        }
-    }
-}
-
-fn model(model: &Model) -> Vec<VectorRow<f64, 3>> {
-    let mut vertices = Vec::new();
-
-    match model {
-        Model::Plane => {
-            vertices = vec![
-                // Sidroder
-                VectorRow::from([0.6, 3.0, 0.0]),
-                VectorRow::from([1.0, 3.0, 0.0]),
-                VectorRow::from([1.4, 0.5, 0.0]),
-
-                // Fuselage
-                VectorRow::from([0.0, 0.0, 0.0]),   // Exhaust
-                VectorRow::from([15.2, 0.0, 0.0]),  // Tip
-                VectorRow::from([15.7, 0.0, 0.0]),  // Tip + pitot
-                VectorRow::from([15.2 / 2.0, -1.0, 0.0]),  // Bottom at middle
-
-                // Left wing
-                VectorRow::from([1.2, 0.0, 4.3]),   // Wing span is 8.6 (/ 2 = 4.3)
-                VectorRow::from([2.0, 0.0, 4.3]),
-                VectorRow::from([15.2 / 2.0, 0.0, 1.0]),
-
-                // Left canard wing
-                VectorRow::from([15.2 / 2.0, 0.0, 4.3 / 1.75]),   // Wing span is 8.6 (/ 2 = 4.3)
-                VectorRow::from([15.2 / 2.0 + 0.4, 0.0, 4.3 / 1.75]),
-                VectorRow::from([15.2 / 2.0 + 2.0, 0.0, 1.0]),
-            ];
-
-            for vertex in vertices.iter_mut() {
-                vertex.0.scale(10.0);
-            }
-        }
-        Model::Spiral => {
-            // Spiral zooming in.
-            const MAX_DEPTH: i32 = 1000;
-            for i in 0..MAX_DEPTH {
-                vertices.push(VectorRow::from([
-                    i as f64 * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).cos(),
-                    i as f64,
-                    i as f64 * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).sin(),
-                ]));
-            }
-
-            const GRID_SIZE: i32 = 200;
-            const GRID_SPACING: i32 = 100;
-            for i in 0..GRID_SIZE {
-                for j in 0..GRID_SIZE {
-                    vertices.push(VectorRow::from([
-                        (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
-                        MAX_DEPTH as f64,
-                        (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
-                    ]));
-                }
-            }
-        }
-        Model::TestRotation => {
-            vertices = vec![
-                VectorRow::from([0.0, 0.0, 0.0]),
-                VectorRow::from([10.0, 0.0, 0.0]),
-                VectorRow::from([-10.0, 0.0, 0.0]),
-                VectorRow::from([0.0, 10.0, 0.0]),
-                VectorRow::from([0.0, -10.0, 0.0]),
-                VectorRow::from([0.0, 0.0, 10.0]),
-                VectorRow::from([0.0, 0.0, -10.0]),
-            ];
-
-            for vertex in &mut vertices {
-                vertex[0] = 40.0;
-            }
-
-            const MAX_DEPTH: i32 = 10;
-            const GRID_SIZE: i32 = 10;
-            const GRID_SPACING: i32 = 1;
-            for i in 0..GRID_SIZE {
-                for j in 0..GRID_SIZE {
-                    vertices.push(VectorRow::from([
-                        (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
-                        MAX_DEPTH as f64,
-                        (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
-                    ]));
-                }
-            }
-        }
-    }
-
-    vertices
-}
-
-enum Arg {
-    Help,
-    Resolution,
-    RenderOption,
-    Info,
-    Model,
-    Fps,
-}
-
-#[derive(Default)]
-struct ArgValue {
-    resolution: Option<(u64, u64)>,
-    render_option: Option<RenderOption>,
-    info: Option<()>,
-    model: Option<Model>,
-    fps: Option<u64>,
-}
 
 mod ansi {
     pub static CLEAR_SCREEN: &str = "\x1B[2J";
@@ -142,107 +19,19 @@ mod ansi {
 }
 
 fn main() {
-    // 0. Read args
-    let args_raw: Vec<String> = env::args().skip(1).collect();
-    let mut args = ArgValue::default();
-
-    let mut arg_it = args_raw.iter();
-    while let Some(option) = arg_it.next() {
-        let option = match option.as_str() {
-            "-h" | "--help" => Arg::Help,
-            "-r" | "--resolution" => Arg::Resolution,
-            "-o" | "--option" => Arg::RenderOption,
-            "-i" | "--info" => Arg::Info,
-            "-m" | "--model" => Arg::Model,
-            "-f" | "--fps" => Arg::Fps,
-            _ => {
-                println!("Unknown option \"{}\"", option);
-                return;
-            }
-        };
-
-        match option {
-            Arg::Help => {
-                println!(
-                    "GRPE Usage:
-grpe [OPTION]
-
-OPTIONS:
--h, --help
-Default: false
-Print this help section.
-
--r <width height>, --resolution <width height>
-Default: 64 64
-Set the resolution.
-
--o <option>, --render-option <option>
-Default: vertices
-Available options:
-all - Renders everything possible.
-line - Renders only lines between vertices.
-vertices - Renders only vertices.
-
--i, --info
-Default: true
-During execution, print additional information at the bottom.
-This includes fps, missed frames, fov, etc.
-
--m, --model
-Default: \"plane\"
-What to display.
-Available models:
-plane
-spiral
-
--f, --fps
-Default: 60
-Set the frames per second.
-                    "
-                );
-                return;
-            }
-            Arg::Resolution => {
-                let width: u64 = arg_it.next().unwrap().parse().unwrap();
-                let height: u64 = arg_it.next().unwrap().parse().unwrap();
-                args.resolution = Some((width, height));
-            }
-            Arg::RenderOption => {
-                let option: RenderOption = arg_it.next().unwrap().parse().unwrap();
-                args.render_option = Some(option);
-            }
-            Arg::Info => {
-                args.info = Some(());
-            }
-            Arg::Model => {
-                let model = arg_it.next().unwrap().parse().unwrap_or_else(|_| {
-                    println!("Unkown model type given. Please run with '-h' or '--help' option for full list.");
-                    std::process::exit(0);
-                });
-                args.model = Some(model);
-            }
-            Arg::Fps => {
-                let fps = arg_it.next().unwrap().parse().unwrap();
-                args.fps = Some(fps);
-            }
-        }
-    }
+    let args = arg::parse_args();
 
     // 1. Create vertices.
-    let vertices = Rc::new(RefCell::new(model(args.model.as_ref().unwrap_or(&Model::TestRotation))));
+    let vertices = Rc::new(RefCell::new(args.model.unwrap_or(model::Model::Plane).get_vertices()));
 
     // 2. Define line order.
     // let line_draw_order = vec![vec![0, 1], vec![0, 2]];
 
     // 3. Instantiate renderer.
-    let camera_default = Camera {
-        resolution: args.resolution.unwrap_or((32, 32)),
-        position: VectorRow::from([0.0, 0.0, 0.0]),
-        rotation: (0.0, 0.0),
-        ..Default::default()
-    };
+    let camera_default = Camera::default();
     let mut renderer = TerminalBuilder::default()
-        .with_camera(camera_default.clone()).expect("Bad camera config.")
+        .with_camera(camera_default.clone())
+        .expect("Bad camera config.")
         .build()
         .unwrap();
 
@@ -364,7 +153,10 @@ Set the frames per second.
         camera.rotation.0 = -mouse_right_y;
         camera.rotation.1 = -mouse_right_x;
 
-        camera.rotation.0 = f64::max(-std::f64::consts::FRAC_PI_2, f64::min(std::f64::consts::FRAC_PI_2, camera.rotation.0));
+        camera.rotation.0 = f64::max(
+            -std::f64::consts::FRAC_PI_2,
+            f64::min(std::f64::consts::FRAC_PI_2, camera.rotation.0),
+        );
 
         if reset {
             reset = false;
