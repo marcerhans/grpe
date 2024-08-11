@@ -369,7 +369,7 @@ impl Terminal {
         }
     }
 
-    fn render_lines_between_vertices(&mut self) {
+    fn render_lines_between_projected_vertices(&mut self) {
         let orders = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
         // TODO: !!!!!
     }
@@ -421,7 +421,7 @@ impl RendererTrait for Terminal {
         self.clear();
         self.project_vertices_on_viewport();
         self.map_vertices_to_canvas_buffer();
-        self.draw_lines_between_vertices();
+        self.render_lines_between_projected_vertices();
         self.write_canvas_buffer_to_stdout_buffer();
         self.stdout_buffer.flush().unwrap();
     }
