@@ -55,6 +55,12 @@ fn main() {
     let mut mouse_right_x = 0.0;
     let mut mouse_right_y = 0.0;
 
+    let mut camera_fov = if let ProjectionMode::Perspective { fov } = renderer.config().camera.projection_mode {
+        fov
+    } else {
+        90
+    };
+
     let show_info = args.info.is_some();
     let mut reset = false;
 
@@ -135,11 +141,22 @@ fn main() {
                     'q' | 'Q' | 'e' | 'E' => {
                         if let ProjectionMode::Perspective { fov } = &mut camera.projection_mode {
                             match c {
-                               'q' => *fov -= 1,
-                               'e' => *fov += 1,
-                               'Q' => *fov -= 2,
-                               'E' => *fov += 2,
+                                'q' => *fov -= 1,
+                                'e' => *fov += 1,
+                                'Q' => *fov -= 2,
+                                'E' => *fov += 2,
                                 _ => (),
+                            }
+                        }
+                    }
+
+                    // Projection Mode
+                    'p' => {
+                        match camera.projection_mode {
+                            ProjectionMode::Orthographic => camera.projection_mode = ProjectionMode::Perspective { fov: camera_fov },
+                            ProjectionMode::Perspective { fov } => {
+                                camera_fov = fov;
+                                camera.projection_mode = ProjectionMode::Orthographic;
                             }
                         }
                     }
