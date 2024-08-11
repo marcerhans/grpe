@@ -9,8 +9,7 @@ use std::{
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait, MouseEvent};
 use renderer::{
-    renderer::TerminalBuilder, Camera, ProjectionMode, RendererBuilderTrait, RendererTrait,
-    ViewMode,
+    renderer::TerminalBuilder, Camera, ProjectionMode, RendererBuilderTrait, RendererTrait, VectorRow, ViewMode
 };
 
 fn main() {
@@ -27,6 +26,7 @@ fn main() {
     // 3. Instantiate renderer.
     let camera_default = Camera {
         resolution: args.resolution.unwrap_or((64, 64)),
+        position: VectorRow::from([80.0, 0.0, 0.0]),
         ..Default::default()
     };
     let mut renderer = TerminalBuilder::default()

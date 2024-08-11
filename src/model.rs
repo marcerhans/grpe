@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{f64::consts, str::FromStr};
 
 use renderer::VectorRow;
 
@@ -25,25 +25,53 @@ impl Model {
 
         match self {
             Model::Plane => {
-                vertices = vec![
-                    // Sidroder
-                    VectorRow::from([0.6, 3.0, 0.0]),
-                    VectorRow::from([1.0, 3.0, 0.0]),
-                    VectorRow::from([1.4, 0.5, 0.0]),
+                // let single_step = 15.2 / 12.0;
+                // for along_x_axis in 0..12 {
+                //     let x_pos = single_step * (along_x_axis as f64);
+
+                // }
+
+                // Exhaust
+                for around_x_axis in 0..12 {
+                    vertices.push(
+                        VectorRow::from([0.0,  0.4 * (around_x_axis as f64 * (2.0 * consts::PI / 12.0)).sin(), 0.4 * (around_x_axis as f64 * (2.0 * consts::PI / 12.0)).cos()])
+                    );
+                }
+
+                // Prime
+                vertices.append(&mut vec![
                     // Fuselage
-                    VectorRow::from([0.0, 0.0, 0.0]),  // Exhaust
                     VectorRow::from([15.2, 0.0, 0.0]), // Tip
                     VectorRow::from([15.7, 0.0, 0.0]), // Tip + pitot
-                    VectorRow::from([15.2 / 2.0, -1.0, 0.0]), // Bottom at middle
-                    // Left wing
-                    VectorRow::from([1.2, 0.0, 4.3]), // Wing span is 8.6 (/ 2 = 4.3)
-                    VectorRow::from([2.0, 0.0, 4.3]),
-                    VectorRow::from([15.2 / 2.0, 0.0, 1.0]),
-                    // Left canard wing
-                    VectorRow::from([15.2 / 2.0, 0.0, 4.3 / 1.75]), // Wing span is 8.6 (/ 2 = 4.3)
-                    VectorRow::from([15.2 / 2.0 + 0.4, 0.0, 4.3 / 1.75]),
-                    VectorRow::from([15.2 / 2.0 + 2.0, 0.0, 1.0]),
-                ];
+                    VectorRow::from([15.2 / 2.0, 0.0, -1.0]), // Bottom at middle
+                    // Sidroder
+                    VectorRow::from([0.9, 0.0, 0.5]),
+                    VectorRow::from([1.0, 0.0, 3.0]),
+                    VectorRow::from([1.7, 0.0, 3.0]),
+                    VectorRow::from([1.7 + 2.5, 0.0, 0.5]),
+                    // // Left wing
+                    // VectorRow::from([1.2, 0.0, 4.3]), // Wing span is 8.6 (/ 2 = 4.3)
+                    // VectorRow::from([2.0, 0.0, 4.3]),
+                    // VectorRow::from([15.2 / 2.0, 0.0, 1.0]),
+                    // // Left canard wing
+                    // VectorRow::from([15.2 / 2.0, 0.0, 4.3 / 1.75]), // Wing span is 8.6 (/ 2 = 4.3)
+                    // VectorRow::from([15.2 / 2.0 + 0.4, 0.0, 4.3 / 1.75]),
+                    // VectorRow::from([15.2 / 2.0 + 2.0, 0.0, 1.0]),
+                ]);
+
+                // Fillers 
+                vertices.append(&mut vec![
+                    // Sidroder
+                    VectorRow::from([0.9 + 1.0 * (0.1 / 4.0), 0.0, 1.0]),
+                    VectorRow::from([0.9 + 2.0 * (0.1 / 4.0), 0.0, 1.5]),
+                    VectorRow::from([0.9 + 3.0 * (0.1 / 4.0), 0.0, 2.0]),
+                    VectorRow::from([0.9 + 4.0 * (0.1 / 4.0), 0.0, 2.5]),
+
+                    VectorRow::from([1.7 + 1.0 * (2.5 / 5.0), 0.0, 3.0 - 1.0 * (2.5 / 5.0)]),
+                    VectorRow::from([1.7 + 2.0 * (2.5 / 5.0), 0.0, 3.0 - 2.0 * (2.5 / 5.0)]),
+                    VectorRow::from([1.7 + 3.0 * (2.5 / 5.0), 0.0, 3.0 - 3.0 * (2.5 / 5.0)]),
+                    VectorRow::from([1.7 + 4.0 * (2.5 / 5.0), 0.0, 3.0 - 4.0 * (2.5 / 5.0)]),
+                ]);
 
                 for vertex in vertices.iter_mut() {
                     vertex.0.scale(10.0);
@@ -54,9 +82,9 @@ impl Model {
                 const MAX_DEPTH: i32 = 1000;
                 for i in 0..MAX_DEPTH {
                     vertices.push(VectorRow::from([
-                        i as f64 * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).cos(),
+                        i as f64 * (((i as f64) / 16.0) % (consts::PI * 2.0)).cos(),
                         i as f64,
-                        i as f64 * (((i as f64) / 16.0) % (std::f64::consts::PI * 2.0)).sin(),
+                        i as f64 * (((i as f64) / 16.0) % (consts::PI * 2.0)).sin(),
                     ]));
                 }
 
