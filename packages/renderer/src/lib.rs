@@ -104,7 +104,7 @@ pub trait RendererBuilderTrait: Default {
 }
 
 /// [RendererTrait] for rendering to display.
-pub trait RendererTrait where Self: Sized {
+pub trait RendererTrait: Sized {
     /// Get reference to [RendererConfiguration].
     fn config(&self) -> &RendererConfiguration;
 
