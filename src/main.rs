@@ -306,8 +306,8 @@ Set the frames per second.
                     mouse_right_y_start = y as f64;
                 }
                 MouseEvent::RightMove(x, y) => {
-                    mouse_right_x += (x as f64 - mouse_right_x_start) * 0.01;
-                    mouse_right_y += (y as f64 - mouse_right_y_start) * 0.01;
+                    mouse_right_x += (x as f64 - mouse_right_x_start) * 0.08;
+                    mouse_right_y += (y as f64 - mouse_right_y_start) * 0.08;
                     mouse_right_x_start = x as f64;
                     mouse_right_y_start = y as f64;
                 }
@@ -361,8 +361,10 @@ Set the frames per second.
         camera.position[0] += mouse_left_x;
         camera.position[2] -= mouse_left_y; // Terminal coordinates are upsidedown.
 
-        // camera.rotation.0 = -mouse_right_y;
-        // camera.rotation.1 = -mouse_right_x;
+        camera.rotation.0 = -mouse_right_y;
+        camera.rotation.1 = -mouse_right_x;
+
+        camera.rotation.0 = f64::max(-std::f64::consts::FRAC_PI_2, f64::min(std::f64::consts::FRAC_PI_2, camera.rotation.0));
 
         if reset {
             reset = false;
