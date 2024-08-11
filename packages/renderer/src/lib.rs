@@ -9,21 +9,45 @@ pub use strategy::renderer;
 pub use linear_algebra::{matrix::{Matrix, MatrixDataTrait}, vector::VectorRow};
 
 #[derive(Clone)]
+pub enum ProjectionMode {
+    Orthographic,
+    Perspective {
+        fov: u64,
+    },
+}
+
+impl Default for ProjectionMode {
+    fn default() -> Self {
+        Self::Perspective { fov: 90 }
+    }
+}
+
+#[derive(Clone, Default)]
+pub enum ViewMode {
+    FirstPerson,
+    #[default]
+    Orbital,
+}
+
+#[derive(Clone)]
 pub struct Camera {
+    /// Width, Height
     pub resolution: (u64, u64),
     pub position: VectorRow<f64, 3>,
     /// Pitch, Yaw
     pub rotation: (f64, f64),
-    pub fov: u64,
+    pub view_mode: ViewMode,
+    pub projection_mode: ProjectionMode,
 }
 
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            resolution: (32, 32),
-            position: VectorRow::from([0.0, -1.0, 0.0]),
-            rotation: (0.0, 0.0),
-            fov: 90,
+            resolution: (64, 64),
+            position: VectorRow::from([0.0, 0.0, 0.0]),
+            rotation: Default::default(),
+            view_mode: Default::default(),
+            projection_mode: Default::default(),
         }
     }
 }

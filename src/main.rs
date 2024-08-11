@@ -237,9 +237,9 @@ Set the frames per second.
     // 3. Instantiate renderer.
     let camera_default = Camera {
         resolution: args.resolution.unwrap_or((32, 32)),
-        position: VectorRow::from([40.0, 0.0, 0.0]),
+        position: VectorRow::from([0.0, 0.0, 0.0]),
         rotation: (0.0, 0.0),
-        fov: 90,
+        ..Default::default()
     };
     let mut renderer = TerminalBuilder::default()
         .with_camera(camera_default.clone()).expect("Bad camera config.")
