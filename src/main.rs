@@ -132,10 +132,17 @@ fn main() {
                     'l' => camera.rotation.1 += std::f64::consts::FRAC_PI_8,
 
                     // FOV
-                    // 'q' => camera.fov -= 1,
-                    // 'e' => camera.fov += 1,
-                    // 'Q' => camera.fov -= 2,
-                    // 'E' => camera.fov += 2,
+                    'q' | 'Q' | 'e' | 'E' => {
+                        if let ProjectionMode::Perspective { fov } = &mut camera.projection_mode {
+                            match c {
+                               'q' => *fov -= 1,
+                               'e' => *fov += 1,
+                               'Q' => *fov -= 2,
+                               'E' => *fov += 2,
+                                _ => (),
+                            }
+                        }
+                    }
 
                     // Utils
                     'R' => reset = true,

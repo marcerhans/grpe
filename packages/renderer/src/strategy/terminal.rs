@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::io::Write;
 use std::io::{BufWriter, Stdout};
@@ -69,6 +68,7 @@ impl RendererBuilderTrait for TerminalBuilder {
     }
 }
 
+// TODO: Create either a whole new struct like "CanvasPerspective" and "CanvasOrthographic". OR something like "Canvas<Perspective>" and "Canvas<Orthographic>".
 struct Canvas {
     buffer: Vec<Vec<char>>,
     /// Return: None if no intersection found. Otherwise point at which line between vertex and viewpoint intersects the viewport.
@@ -78,24 +78,16 @@ struct Canvas {
 }
 
 impl Canvas {
-    /// Calculates the viewport position in order to fulfill the requested FOV.
-    fn calc_viewport_origin(
-        position: &VectorRow<f64, 3>,
-        resolution: &(u64, u64),
-        fov: &u64,
-    ) -> VectorRow<f64, 3> {
-        VectorRow::<f64, 3>::from([
-            position[0],
-            position[1]
-                + (resolution.0 as f64 / 2.0)
-                    / f64::tan((*fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
-            position[2],
-        ])
-    }
-
     fn new(config: &RendererConfiguration) -> Self {
         let resolution = &config.camera.resolution;
-        let (rotation, rotation_inverse) = Self::calc_rotation(&config);
+        let (rotation, rotation_inverse) = Self::calc_rotation(&config.camera.rotation);
+
+        // TODO: Fix orthographic option
+        let fov = if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
+            fov
+        } else {
+            90
+        };
 
         Self {
             buffer: vec![
@@ -105,7 +97,7 @@ impl Canvas {
             line_intersection_checker: Self::create_intersection_checker(
                 &config.camera.resolution,
                 &config.camera.position,
-                &90, // TODO: Get actual value
+                &fov,
                 &config.camera.view_mode,
                 &rotation,
                 &rotation_inverse,
@@ -198,13 +190,21 @@ impl Canvas {
     }
 
     fn update(&mut self, config: &RendererConfiguration) -> Result<(), &'static str> {
-        let (rotation, rotation_inverse) = Self::calc_rotation(&config);
+        let (rotation, rotation_inverse) = Self::calc_rotation(&config.camera.rotation);
         self.rotation = rotation;
         self.rotation_inverse = rotation_inverse;
+
+        // TODO: Fix orthographic option
+        let fov = if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
+            fov
+        } else {
+            90
+
+        };
         self.line_intersection_checker = Self::create_intersection_checker(
             &config.camera.resolution,
             &config.camera.position,
-            &90, // TODO: Get actual value
+            &fov,
             &config.camera.view_mode,
             &self.rotation,
             &self.rotation_inverse,
@@ -212,10 +212,10 @@ impl Canvas {
         Ok(())
     }
 
-    fn calc_rotation(config: &RendererConfiguration) -> (Quaternion<f64>, Quaternion<f64>) {
+    fn calc_rotation(rotation: &(f64, f64)) -> (Quaternion<f64>, Quaternion<f64>) {
         let rotation = (
-            config.camera.rotation.0 / 2.0,
-            config.camera.rotation.1 / 2.0,
+            rotation.0 / 2.0,
+            rotation.1 / 2.0,
         );
 
         let pitch = Quaternion {
