@@ -253,6 +253,7 @@ pub struct Terminal {
     // Pipeline stuff. Not directly affected by [Self::config].
     vertices: Option<Rc<RefCell<Vec<VectorRow<f64, 3>>>>>,
     vertices_projected: Vec<VectorRow<f64, 3>>,
+    line_draw_order: Option<Rc<RefCell<Vec<Vec<u64>>>>>,
     stdout_buffer: BufWriter<Stdout>,
 }
 
@@ -368,8 +369,9 @@ impl Terminal {
         }
     }
 
-    fn render_lines(&self) {
-        todo!()
+    fn render_lines_between_vertices(&mut self) {
+        let orders = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
+        // TODO: !!!!!
     }
 
     /// Print canvas buffer to terminal.
@@ -412,13 +414,14 @@ impl RendererTrait for Terminal {
     }
 
     fn set_vertices_line_draw_order(&mut self, order: Rc<RefCell<Vec<Vec<u64>>>>) {
-        todo!("Implement this later")
+        self.line_draw_order = Some(order);
     }
 
     fn render(&mut self) {
         self.clear();
         self.project_vertices_on_viewport();
         self.map_vertices_to_canvas_buffer();
+        self.draw_lines_between_vertices();
         self.write_canvas_buffer_to_stdout_buffer();
         self.stdout_buffer.flush().unwrap();
     }
@@ -445,6 +448,7 @@ impl __RendererTrait for Terminal {
                 (config.camera.resolution.0 * config.camera.resolution.1) as usize,
             ),
             stdout_buffer: BufWriter::new(std::io::stdout()),
+            line_draw_order: None,
             canvas: Canvas::new(&config),
             config,
         })
