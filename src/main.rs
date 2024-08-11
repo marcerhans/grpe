@@ -8,9 +8,8 @@ use std::{
 };
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait, MouseEvent};
-use linear_algebra::vector::VectorRow;
 use renderer::{
-    renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait,
+    renderer::TerminalBuilder, Camera, ProjectionMode, RendererBuilderTrait, RendererTrait
 };
 
 fn main() {
@@ -188,24 +187,26 @@ fn main() {
 
         frame += 1;
 
-        // if show_info {
-        //     print!("\x1B[2KFrame: {frame} | Missed Frames: {frame_missed} | FPS: {fps} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
-        //         camera.resolution.0, camera.resolution.1, camera.fov,
-        //         camera.position[0], camera.position[1], camera.position[2],
-        //         camera.rotation.0, camera.rotation.1
-        //     );
-        // }
+        if let ProjectionMode::Perspective { fov } = camera.projection_mode {
+            if show_info {
+                print!("\x1B[2KFrame: {frame} | Missed Frames: {frame_missed} | FPS: {fps} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
+                    camera.resolution.0, camera.resolution.1, fov,
+                    camera.position[0], camera.position[1], camera.position[2],
+                    camera.rotation.0, camera.rotation.1
+                );
+            }
+        }
 
-        // let banner_text = "GRPE";
-        // let banner_fill_width = (camera.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
-        // let banner_char = "=";
-        // let banner = banner_char.repeat(banner_fill_width);
-        // print!("{}", ansi::GO_TO_0_0);
-        // print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m");
-        // if camera.resolution.0 % 2 != 0 {
-        //     // Just make it nice even if odd.
-        //     print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner_char}\x1B[0m");
-        // }
-        // println!();
+        let banner_text = "GRPE";
+        let banner_fill_width = (camera.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
+        let banner_char = "=";
+        let banner = banner_char.repeat(banner_fill_width);
+        print!("\x1B[H");
+        print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m");
+        if camera.resolution.0 % 2 != 0 {
+            // Just make it nice even if odd.
+            print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner_char}\x1B[0m");
+        }
+        println!();
     }
 }
