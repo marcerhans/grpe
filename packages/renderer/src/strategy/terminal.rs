@@ -7,10 +7,10 @@ use std::rc::Rc;
 use std::sync::OnceLock;
 
 use crate::{
-    Camera, RenderOption, RendererBuilderTrait, RendererConfiguration, RendererTrait,
-    __RendererTrait,
+    Camera, ProjectionMode, RenderOption, RendererBuilderTrait, RendererConfiguration,
+    RendererTrait, ViewMode, __RendererTrait,
 };
-use linear_algebra::{matrix::Matrix, quaternion::Quaternion, vector::VectorRow};
+use linear_algebra::{quaternion::rotate, quaternion::Quaternion, vector::VectorRow};
 
 /// Panic hook
 static PANIC_HOOK_FLAG: OnceLock<()> = OnceLock::new();
@@ -103,7 +103,10 @@ impl Canvas {
                 (resolution.1 / 2) as usize
             ],
             line_intersection_checker: Self::create_intersection_checker(
-                &config,
+                &config.camera.resolution,
+                &config.camera.position,
+                &90, // TODO: Get actual value
+                &config.camera.view_mode,
                 &rotation,
                 &rotation_inverse,
             ),
@@ -114,35 +117,48 @@ impl Canvas {
 
     /// Returns checker for line intersection with canvas plane.
     fn create_intersection_checker(
-        config: &RendererConfiguration,
+        camera_resolution: &(u64, u64),
+        camera_position: &VectorRow<f64, 3>,
+        camera_fov: &u64,
+        camera_view_mode: &ViewMode,
         rotation: &Quaternion<f64>,
         rotation_inverse: &Quaternion<f64>,
     ) -> Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>> {
         Box::new({
             // Cached values for closure.
-            let normal = VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]);
-            let normal: VectorRow<f64, 3> =
-                (&(rotation * &normal.borrow().into()) * &rotation_inverse).into();
-            println!("Normal: {normal:?}");
+            let normal = rotate(
+                &VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]),
+                rotation,
+                rotation_inverse,
+            );
+            let mut viewpoint: VectorRow<f64, 3>;
+            let mut viewport_origin: VectorRow<f64, 3>;
 
-            let viewpoint: VectorRow<f64, 3> = config.camera.position.clone();
-            println!("Viewpoint: {viewpoint:?}");
-
-            // let position: VectorRow<f64, 3> = Self::calc_viewport_position(
-            //     &viewpoint,
-            //     &config.camera.resolution,
-            //     &config.camera.fov,
-            // );
-            let viewport_origin: VectorRow<f64, 3> = (&Self::calc_viewport_origin(
-                &viewpoint,
-                &config.camera.resolution,
-                &config.camera.fov,
-            ).0 - &viewpoint.0).into();
-            println!("ViewportOrigin: {viewport_origin:?}");
-            let viewport_origin: VectorRow<f64, 3> =
-                (&(rotation * &viewport_origin.borrow().into()) * &rotation_inverse).into();
-            let viewport_origin = (&viewport_origin.0 + &viewpoint.0).into();
-            println!("ViewportOrigin: {viewport_origin:?}");
+            match camera_view_mode {
+                crate::ViewMode::FirstPerson => {
+                    viewpoint = camera_position.clone();
+                    viewport_origin =
+                        (&Self::calc_viewport_origin(&viewpoint, &camera_resolution, &camera_fov)
+                            .0
+                            - &viewpoint.0)
+                            .into();
+                    viewport_origin =
+                        (&(rotation * &viewport_origin.borrow().into()) * &rotation_inverse).into();
+                    viewport_origin = (&viewport_origin.0 + &viewpoint.0).into();
+                }
+                crate::ViewMode::Orbital => {
+                    viewport_origin = camera_position.clone();
+                    viewpoint = (&Self::calc_viewport_origin(
+                        &viewport_origin,
+                        &camera_resolution,
+                        &camera_fov,
+                    )
+                    .0 - &viewport_origin.0)
+                        .into();
+                    viewpoint = rotate(&viewpoint, rotation, rotation_inverse);
+                    viewpoint = (&viewpoint.0 + &viewport_origin.0).into();
+                }
+            }
 
             let d0 = normal.dot(&viewport_origin);
             let d1 = normal.dot(&viewpoint);
@@ -176,8 +192,14 @@ impl Canvas {
         let (rotation, rotation_inverse) = Self::calc_rotation(&config);
         self.rotation = rotation;
         self.rotation_inverse = rotation_inverse;
-        self.line_intersection_checker =
-            Canvas::create_intersection_checker(config, &self.rotation, &self.rotation_inverse);
+        self.line_intersection_checker = Self::create_intersection_checker(
+            &config.camera.resolution,
+            &config.camera.position,
+            &90, // TODO: Get actual value
+            &config.camera.view_mode,
+            &self.rotation,
+            &self.rotation_inverse,
+        );
         Ok(())
     }
 
@@ -227,11 +249,14 @@ pub struct Terminal {
 
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
 impl Terminal {
-    fn check_config_camera(camera: &mut Camera) -> Result<(), &'static str> {
-        if camera.fov < 1 || camera.fov > 170 {
-            return Err("FOV has to be kept in the range [1,170].");
-        }
+    pub fn clear_screen(&self) {
+        print!("{}", ansi::CLEAR_SCREEN);
+    }
 
+    /// Check all members of given [Camera].
+    /// Unchecked fields shall simply have a comment.
+    fn check_config_camera(camera: &mut Camera) -> Result<(), &'static str> {
+        // Resolution
         if camera.resolution.1 % 2 != 0 {
             // Needed to protect against out of bounds.
             // I.e, when mapping from intersection/viewport plane to the array buffer
@@ -239,9 +264,16 @@ impl Terminal {
             camera.resolution.1 -= 1;
         }
 
-        // Limit angle. TODO!!!!
-        // camera.rotation.0 %= std::f64::consts::PI;
-        // camera.rotation.1 %= std::f64::consts::PI;
+        // Position
+        // Rotation
+        // ViewMode
+
+        // ProjectionMode
+        if let ProjectionMode::Perspective { fov } = camera.projection_mode {
+            if fov < 1 || fov > 170 {
+                return Err("FOV has to be kept in the range [1,170].");
+            }
+        }
 
         Ok(())
     }
@@ -289,7 +321,8 @@ impl Terminal {
             // Rotate vertex to "local coordinates" (so that they easily map to 2d-array).
             let vertex = VectorRow::<f64, 3>::from(&vertex.0 - &self.config.camera.position.0);
             let vertex: VectorRow<f64, 3> =
-                (&(&self.canvas.rotation_inverse * &((&vertex).into())) * &self.canvas.rotation).into();
+                (&(&self.canvas.rotation_inverse * &((&vertex).into())) * &self.canvas.rotation)
+                    .into();
             let vertex = VectorRow::<f64, 3>::from(&vertex.0 + &self.config.camera.position.0);
 
             // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
@@ -331,15 +364,13 @@ impl Terminal {
     }
 
     /// Print canvas buffer to terminal.
-    fn print_canvas_buffer_to_stdout(&mut self) {
+    fn write_canvas_buffer_to_stdout_buffer(&mut self) {
         for character_row in self.canvas.buffer.iter().rev() {
             for character in character_row.iter() {
                 write!(self.stdout_buffer, "{character}").unwrap();
             }
             write!(self.stdout_buffer, "\n").unwrap();
         }
-
-        self.stdout_buffer.flush().unwrap();
     }
 }
 
@@ -379,7 +410,8 @@ impl RendererTrait for Terminal {
         self.clear();
         self.project_vertices_on_viewport();
         self.map_vertices_to_canvas_buffer();
-        self.print_canvas_buffer_to_stdout();
+        self.write_canvas_buffer_to_stdout_buffer();
+        self.stdout_buffer.flush().unwrap();
     }
 }
 

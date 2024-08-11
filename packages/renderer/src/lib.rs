@@ -24,8 +24,8 @@ impl Default for ProjectionMode {
 
 #[derive(Clone, Default)]
 pub enum ViewMode {
-    FirstPerson,
     #[default]
+    FirstPerson,
     Orbital,
 }
 

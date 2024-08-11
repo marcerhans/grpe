@@ -13,11 +13,6 @@ use renderer::{
     renderer::TerminalBuilder, Camera, RendererBuilderTrait, RendererTrait,
 };
 
-mod ansi {
-    pub static CLEAR_SCREEN: &str = "\x1B[2J";
-    pub static GO_TO_0_0: &str = "\x1B[H";
-}
-
 fn main() {
     let args = arg::parse_args();
 
@@ -25,10 +20,13 @@ fn main() {
     let vertices = Rc::new(RefCell::new(args.model.unwrap_or(model::Model::Plane).get_vertices()));
 
     // 2. Define line order.
-    // let line_draw_order = vec![vec![0, 1], vec![0, 2]];
+    // let lines_draw_order = Rc::new(RefCell::new(args.model.unwrap_or(model::Model::Plane).get_line_draw_order()));
 
     // 3. Instantiate renderer.
-    let camera_default = Camera::default();
+    let camera_default = Camera {
+        resolution: args.resolution.unwrap_or((64, 64)),
+        ..Default::default()
+    };
     let mut renderer = TerminalBuilder::default()
         .with_camera(camera_default.clone())
         .expect("Bad camera config.")
@@ -58,13 +56,12 @@ fn main() {
     let show_info = args.info.is_some();
     let mut reset = false;
 
-    print!("{}", ansi::CLEAR_SCREEN); // TODO: Should be something like renderer.clear_screen().
+    renderer.clear_screen();
 
-    // 4. Render
+    // 4. Engine loop
     loop {
         let start = std::time::Instant::now();
         loop {
-            // Dead simple spin sleep
             if std::time::Instant::now() - start > time_wait {
                 break;
             }
@@ -133,10 +130,10 @@ fn main() {
                     'l' => camera.rotation.1 += std::f64::consts::FRAC_PI_8,
 
                     // FOV
-                    'q' => camera.fov -= 1,
-                    'e' => camera.fov += 1,
-                    'Q' => camera.fov -= 2,
-                    'E' => camera.fov += 2,
+                    // 'q' => camera.fov -= 1,
+                    // 'e' => camera.fov += 1,
+                    // 'Q' => camera.fov -= 2,
+                    // 'E' => camera.fov += 2,
 
                     // Utils
                     'R' => reset = true,
@@ -191,24 +188,24 @@ fn main() {
 
         frame += 1;
 
-        if show_info {
-            print!("\x1B[2KFrame: {frame} | Missed Frames: {frame_missed} | FPS: {fps} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
-                camera.resolution.0, camera.resolution.1, camera.fov,
-                camera.position[0], camera.position[1], camera.position[2],
-                camera.rotation.0, camera.rotation.1
-            );
-        }
+        // if show_info {
+        //     print!("\x1B[2KFrame: {frame} | Missed Frames: {frame_missed} | FPS: {fps} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
+        //         camera.resolution.0, camera.resolution.1, camera.fov,
+        //         camera.position[0], camera.position[1], camera.position[2],
+        //         camera.rotation.0, camera.rotation.1
+        //     );
+        // }
 
-        let banner_text = "GRPE";
-        let banner_fill_width = (camera.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
-        let banner_char = "=";
-        let banner = banner_char.repeat(banner_fill_width);
-        print!("{}", ansi::GO_TO_0_0);
-        print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m");
-        if camera.resolution.0 % 2 != 0 {
-            // Just make it nice even if odd.
-            print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner_char}\x1B[0m");
-        }
-        println!();
+        // let banner_text = "GRPE";
+        // let banner_fill_width = (camera.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
+        // let banner_char = "=";
+        // let banner = banner_char.repeat(banner_fill_width);
+        // print!("{}", ansi::GO_TO_0_0);
+        // print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m");
+        // if camera.resolution.0 % 2 != 0 {
+        //     // Just make it nice even if odd.
+        //     print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner_char}\x1B[0m");
+        // }
+        // println!();
     }
 }

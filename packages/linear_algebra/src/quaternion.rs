@@ -55,6 +55,10 @@ impl From<&VectorRow<f64, 3>> for Quaternion<f64> {
     }
 }
 
+pub fn rotate(point: &VectorRow<f64, 3>, q: &Quaternion<f64>, q_prim: &Quaternion<f64>) -> VectorRow<f64, 3> {
+    (&(q * &point.into()) * q_prim).into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

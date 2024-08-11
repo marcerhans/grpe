@@ -76,4 +76,8 @@ impl Model {
 
         vertices
     }
+
+    pub fn get_line_draw_order(&self) -> Vec<Vec<u64>> {
+        todo!()
+    }
 }
