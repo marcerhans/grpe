@@ -137,22 +137,31 @@ impl Canvas {
             match camera_view_mode {
                 crate::ViewMode::FirstPerson => {
                     viewpoint = camera_position.clone();
-                    viewport_origin =
-                        (&Self::calc_viewport_origin(&viewpoint, &camera_resolution, &camera_fov)
-                            .0
-                            - &viewpoint.0)
-                            .into();
-                    viewport_origin =
-                        (&(rotation * &viewport_origin.borrow().into()) * &rotation_inverse).into();
+                    viewport_origin = (&VectorRow::<f64, 3>::from([
+                        viewpoint[0],
+                        viewpoint[1]
+                            + (camera_resolution.0 as f64 / 2.0)
+                                / f64::tan(
+                                    (*camera_fov as f64 / 2.0) * (std::f64::consts::PI / 180.0),
+                                ),
+                        viewpoint[2],
+                    ])
+                    .0 - &viewpoint.0)
+                        .into();
+                    viewport_origin = rotate(&viewport_origin, rotation, rotation_inverse);
                     viewport_origin = (&viewport_origin.0 + &viewpoint.0).into();
                 }
                 crate::ViewMode::Orbital => {
                     viewport_origin = camera_position.clone();
-                    viewpoint = (&Self::calc_viewport_origin(
-                        &viewport_origin,
-                        &camera_resolution,
-                        &camera_fov,
-                    )
+                    viewpoint = (&VectorRow::<f64, 3>::from([
+                        viewport_origin[0],
+                        viewport_origin[1]
+                            - (camera_resolution.0 as f64 / 2.0)
+                                / f64::tan(
+                                    (*camera_fov as f64 / 2.0) * (std::f64::consts::PI / 180.0),
+                                ),
+                        viewport_origin[2],
+                    ])
                     .0 - &viewport_origin.0)
                         .into();
                     viewpoint = rotate(&viewpoint, rotation, rotation_inverse);
