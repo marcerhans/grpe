@@ -411,7 +411,7 @@ impl RendererTrait for Terminal {
         self.vertices = Some(vertices);
     }
 
-    fn set_vertices_line_draw_order(&mut self, order: Rc<RefCell<[Box<[usize]>]>>) {
+    fn set_vertices_line_draw_order(&mut self, order: Rc<RefCell<Vec<Vec<u64>>>>) {
         todo!("Implement this later")
     }
 

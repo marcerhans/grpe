@@ -78,6 +78,15 @@ impl Model {
     }
 
     pub fn get_line_draw_order(&self) -> Vec<Vec<u64>> {
-        todo!()
+        let mut lines = Vec::new();
+
+        match self {
+            Model::Plane => {
+                lines.push(vec![0, 1])
+            }
+            Model::Spiral => (),
+        }
+
+        lines
     }
 }

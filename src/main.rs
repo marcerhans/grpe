@@ -18,11 +18,11 @@ fn main() {
 
     // 1. Create vertices.
     let vertices = Rc::new(RefCell::new(
-        args.model.unwrap_or(model::Model::Plane).get_vertices(),
+        args.model.as_ref().unwrap_or(&model::Model::Plane).get_vertices(),
     ));
 
     // 2. Define line order.
-    // let lines_draw_order = Rc::new(RefCell::new(args.model.unwrap_or(model::Model::Plane).get_line_draw_order()));
+    let line_draw_order = Rc::new(RefCell::new(args.model.as_ref().unwrap_or(&model::Model::Plane).get_line_draw_order()));
 
     // 3. Instantiate renderer.
     let camera_default = Camera {
@@ -77,6 +77,7 @@ fn main() {
         let start = std::time::Instant::now();
 
         renderer.set_vertices(Rc::clone(&vertices));
+        renderer.set_vertices_line_draw_order(Rc::clone(&line_draw_order));
         renderer.render();
 
         let mut camera = renderer.config().camera.clone();
