@@ -9,14 +9,17 @@ use std::{
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait, MouseEvent};
 use renderer::{
-    renderer::TerminalBuilder, Camera, ProjectionMode, RendererBuilderTrait, RendererTrait
+    renderer::TerminalBuilder, Camera, ProjectionMode, RendererBuilderTrait, RendererTrait,
+    ViewMode,
 };
 
 fn main() {
     let args = arg::parse_args();
 
     // 1. Create vertices.
-    let vertices = Rc::new(RefCell::new(args.model.unwrap_or(model::Model::Plane).get_vertices()));
+    let vertices = Rc::new(RefCell::new(
+        args.model.unwrap_or(model::Model::Plane).get_vertices(),
+    ));
 
     // 2. Define line order.
     // let lines_draw_order = Rc::new(RefCell::new(args.model.unwrap_or(model::Model::Plane).get_line_draw_order()));
@@ -149,10 +152,12 @@ fn main() {
         camera.rotation.0 = -mouse_right_y;
         camera.rotation.1 = -mouse_right_x;
 
-        camera.rotation.0 = f64::max(
-            -std::f64::consts::FRAC_PI_2,
-            f64::min(std::f64::consts::FRAC_PI_2, camera.rotation.0),
-        );
+        if let ViewMode::FirstPerson = camera.view_mode {
+            camera.rotation.0 = f64::max(
+                -std::f64::consts::FRAC_PI_2,
+                f64::min(std::f64::consts::FRAC_PI_2, camera.rotation.0),
+            );
+        }
 
         if reset {
             reset = false;
