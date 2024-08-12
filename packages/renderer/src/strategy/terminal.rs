@@ -320,6 +320,10 @@ impl Terminal {
 
         for vertex in vertices.iter() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
+                // Undo any previously applied rotation.
+                let intersection = VectorRow::<f64, 3>::from(&intersection.0 - &self.config.camera.position.0);
+                let intersection: VectorRow<f64, 3> = rotate(&intersection, &self.canvas.rotation_inverse, &self.canvas.rotation);
+                let intersection = VectorRow::<f64, 3>::from(&intersection.0 + &self.config.camera.position.0);
                 self.vertices_projected.push(intersection);
             }
         }
@@ -328,13 +332,6 @@ impl Terminal {
     /// Maps projected vertices to a [Canvas::buffer].
     fn map_vertices_to_canvas_buffer(&mut self) {
         for vertex in self.vertices_projected.iter() {
-            // Rotate vertex to "local coordinates" (so that they easily map to 2d-array).
-            let vertex = VectorRow::<f64, 3>::from(&vertex.0 - &self.config.camera.position.0);
-            let vertex: VectorRow<f64, 3> =
-                (&(&self.canvas.rotation_inverse * &((&vertex).into())) * &self.canvas.rotation)
-                    .into();
-            let vertex = VectorRow::<f64, 3>::from(&vertex.0 + &self.config.camera.position.0);
-
             // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
             let camera = &self.config.camera;
             let x = (vertex[0] as isize) - camera.position[0] as isize
@@ -370,8 +367,7 @@ impl Terminal {
     }
 
     fn render_lines_between_projected_vertices(&mut self) {
-        let orders = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
-        // TODO: !!!!!
+        let order_list = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
     }
 
     /// Print canvas buffer to terminal.
@@ -420,8 +416,8 @@ impl RendererTrait for Terminal {
     fn render(&mut self) {
         self.clear();
         self.project_vertices_on_viewport();
-        self.map_vertices_to_canvas_buffer();
         self.render_lines_between_projected_vertices();
+        self.map_vertices_to_canvas_buffer();
         self.write_canvas_buffer_to_stdout_buffer();
         self.stdout_buffer.flush().unwrap();
     }
