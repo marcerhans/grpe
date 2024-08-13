@@ -199,7 +199,6 @@ impl Canvas {
             fov
         } else {
             90
-
         };
         self.line_intersection_checker = Self::create_intersection_checker(
             &config.camera.resolution,
@@ -213,10 +212,7 @@ impl Canvas {
     }
 
     fn calc_rotation(rotation: &(f64, f64)) -> (Quaternion<f64>, Quaternion<f64>) {
-        let rotation = (
-            rotation.0 / 2.0,
-            rotation.1 / 2.0,
-        );
+        let rotation = (rotation.0 / 2.0, rotation.1 / 2.0);
 
         let pitch = Quaternion {
             q0: rotation.0.cos(),
@@ -321,12 +317,43 @@ impl Terminal {
         for vertex in vertices.iter() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
                 // Undo any previously applied rotation.
-                let intersection = VectorRow::<f64, 3>::from(&intersection.0 - &self.config.camera.position.0);
-                let intersection: VectorRow<f64, 3> = rotate(&intersection, &self.canvas.rotation_inverse, &self.canvas.rotation);
-                let intersection = VectorRow::<f64, 3>::from(&intersection.0 + &self.config.camera.position.0);
+                let intersection =
+                    VectorRow::<f64, 3>::from(&intersection.0 - &self.config.camera.position.0);
+                let intersection: VectorRow<f64, 3> = rotate(
+                    &intersection,
+                    &self.canvas.rotation_inverse,
+                    &self.canvas.rotation,
+                );
+                let intersection =
+                    VectorRow::<f64, 3>::from(&intersection.0 + &self.config.camera.position.0);
                 self.vertices_projected.push(intersection);
             }
         }
+    }
+
+    fn render_lines_between_projected_vertices(&mut self) {
+        let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
+
+        // for order in line_draw_order.iter() {
+        //     for ab in order.windows(2) {
+        // if self.vertices_not_projected.contains(&12) || self.vertices_not_projected.contains(&13) {
+        //     return;
+        // }
+
+        // let vertex_a = self.vertices_projected[12].clone(); //ab[0] as usize].clone();
+        // let vertex_b = self.vertices_projected[13].clone(); //ab[1] as usize].clone();
+
+        // let dx = vertex_b[0] - vertex_a[0];
+        // let dz = vertex_b[2] - vertex_a[2];
+        // let gradient = dz / dx;
+
+        // for x in (vertex_a[0] as usize)..(vertex_b[0] as usize) {
+        //     let z = gradient * (x as f64 - vertex_a[0]) + vertex_b[2];
+        //     self.vertices_projected
+        //         .push(VectorRow::from([x as f64, vertex_a[1], z]));
+        // }
+        // // }
+        // // }
     }
 
     /// Maps projected vertices to a [Canvas::buffer].
@@ -364,10 +391,6 @@ impl Terminal {
 
             let _ = std::mem::replace(buff_val, character);
         }
-    }
-
-    fn render_lines_between_projected_vertices(&mut self) {
-        let order_list = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
     }
 
     /// Print canvas buffer to terminal.

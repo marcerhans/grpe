@@ -62,15 +62,15 @@ impl Model {
                 // Fillers 
                 vertices.append(&mut vec![
                     // Sidroder
-                    VectorRow::from([0.9 + 1.0 * (0.1 / 4.0), 0.0, 1.0]),
-                    VectorRow::from([0.9 + 2.0 * (0.1 / 4.0), 0.0, 1.5]),
-                    VectorRow::from([0.9 + 3.0 * (0.1 / 4.0), 0.0, 2.0]),
-                    VectorRow::from([0.9 + 4.0 * (0.1 / 4.0), 0.0, 2.5]),
+                    // VectorRow::from([0.9 + 1.0 * (0.1 / 4.0), 0.0, 1.0]),
+                    // VectorRow::from([0.9 + 2.0 * (0.1 / 4.0), 0.0, 1.5]),
+                    // VectorRow::from([0.9 + 3.0 * (0.1 / 4.0), 0.0, 2.0]),
+                    // VectorRow::from([0.9 + 4.0 * (0.1 / 4.0), 0.0, 2.5]),
 
-                    VectorRow::from([1.7 + 1.0 * (2.5 / 5.0), 0.0, 3.0 - 1.0 * (2.5 / 5.0)]),
-                    VectorRow::from([1.7 + 2.0 * (2.5 / 5.0), 0.0, 3.0 - 2.0 * (2.5 / 5.0)]),
-                    VectorRow::from([1.7 + 3.0 * (2.5 / 5.0), 0.0, 3.0 - 3.0 * (2.5 / 5.0)]),
-                    VectorRow::from([1.7 + 4.0 * (2.5 / 5.0), 0.0, 3.0 - 4.0 * (2.5 / 5.0)]),
+                    // VectorRow::from([1.7 + 1.0 * (2.5 / 5.0), 0.0, 3.0 - 1.0 * (2.5 / 5.0)]),
+                    // VectorRow::from([1.7 + 2.0 * (2.5 / 5.0), 0.0, 3.0 - 2.0 * (2.5 / 5.0)]),
+                    // VectorRow::from([1.7 + 3.0 * (2.5 / 5.0), 0.0, 3.0 - 3.0 * (2.5 / 5.0)]),
+                    // VectorRow::from([1.7 + 4.0 * (2.5 / 5.0), 0.0, 3.0 - 4.0 * (2.5 / 5.0)]),
                 ]);
 
                 for vertex in vertices.iter_mut() {
@@ -110,7 +110,7 @@ impl Model {
 
         match self {
             Model::Plane => {
-                lines.push(vec![0, 1])
+                lines.push(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
             }
             Model::Spiral => (),
         }
