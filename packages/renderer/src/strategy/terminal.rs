@@ -248,7 +248,7 @@ pub struct Terminal {
 
     // Pipeline stuff. Not directly affected by [Self::config].
     vertices: Option<Rc<RefCell<Vec<VectorRow<f64, 3>>>>>,
-    vertices_projected: Vec<VectorRow<f64, 3>>,
+    vertices_projected: Vec<Option<VectorRow<f64, 3>>>,
     line_draw_order: Option<Rc<RefCell<Vec<Vec<u64>>>>>,
     stdout_buffer: BufWriter<Stdout>,
 }
@@ -310,11 +310,9 @@ impl Terminal {
 
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera]/[Canvas].
     fn project_vertices_on_viewport(&mut self) {
-        self.vertices_projected.clear();
-
         let vertices = self.vertices.as_ref().unwrap().as_ref().borrow();
 
-        for vertex in vertices.iter() {
+        for (index, vertex) in vertices.iter().enumerate() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
                 // Undo any previously applied rotation.
                 let intersection =
@@ -326,7 +324,46 @@ impl Terminal {
                 );
                 let intersection =
                     VectorRow::<f64, 3>::from(&intersection.0 + &self.config.camera.position.0);
-                self.vertices_projected.push(intersection);
+                self.vertices_projected[index] = Some(intersection);
+            }
+        }
+    }
+
+    /// Maps projected vertices to a [Canvas::buffer].
+    fn render_projected_vertices(&mut self) {
+        for vertex in self.vertices_projected.iter() {
+            if let Some(vertex) = vertex {
+                // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
+                let camera = &self.config.camera;
+                let x = (vertex[0] as isize) - camera.position[0] as isize
+                    + (camera.resolution.0 / 2) as isize
+                    - 1;
+                let mut z = vertex[2] as isize - camera.position[2] as isize
+                    + (camera.resolution.1 / 2) as isize
+                    - 1;
+
+                // Only show vertices within view of [Camera].
+                if !(x >= 0 && x < camera.resolution.0 as isize)
+                    || !(z >= 0 && z < camera.resolution.1 as isize)
+                {
+                    continue;
+                }
+
+                // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
+                let mut character = Self::character_at(z as usize);
+                z = z / 2;
+                let buff_val = &mut self.canvas.buffer[z as usize][x as usize];
+
+                if *buff_val == character::FULL {
+                    // Is it already filled.
+                    continue;
+                } else if *buff_val == character::UPPER && character == character::LOWER {
+                    character = character::FULL;
+                } else if *buff_val == character::LOWER && character == character::UPPER {
+                    character = character::FULL;
+                }
+
+                let _ = std::mem::replace(buff_val, character);
             }
         }
     }
@@ -356,45 +393,8 @@ impl Terminal {
         // // }
     }
 
-    /// Maps projected vertices to a [Canvas::buffer].
-    fn map_vertices_to_canvas_buffer(&mut self) {
-        for vertex in self.vertices_projected.iter() {
-            // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
-            let camera = &self.config.camera;
-            let x = (vertex[0] as isize) - camera.position[0] as isize
-                + (camera.resolution.0 / 2) as isize
-                - 1;
-            let mut z = vertex[2] as isize - camera.position[2] as isize
-                + (camera.resolution.1 / 2) as isize
-                - 1;
-
-            // Only show vertices within view of [Camera].
-            if !(x >= 0 && x < camera.resolution.0 as isize)
-                || !(z >= 0 && z < camera.resolution.1 as isize)
-            {
-                continue;
-            }
-
-            // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
-            let mut character = Self::character_at(z as usize);
-            z = z / 2;
-            let buff_val = &mut self.canvas.buffer[z as usize][x as usize];
-
-            if *buff_val == character::FULL {
-                // Is it already filled.
-                continue;
-            } else if *buff_val == character::UPPER && character == character::LOWER {
-                character = character::FULL;
-            } else if *buff_val == character::LOWER && character == character::UPPER {
-                character = character::FULL;
-            }
-
-            let _ = std::mem::replace(buff_val, character);
-        }
-    }
-
     /// Print canvas buffer to terminal.
-    fn write_canvas_buffer_to_stdout_buffer(&mut self) {
+    fn write_rendered_scene_to_stdout_buffer(&mut self) {
         for character_row in self.canvas.buffer.iter().rev() {
             for character in character_row.iter() {
                 write!(self.stdout_buffer, "{character}").unwrap();
@@ -439,9 +439,9 @@ impl RendererTrait for Terminal {
     fn render(&mut self) {
         self.clear();
         self.project_vertices_on_viewport();
+        self.render_projected_vertices();
         self.render_lines_between_projected_vertices();
-        self.map_vertices_to_canvas_buffer();
-        self.write_canvas_buffer_to_stdout_buffer();
+        self.write_rendered_scene_to_stdout_buffer();
         self.stdout_buffer.flush().unwrap();
     }
 }
@@ -463,9 +463,7 @@ impl __RendererTrait for Terminal {
 
         Ok(Self {
             vertices: None,
-            vertices_projected: Vec::with_capacity(
-                (config.camera.resolution.0 * config.camera.resolution.1) as usize,
-            ),
+            vertices_projected: vec![None; (config.camera.resolution.0 * config.camera.resolution.1) as usize],
             stdout_buffer: BufWriter::new(std::io::stdout()),
             line_draw_order: None,
             canvas: Canvas::new(&config),
