@@ -162,6 +162,14 @@ fn main() {
                         }
                     }
 
+                    // View mode
+                    'v' => {
+                        match camera.view_mode {
+                            ViewMode::FirstPerson => camera.view_mode = ViewMode::Orbital,
+                            ViewMode::Orbital => camera.view_mode = ViewMode::FirstPerson,
+                        }
+                    }
+
                     // Utils
                     'R' => reset = true,
 
