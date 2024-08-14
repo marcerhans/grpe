@@ -105,14 +105,20 @@ impl Model {
         vertices
     }
 
-    pub fn get_line_draw_order(&self) -> Vec<Vec<u64>> {
+    pub fn get_line_draw_order(&self) -> Vec<Vec<usize>> {
         let mut lines = Vec::new();
 
         match self {
             Model::Plane => {
                 lines.push(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
             }
-            Model::Spiral => (),
+            Model::Spiral => {
+                let mut line = vec![];
+                for i in 0..1000 {
+                    line.push(i);
+                }
+                lines.push(line);
+            }
         }
 
         lines

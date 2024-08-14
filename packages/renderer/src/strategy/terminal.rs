@@ -249,7 +249,7 @@ pub struct Terminal {
     // Pipeline stuff. Not directly affected by [Self::config].
     vertices: Option<Rc<RefCell<Vec<VectorRow<f64, 3>>>>>,
     vertices_projected: Vec<Option<VectorRow<f64, 3>>>,
-    line_draw_order: Option<Rc<RefCell<Vec<Vec<u64>>>>>,
+    line_draw_order: Option<Rc<RefCell<Vec<Vec<usize>>>>>,
     stdout_buffer: BufWriter<Stdout>,
 }
 
@@ -371,26 +371,25 @@ impl Terminal {
     fn render_lines_between_projected_vertices(&mut self) {
         let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
 
-        // for order in line_draw_order.iter() {
-        //     for ab in order.windows(2) {
-        // if self.vertices_not_projected.contains(&12) || self.vertices_not_projected.contains(&13) {
-        //     return;
-        // }
+        for order in line_draw_order.iter() {
+            for ab in order.windows(2) {
+                if let (Some(vertex_a), Some(vertex_b)) = (&self.vertices_projected[ab[0]], &self.vertices_projected[ab[1]]) {
 
-        // let vertex_a = self.vertices_projected[12].clone(); //ab[0] as usize].clone();
-        // let vertex_b = self.vertices_projected[13].clone(); //ab[1] as usize].clone();
+                }
+                // let vertex_a = self.vertices_projected[ab[0]].clone(); //ab[0] as usize].clone();
+                // let vertex_b = self.vertices_projected[13].clone(); //ab[1] as usize].clone();
 
-        // let dx = vertex_b[0] - vertex_a[0];
-        // let dz = vertex_b[2] - vertex_a[2];
-        // let gradient = dz / dx;
+                // let dx = vertex_b[0] - vertex_a[0];
+                // let dz = vertex_b[2] - vertex_a[2];
+                // let gradient = dz / dx;
 
-        // for x in (vertex_a[0] as usize)..(vertex_b[0] as usize) {
-        //     let z = gradient * (x as f64 - vertex_a[0]) + vertex_b[2];
-        //     self.vertices_projected
-        //         .push(VectorRow::from([x as f64, vertex_a[1], z]));
-        // }
-        // // }
-        // // }
+                // for x in (vertex_a[0] as usize)..(vertex_b[0] as usize) {
+                //     let z = gradient * (x as f64 - vertex_a[0]) + vertex_b[2];
+                //     self.vertices_projected
+                //         .push(VectorRow::from([x as f64, vertex_a[1], z]));
+                // }
+            }
+        }
     }
 
     /// Print canvas buffer to terminal.
@@ -430,6 +429,8 @@ impl RendererTrait for Terminal {
 
     fn set_vertices(&mut self, vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>) {
         self.vertices = Some(vertices);
+        let len = self.vertices.as_ref().unwrap().borrow().len();
+        self.vertices_projected.resize(len, None);
     }
 
     fn set_vertices_line_draw_order(&mut self, order: Rc<RefCell<Vec<Vec<u64>>>>) {
@@ -463,7 +464,7 @@ impl __RendererTrait for Terminal {
 
         Ok(Self {
             vertices: None,
-            vertices_projected: vec![None; (config.camera.resolution.0 * config.camera.resolution.1) as usize],
+            vertices_projected: Vec::new(),
             stdout_buffer: BufWriter::new(std::io::stdout()),
             line_draw_order: None,
             canvas: Canvas::new(&config),
