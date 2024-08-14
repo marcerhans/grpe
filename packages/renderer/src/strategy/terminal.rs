@@ -308,6 +308,39 @@ impl Terminal {
         write!(self.stdout_buffer, "{}", ansi::GO_TO_1_0).unwrap();
     }
 
+    fn render_pixel(buffer: &mut Vec<Vec<char>>, camera: &Camera, x: isize, z: isize) {
+        // Extract and adjust position based on camera position and resolution (-1 for 0-indexing).
+        let x = x - camera.position[0] as isize
+            + (camera.resolution.0 / 2) as isize
+            - 1;
+        let mut z = z - camera.position[2] as isize
+            + (camera.resolution.1 / 2) as isize
+            - 1;
+
+        // Only show points within view of [Camera].
+        if !(x >= 0 && x < camera.resolution.0 as isize)
+            || !(z >= 0 && z < camera.resolution.1 as isize)
+        {
+            return;
+        }
+
+        // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
+        let mut character = Self::character_at(z as usize);
+        z = z / 2;
+        let buff_val = &mut buffer[z as usize][x as usize];
+
+        if *buff_val == character::FULL {
+            // Is it already filled.
+            return;
+        } else if *buff_val == character::UPPER && character == character::LOWER {
+            character = character::FULL;
+        } else if *buff_val == character::LOWER && character == character::UPPER {
+            character = character::FULL;
+        }
+
+        *buff_val = character;
+    }
+
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera]/[Canvas].
     fn project_vertices_on_viewport(&mut self) {
         let vertices = self.vertices.as_ref().unwrap().as_ref().borrow();
@@ -334,41 +367,12 @@ impl Terminal {
     fn render_projected_vertices(&mut self) {
         for vertex in self.vertices_projected.iter() {
             if let Some(vertex) = vertex {
-                // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
-                let camera = &self.config.camera;
-                let x = (vertex[0] as isize) - camera.position[0] as isize
-                    + (camera.resolution.0 / 2) as isize
-                    - 1;
-                let mut z = vertex[2] as isize - camera.position[2] as isize
-                    + (camera.resolution.1 / 2) as isize
-                    - 1;
-
-                // Only show vertices within view of [Camera].
-                if !(x >= 0 && x < camera.resolution.0 as isize)
-                    || !(z >= 0 && z < camera.resolution.1 as isize)
-                {
-                    continue;
-                }
-
-                // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
-                let mut character = Self::character_at(z as usize);
-                z = z / 2;
-                let buff_val = &mut self.canvas.buffer[z as usize][x as usize];
-
-                if *buff_val == character::FULL {
-                    // Is it already filled.
-                    continue;
-                } else if *buff_val == character::UPPER && character == character::LOWER {
-                    character = character::FULL;
-                } else if *buff_val == character::LOWER && character == character::UPPER {
-                    character = character::FULL;
-                }
-
-                let _ = std::mem::replace(buff_val, character);
+                Self::render_pixel(&mut self.canvas.buffer, &self.config.camera, vertex[0] as isize, vertex[2] as isize);
             }
         }
     }
 
+    /// Maps lines between vertices to a [Canvas::buffer].
     fn render_lines_between_projected_vertices(&mut self) {
         let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
 
@@ -381,38 +385,7 @@ impl Terminal {
 
                     for x in (vertex_a[0] as usize)..(vertex_b[0] as usize) {
                         let z = gradient * (x as f64 - vertex_a[0]) + vertex_b[2];
-
-                        // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
-                        let camera = &self.config.camera;
-                        let x = x as isize - camera.position[0] as isize
-                            + (camera.resolution.0 / 2) as isize
-                            - 1;
-                        let mut z = z as isize - camera.position[2] as isize
-                            + (camera.resolution.1 / 2) as isize
-                            - 1;
-
-                        // Only show vertices within view of [Camera].
-                        if !(x >= 0 && x < camera.resolution.0 as isize)
-                            || !(z >= 0 && z < camera.resolution.1 as isize)
-                        {
-                            continue;
-                        }
-
-                        // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
-                        let mut character = Self::character_at(z as usize);
-                        z = z / 2;
-                        let buff_val = &mut self.canvas.buffer[z as usize][x as usize];
-
-                        if *buff_val == character::FULL {
-                            // Is it already filled.
-                            continue;
-                        } else if *buff_val == character::UPPER && character == character::LOWER {
-                            character = character::FULL;
-                        } else if *buff_val == character::LOWER && character == character::UPPER {
-                            character = character::FULL;
-                        }
-
-                        let _ = std::mem::replace(buff_val, character);
+                        Self::render_pixel(&mut self.canvas.buffer, &self.config.camera, x as isize, z as isize);
                     }
                 }
             }
