@@ -433,7 +433,7 @@ impl RendererTrait for Terminal {
         self.vertices_projected.resize(len, None);
     }
 
-    fn set_vertices_line_draw_order(&mut self, order: Rc<RefCell<Vec<Vec<u64>>>>) {
+    fn set_vertices_line_draw_order(&mut self, order: Rc<RefCell<Vec<Vec<usize>>>>) {
         self.line_draw_order = Some(order);
     }
 

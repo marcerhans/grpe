@@ -121,7 +121,7 @@ pub trait RendererTrait: Sized {
     fn set_vertices(&mut self, vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>);
 
     /// Index for each vertex given in [RendererTrait::set_vertices] decides drawing order.
-    fn set_vertices_line_draw_order(&mut self, order: Rc<RefCell<Vec<Vec<u64>>>>);
+    fn set_vertices_line_draw_order(&mut self, order: Rc<RefCell<Vec<Vec<usize>>>>);
 
     /// Do the render! What is rendered in the final artefact is decided by the [RenderOption]s.
     fn render(&mut self);
