@@ -375,20 +375,46 @@ impl Terminal {
         for order in line_draw_order.iter() {
             for ab in order.windows(2) {
                 if let (Some(vertex_a), Some(vertex_b)) = (&self.vertices_projected[ab[0]], &self.vertices_projected[ab[1]]) {
+                    let dx = vertex_b[0] - vertex_a[0];
+                    let dz = vertex_b[2] - vertex_a[2];
+                    let gradient = dz / dx;
 
+                    for x in (vertex_a[0] as usize)..(vertex_b[0] as usize) {
+                        let z = gradient * (x as f64 - vertex_a[0]) + vertex_b[2];
+
+                        // Extract and adjust vertex position based on camera position and resolution (-1 for 0-indexing).
+                        let camera = &self.config.camera;
+                        let x = x as isize - camera.position[0] as isize
+                            + (camera.resolution.0 / 2) as isize
+                            - 1;
+                        let mut z = z as isize - camera.position[2] as isize
+                            + (camera.resolution.1 / 2) as isize
+                            - 1;
+
+                        // Only show vertices within view of [Camera].
+                        if !(x >= 0 && x < camera.resolution.0 as isize)
+                            || !(z >= 0 && z < camera.resolution.1 as isize)
+                        {
+                            continue;
+                        }
+
+                        // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
+                        let mut character = Self::character_at(z as usize);
+                        z = z / 2;
+                        let buff_val = &mut self.canvas.buffer[z as usize][x as usize];
+
+                        if *buff_val == character::FULL {
+                            // Is it already filled.
+                            continue;
+                        } else if *buff_val == character::UPPER && character == character::LOWER {
+                            character = character::FULL;
+                        } else if *buff_val == character::LOWER && character == character::UPPER {
+                            character = character::FULL;
+                        }
+
+                        let _ = std::mem::replace(buff_val, character);
+                    }
                 }
-                // let vertex_a = self.vertices_projected[ab[0]].clone(); //ab[0] as usize].clone();
-                // let vertex_b = self.vertices_projected[13].clone(); //ab[1] as usize].clone();
-
-                // let dx = vertex_b[0] - vertex_a[0];
-                // let dz = vertex_b[2] - vertex_a[2];
-                // let gradient = dz / dx;
-
-                // for x in (vertex_a[0] as usize)..(vertex_b[0] as usize) {
-                //     let z = gradient * (x as f64 - vertex_a[0]) + vertex_b[2];
-                //     self.vertices_projected
-                //         .push(VectorRow::from([x as f64, vertex_a[1], z]));
-                // }
             }
         }
     }
@@ -441,8 +467,17 @@ impl RendererTrait for Terminal {
     fn render(&mut self) {
         self.clear();
         self.project_vertices_on_viewport();
-        self.render_projected_vertices();
-        self.render_lines_between_projected_vertices();
+
+        match self.config.option {
+            RenderOption::All | RenderOption::Vertices => self.render_projected_vertices(),
+            _ => (),
+        }
+
+        match self.config.option {
+            RenderOption::All | RenderOption::Line => self.render_lines_between_projected_vertices(),
+            _ => (),
+        }
+
         self.write_rendered_scene_to_stdout_buffer();
         self.stdout_buffer.flush().unwrap();
     }
