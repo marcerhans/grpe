@@ -5,6 +5,7 @@ use renderer::VectorRow;
 pub enum Model {
     Plane,
     Spiral,
+    Test,
 }
 
 impl FromStr for Model {
@@ -14,6 +15,7 @@ impl FromStr for Model {
         match s.to_lowercase().as_str() {
             "plane" => Ok(Model::Plane),
             "spiral" => Ok(Model::Spiral),
+            "test" => Ok(Model::Test),
             _ => Err("Could not convert to string."),
         }
     }
@@ -100,6 +102,13 @@ impl Model {
                     }
                 }
             }
+            Model::Test => {
+                vertices.push(VectorRow::from([0.0, 0.0, 0.0]));
+                vertices.push(VectorRow::from([0.0, 0.0, 10.0]));
+                // vertices.push(VectorRow::from([0.0, 0.0, -10.0]));
+                // vertices.push(VectorRow::from([10.0, 0.0, 0.0]));
+                // vertices.push(VectorRow::from([-10.0, 0.0, 0.0]));
+            }
         }
 
         vertices
@@ -118,6 +127,12 @@ impl Model {
                     line.push(i);
                 }
                 lines.push(line);
+            }
+            Model::Test => {
+                lines.push(vec![0,1]);
+                // lines.push(vec![0,2]);
+                // lines.push(vec![0,3]);
+                // lines.push(vec![0,4]);
             }
         }
 

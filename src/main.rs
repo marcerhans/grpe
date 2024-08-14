@@ -26,7 +26,7 @@ fn main() {
     // 3. Instantiate renderer.
     let camera_default = Camera {
         resolution: args.resolution.unwrap_or((64, 64)),
-        position: VectorRow::from([80.0, 0.0, 0.0]),
+        position: VectorRow::from([0.0, 0.0, 0.0]),
         ..Default::default()
     };
     let mut renderer = TerminalBuilder::default()

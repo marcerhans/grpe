@@ -379,14 +379,6 @@ impl Terminal {
         for order in line_draw_order.iter() {
             for ab in order.windows(2) {
                 if let (Some(vertex_a), Some(vertex_b)) = (&self.vertices_projected[ab[0]], &self.vertices_projected[ab[1]]) {
-                    let dx = vertex_b[0] - vertex_a[0];
-                    let dz = vertex_b[2] - vertex_a[2];
-                    let gradient = dz / dx;
-
-                    for x in (vertex_a[0] as usize)..(vertex_b[0] as usize) {
-                        let z = gradient * (x as f64 - vertex_a[0]) + vertex_b[2];
-                        Self::render_pixel(&mut self.canvas.buffer, &self.config.camera, x as isize, z as isize);
-                    }
                 }
             }
         }
