@@ -311,6 +311,7 @@ impl Terminal {
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera]/[Canvas].
     fn project_vertices_on_viewport(&mut self) {
         let vertices = self.vertices.as_ref().unwrap().as_ref().borrow();
+        self.vertices_projected.fill(None);
 
         for (index, vertex) in vertices.iter().enumerate() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
