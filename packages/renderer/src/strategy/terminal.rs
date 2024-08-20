@@ -310,12 +310,8 @@ impl Terminal {
 
     fn render_pixel(buffer: &mut Vec<Vec<char>>, camera: &Camera, x: isize, z: isize) {
         // Extract and adjust position based on camera position and resolution (-1 for 0-indexing).
-        let x = x - camera.position[0] as isize
-            + (camera.resolution.0 / 2) as isize
-            - 1;
-        let mut z = z - camera.position[2] as isize
-            + (camera.resolution.1 / 2) as isize
-            - 1;
+        let x = x - camera.position[0] as isize + (camera.resolution.0 / 2) as isize - 1;
+        let mut z = z - camera.position[2] as isize + (camera.resolution.1 / 2) as isize - 1;
 
         // Only show points within view of [Camera].
         if !(x >= 0 && x < camera.resolution.0 as isize)
@@ -367,7 +363,12 @@ impl Terminal {
     fn render_projected_vertices(&mut self) {
         for vertex in self.vertices_projected.iter() {
             if let Some(vertex) = vertex {
-                Self::render_pixel(&mut self.canvas.buffer, &self.config.camera, vertex[0] as isize, vertex[2] as isize);
+                Self::render_pixel(
+                    &mut self.canvas.buffer,
+                    &self.config.camera,
+                    vertex[0] as isize,
+                    vertex[2] as isize,
+                );
             }
         }
     }
@@ -378,7 +379,10 @@ impl Terminal {
 
         for order in line_draw_order.iter() {
             for ab in order.windows(2) {
-                if let (Some(vertex_a), Some(vertex_b)) = (&self.vertices_projected[ab[0]], &self.vertices_projected[ab[1]]) {
+                if let (Some(a), Some(b)) = (
+                    &self.vertices_projected[ab[0]],
+                    &self.vertices_projected[ab[1]],
+                ) {
                 }
             }
         }
@@ -439,7 +443,9 @@ impl RendererTrait for Terminal {
         }
 
         match self.config.option {
-            RenderOption::All | RenderOption::Line => self.render_lines_between_projected_vertices(),
+            RenderOption::All | RenderOption::Line => {
+                self.render_lines_between_projected_vertices()
+            }
             _ => (),
         }
 
