@@ -409,35 +409,41 @@ impl Terminal {
                         (a[2] as isize, a[0] as isize, dz, dx, dz_sign, dx_sign, true)
                     };
 
-                    let mut step_large = 0;
-                    let mut step_small = 0;
+                    let mut step_large = 1;
+                    let mut step_small = 1;
                     let ratio = if dsmall != 0 { Some(dlarge / dsmall) } else { None };
                     let rest = if dsmall != 0 { let rest = dlarge % dsmall; if rest != 0 { Some(dlarge % dsmall) } else { None } } else { None };
-                    let ratio_extra = if let Some(rest) = rest { Some(dlarge / rest) } else { None };
-                    while step_large < dlarge {
-                        render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
+                    let mut extra_left = if let Some(rest) = rest { rest } else { 0 };
+                    let mut extra_taken = 0;
+                    while step_large <= dlarge {
+                        render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -(step_large - 1) * dlarge_direction, small_base, -(step_small - 1) * dsmall_direction, swap);
 
-                        if let Some(ratio_extra) = ratio_extra {
-                            if step_large % ratio_extra == 0 {
-                                step_large += 1;
+                        // if let Some(ratio_extra) = ratio_extra {
+                        //     if step_large % ratio_extra == 0 {
+                        //         step_large += 1;
 
-                                if step_large > dlarge {
-                                    break;
-                                }
+                        //         if step_large > dlarge {
+                        //             break;
+                        //         }
 
-                                render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
-                            }
-                        }
-
-                        step_large += 1;
+                        //         render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
+                        //     }
+                        // }
 
                         if let Some(ratio) = ratio {
-                            if step_large % ratio == 0 {
-                                // render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
+                            if (step_large - extra_taken) % ratio == 0 {
+                                if extra_left > 0 {
+                                    step_large += 1;
+                                    render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -(step_large - 1) * dlarge_direction, small_base, -(step_small - 1) * dsmall_direction, swap);
+                                    extra_left -= 1;
+                                    extra_taken += 1;
+                                }
+
                                 step_small += 1;
                             }
                         }
 
+                        step_large += 1;
                     }
                 }
             }
