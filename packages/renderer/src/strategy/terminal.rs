@@ -375,7 +375,15 @@ impl Terminal {
 
     /// Maps lines between vertices to a [Canvas::buffer].
     fn render_lines_between_projected_vertices(&mut self) {
-        fn render_pixel_wrapper(buffer: &mut Vec<Vec<char>>, camera: &Camera, mut x_base: isize, mut x: isize, mut z_base: isize, mut z: isize, swap: bool) {
+        fn render_pixel_wrapper(
+            buffer: &mut Vec<Vec<char>>,
+            camera: &Camera,
+            mut x_base: isize,
+            mut x: isize,
+            mut z_base: isize,
+            mut z: isize,
+            swap: bool,
+        ) {
             if swap {
                 let mut tmp = x_base;
                 x_base = z_base;
@@ -400,41 +408,81 @@ impl Terminal {
                     let dz = (a[2] - b[2]) as isize;
                     let dx_sign = dx.signum();
                     let dz_sign = dz.signum();
+
+                    // We only care for the absolute distance/difference.
+                    // Inclusive (+1) last point.
                     let dx = dx.abs() + 1;
                     let dz = dz.abs() + 1;
 
-                    let (large_base, small_base, dlarge, dsmall, dlarge_direction, dsmall_direction, swap) = if dx >= dz {
-                        (a[0] as isize, a[2] as isize, dx, dz, dx_sign, dz_sign, false)
+                    let (
+                        large_base,
+                        small_base,
+                        dlarge,
+                        dsmall,
+                        dlarge_direction,
+                        dsmall_direction,
+                        swap,
+                    ) = if dx >= dz {
+                        (
+                            a[0] as isize,
+                            a[2] as isize,
+                            dx,
+                            dz,
+                            dx_sign,
+                            dz_sign,
+                            false,
+                        )
                     } else {
                         (a[2] as isize, a[0] as isize, dz, dx, dz_sign, dx_sign, true)
                     };
 
+                    // Start with 1 instead of 0 for modulu operations to behave properly. Semantics I guess.
+                    // Therefore we take -1 when actually rendering the pixel.
                     let mut step_large = 1;
                     let mut step_small = 1;
-                    let ratio = if dsmall != 0 { Some(dlarge / dsmall) } else { None };
-                    let rest = if dsmall != 0 { let rest = dlarge % dsmall; if rest != 0 { Some(dlarge % dsmall) } else { None } } else { None };
+
+                    let ratio = if dsmall != 0 {
+                        Some(dlarge / dsmall)
+                    } else {
+                        None
+                    };
+                    let rest = if dsmall != 0 {
+                        let rest = dlarge % dsmall;
+                        if rest != 0 {
+                            Some(dlarge % dsmall)
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    };
                     let mut extra_left = if let Some(rest) = rest { rest } else { 0 };
                     let mut extra_taken = 0;
+
                     while step_large <= dlarge {
-                        render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -(step_large - 1) * dlarge_direction, small_base, -(step_small - 1) * dsmall_direction, swap);
-
-                        // if let Some(ratio_extra) = ratio_extra {
-                        //     if step_large % ratio_extra == 0 {
-                        //         step_large += 1;
-
-                        //         if step_large > dlarge {
-                        //             break;
-                        //         }
-
-                        //         render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
-                        //     }
-                        // }
+                        render_pixel_wrapper(
+                            &mut self.canvas.buffer,
+                            &self.config.camera,
+                            large_base,
+                            -(step_large - 1) * dlarge_direction,
+                            small_base,
+                            -(step_small - 1) * dsmall_direction,
+                            swap,
+                        );
 
                         if let Some(ratio) = ratio {
                             if (step_large - extra_taken) % ratio == 0 {
                                 if extra_left > 0 {
                                     step_large += 1;
-                                    render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -(step_large - 1) * dlarge_direction, small_base, -(step_small - 1) * dsmall_direction, swap);
+                                    render_pixel_wrapper(
+                                        &mut self.canvas.buffer,
+                                        &self.config.camera,
+                                        large_base,
+                                        -(step_large - 1) * dlarge_direction,
+                                        small_base,
+                                        -(step_small - 1) * dsmall_direction,
+                                        swap,
+                                    );
                                     extra_left -= 1;
                                     extra_taken += 1;
                                 }
