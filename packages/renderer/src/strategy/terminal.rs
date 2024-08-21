@@ -400,22 +400,27 @@ impl Terminal {
                     let dz = (a[2] - b[2]) as isize;
                     let dx_sign = dx.signum();
                     let dz_sign = dz.signum();
+                    let dx = dx.abs();
+                    let dz = dz.abs();
 
-                    let (large_base, small_base, dlarge, dsmall, dlarge_direction, dsmall_direction, swap) = if dx > dz {
+                    let (large_base, small_base, dlarge, dsmall, dlarge_direction, dsmall_direction, swap) = if dx >= dz {
                         (a[0] as isize, a[2] as isize, dx, dz, dx_sign, dz_sign, false)
                     } else {
                         (a[2] as isize, a[0] as isize, dz, dx, dz_sign, dx_sign, true)
                     };
 
                     render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, small_base, 0, large_base, 0, swap);
+                    let mut step_large = 1;
                     let mut step_small = 1;
-                    for step_large in 1..dlarge.abs() {
-                        if dsmall % step_large == 0 {
-                            render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, small_base, -step_small * dsmall_direction, large_base, -step_large * dlarge_direction, swap);
-                        }
+                    while step_large <= dlarge {
+                        // if dsmall != 0 && dsmall % step_large == 0 {
+                        //     render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
+                        //     step_large += 1;
+                        //     step_small += 1;
+                        // }
 
-                        render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, small_base, -step_small * dsmall_direction, large_base, -step_large * dlarge_direction, swap);
-                        step_small += 1;
+                        render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
+                        step_large += 1;
                     }
                 }
             }
