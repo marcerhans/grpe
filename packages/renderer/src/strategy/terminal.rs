@@ -411,17 +411,28 @@ impl Terminal {
 
                     let mut step_large = 0;
                     let mut step_small = 0;
-                    let ratio = if dsmall == 0 { None } else { Some(dlarge / dsmall) };
+                    let ratio = if dsmall != 0 { Some(dlarge / dsmall) } else { None };
+                    let rest = if dsmall != 0 { Some(dlarge % dsmall) } else { None };
+                    let rest = if let Some(rest) = rest { if rest != 0 { Some(rest) } else { None } } else { None };
+                    let ratio_extra = if let Some(rest) = rest { Some(dlarge / rest) } else { None };
                     while step_large <= dlarge {
+                        render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
+
+                        if let Some(ratio_extra) = ratio_extra {
+                            if step_large % ratio_extra == 0 {
+                                step_large += 1;
+                                render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
+                            }
+                        }
+
                         if let Some(ratio) = ratio {
                             if step_large % ratio == 0 {
-                                render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
+                                // render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
                                 step_small += 1;
                             }
                         }
 
                         step_large += 1;
-                        render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
                     }
                 }
             }
