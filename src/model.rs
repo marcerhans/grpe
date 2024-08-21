@@ -109,9 +109,9 @@ impl Model {
                 vertices.push(VectorRow::from([5.0, 0.0, 3.0]));
                 // vertices.push(VectorRow::from([-1.0, 0.0, 0.0]));
 
-                // for vertex in vertices.iter_mut() {
-                //     vertex.0.scale(20.0);
-                // }
+                for vertex in vertices.iter_mut() {
+                    vertex.0.scale(10.0);
+                }
             }
         }
 

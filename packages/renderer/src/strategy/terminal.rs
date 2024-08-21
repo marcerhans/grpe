@@ -400,8 +400,8 @@ impl Terminal {
                     let dz = (a[2] - b[2]) as isize;
                     let dx_sign = dx.signum();
                     let dz_sign = dz.signum();
-                    let dx = dx.abs();
-                    let dz = dz.abs();
+                    let dx = dx.abs() + 1;
+                    let dz = dz.abs() + 1;
 
                     let (large_base, small_base, dlarge, dsmall, dlarge_direction, dsmall_direction, swap) = if dx >= dz {
                         (a[0] as isize, a[2] as isize, dx, dz, dx_sign, dz_sign, false)
@@ -418,11 +418,18 @@ impl Terminal {
                         render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
 
                         if let Some(ratio_extra) = ratio_extra {
-                            if step_large != 0 && step_large % ratio_extra == 0 {
+                            if step_large % ratio_extra == 0 {
                                 step_large += 1;
+
+                                if step_large > dlarge {
+                                    break;
+                                }
+
                                 render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
                             }
                         }
+
+                        step_large += 1;
 
                         if let Some(ratio) = ratio {
                             if step_large % ratio == 0 {
@@ -431,7 +438,6 @@ impl Terminal {
                             }
                         }
 
-                        step_large += 1;
                     }
                 }
             }
