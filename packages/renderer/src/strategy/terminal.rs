@@ -412,12 +412,15 @@ impl Terminal {
                     render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, small_base, 0, large_base, 0, swap);
                     let mut step_large = 1;
                     let mut step_small = 1;
+                    let ratio = if dsmall == 0 { None } else { Some(dlarge / dsmall) };
                     while step_large <= dlarge {
-                        // if dsmall != 0 && dsmall % step_large == 0 {
-                        //     render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
-                        //     step_large += 1;
-                        //     step_small += 1;
-                        // }
+                        if let Some(ratio) = ratio {
+                            if step_large % ratio == 0 {
+                                render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
+                                step_large += 1;
+                                step_small += 1;
+                            }
+                        }
 
                         render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, -step_large * dlarge_direction, small_base, -step_small * dsmall_direction, swap);
                         step_large += 1;
