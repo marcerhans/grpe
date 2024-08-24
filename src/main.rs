@@ -101,8 +101,8 @@ fn main() {
                     mouse_left_y_start = y as f64;
                 }
                 MouseEvent::LeftMove(x, y) => {
-                    mouse_left_x = x as f64 - mouse_left_x_start;
-                    mouse_left_y = y as f64 - mouse_left_y_start;
+                    mouse_left_x = (x as f64 - mouse_left_x_start) * 0.5;
+                    mouse_left_y = (y as f64 - mouse_left_y_start) * 0.5;
                 }
                 MouseEvent::LeftUp(_, _) => {
                     mouse_left_x = 0.0;
