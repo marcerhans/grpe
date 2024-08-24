@@ -3,6 +3,7 @@ use std::{f64::consts, str::FromStr};
 use renderer::VectorRow;
 
 mod plane;
+mod spiral;
 
 pub enum Model {
     Plane,
@@ -32,27 +33,7 @@ impl Model {
                 vertices.append(&mut plane::get_vertices());
             }
             Model::Spiral => {
-                // Spiral zooming in.
-                const MAX_DEPTH: i32 = 1000;
-                for i in 0..MAX_DEPTH {
-                    vertices.push(VectorRow::from([
-                        i as f64 * (((i as f64) / 16.0) % (consts::PI * 2.0)).cos(),
-                        i as f64,
-                        i as f64 * (((i as f64) / 16.0) % (consts::PI * 2.0)).sin(),
-                    ]));
-                }
-
-                const GRID_SIZE: i32 = 200;
-                const GRID_SPACING: i32 = 100;
-                for i in 0..GRID_SIZE {
-                    for j in 0..GRID_SIZE {
-                        vertices.push(VectorRow::from([
-                            (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
-                            MAX_DEPTH as f64,
-                            (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
-                        ]));
-                    }
-                }
+                vertices.append(&mut spiral::get_vertices());
             }
             Model::Test => {
                 vertices.push(VectorRow::from([0.0, 0.0, 0.0]));
@@ -81,11 +62,7 @@ impl Model {
                 lines.append(&mut plane::get_line_draw_order());
             }
             Model::Spiral => {
-                let mut line = vec![];
-                for i in 0..1000 {
-                    line.push(i);
-                }
-                lines.push(line);
+                lines.append(&mut spiral::get_line_draw_order());
             }
             Model::Test => {
                 lines.push(vec![0,1]);
