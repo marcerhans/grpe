@@ -443,34 +443,63 @@ impl Terminal {
                         small_direction,
                         swap,
                     ) = if dx >= dz {
-                        (a[0] as isize, a[2] as isize, dx, dz, dx_sign, dz_sign, true)
+                        (a[0] as isize, a[2] as isize, dx, dz, -dx_sign, -dz_sign, true)
                     } else {
                         (
                             a[2] as isize,
                             a[0] as isize,
                             dz,
                             dx,
-                            dz_sign,
-                            dx_sign,
+                            -dz_sign,
+                            -dx_sign,
                             false,
                         )
                     };
 
-                    // if dsmall == 0 {
-                    //     // Just draw straight line.
-                    //     for step_large in 0..=dlarge {
-                    //         render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, small_base, 0, large_base, step_large * dlarge_direction, swap);
-                    //     }
-                    //     continue;
-                    // }
+                    if small_diff == 0 {
+                        // Just draw straight line.
+                        for large_step in 0..=large_diff {
+                            if !swap {
+                                Self::render_pixel(
+                                    &mut self.canvas.buffer,
+                                    &self.config.camera,
+                                    small_base,
+                                    large_base + large_direction * large_step,
+                                );
+                            } else {
+                                Self::render_pixel(
+                                    &mut self.canvas.buffer,
+                                    &self.config.camera,
+                                    large_base + large_direction * large_step,
+                                    small_base,
+                                );
+                            }
+                        }
+                        continue;
+                    }
 
-                    // let ratio = dsmall / dlarge;
-                    // let mut step_small;
+                    let ratio = small_diff as f64 / large_diff as f64;
+                    let mut small_step;
 
-                    // for step_large in 0..dlarge {
-                    //     step_small = ratio * step_large;
-                    //     render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, step_large * dlarge_direction, small_base, step_small, swap);
-                    // }
+                    for large_step in 0..=large_diff {
+                        small_step = (large_step as f64 * ratio) as isize;
+
+                        if !swap {
+                            Self::render_pixel(
+                                &mut self.canvas.buffer,
+                                &self.config.camera,
+                                small_base + small_direction * small_step,
+                                large_base + large_direction * large_step,
+                            );
+                        } else {
+                            Self::render_pixel(
+                                &mut self.canvas.buffer,
+                                &self.config.camera,
+                                large_base + large_direction * large_step,
+                                small_base + small_direction * small_step,
+                            );
+                        }
+                    }
                 }
             }
         }

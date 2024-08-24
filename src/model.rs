@@ -90,7 +90,7 @@ impl Model {
             }
             Model::Test => {
                 vertices.push(VectorRow::from([0.0, 0.0, 0.0]));
-                // vertices.push(VectorRow::from([10.0, 0.0, 0.0]));
+                vertices.push(VectorRow::from([40.0, 0.0, 0.0]));
                 // vertices.push(VectorRow::from([0.0, 0.0, 1.0]));
                 // vertices.push(VectorRow::from([0.0, 0.0, -1.0]));
                 // vertices.push(VectorRow::from([1.0, 0.0, 0.0]));
@@ -123,7 +123,7 @@ impl Model {
                 lines.push(line);
             }
             Model::Test => {
-                // lines.push(vec![0,1]);
+                lines.push(vec![0,1]);
                 // lines.push(vec![0,2]);
                 // lines.push(vec![0,3]);
                 // lines.push(vec![0,4]);
