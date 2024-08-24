@@ -8,6 +8,7 @@ use std::{
 };
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait, MouseEvent};
+use linear_algebra::quaternion::{self, Quaternion};
 use renderer::{
     renderer::TerminalBuilder, Camera, ProjectionMode, RendererBuilderTrait, RendererTrait, VectorRow, ViewMode
 };
@@ -43,6 +44,15 @@ fn main() {
     let mut fps = 0;
     let time_target = Duration::from_micros(1000000 / fps_target);
     let mut time_wait = time_target;
+
+    let mut position_diff = VectorRow::from([0.0, 0.0, 0.0]);
+    let mut rotation_diff = (0.0, 0.0);
+    let mut rotation_total = Quaternion {
+        q0: 1.0,
+        q1: 0.0,
+        q2: 0.0,
+        q3: 0.0,
+    };
 
     let event_handler = EventHandler::init();
     let mut mouse_left_x_start = 0.0;
@@ -81,6 +91,11 @@ fn main() {
         renderer.render();
 
         let mut camera = renderer.config().camera.clone();
+        position_diff[0] = 0.0;
+        position_diff[1] = 0.0;
+        position_diff[2] = 0.0;
+        rotation_diff.0 = 0.0;
+        rotation_diff.1 = 0.0;
 
         match event_handler.get_latest_event() {
             Some(Event::Mouse(mouse_event)) => match mouse_event {
@@ -115,28 +130,28 @@ fn main() {
             Some(Event::Letter(c)) => {
                 match c {
                     // Axis movement
-                    'a' => camera.position[0] -= 2.0,
-                    'd' => camera.position[0] += 2.0,
+                    'a' => position_diff[0] = -2.0,
+                    'd' => position_diff[0] = 2.0,
                     // 'j' => camera.position[1] -= 2.0,
                     // 'k' => camera.position[1] += 2.0,
-                    'w' => camera.position[2] += 2.0,
-                    's' => camera.position[2] -= 2.0,
-                    'A' => camera.position[0] -= 8.0,
-                    'D' => camera.position[0] += 8.0,
+                    'w' => position_diff[2] = 2.0,
+                    's' => position_diff[2] = -2.0,
+                    'A' => position_diff[0] = -8.0,
+                    'D' => position_diff[0] = 8.0,
                     // 'J' => camera.position[1] -= 8.0,
                     // 'K' => camera.position[1] += 8.0,
-                    'W' => camera.position[2] += 8.0,
-                    'S' => camera.position[2] -= 8.0,
-                    '+' => camera.position[1] += 8.0,
-                    '?' => camera.position[1] += 16.0,
-                    '-' => camera.position[1] -= 8.0,
-                    '_' => camera.position[1] -= 16.0,
+                    'W' => position_diff[2] = 8.0,
+                    'S' => position_diff[2] = -8.0,
+                    '+' => position_diff[1] = 8.0,
+                    '?' => position_diff[1] = 16.0,
+                    '-' => position_diff[1] = -8.0,
+                    '_' => position_diff[1] = -16.0,
 
                     // Rotation
-                    'i' => camera.rotation.0 -= std::f64::consts::FRAC_PI_8,
-                    'j' => camera.rotation.1 -= std::f64::consts::FRAC_PI_8,
-                    'k' => camera.rotation.0 += std::f64::consts::FRAC_PI_8,
-                    'l' => camera.rotation.1 += std::f64::consts::FRAC_PI_8,
+                    'i' => rotation_diff.0 -= std::f64::consts::FRAC_PI_8,
+                    'j' => rotation_diff.1 -= std::f64::consts::FRAC_PI_8,
+                    'k' => rotation_diff.0 += std::f64::consts::FRAC_PI_8,
+                    'l' => rotation_diff.1 += std::f64::consts::FRAC_PI_8,
 
                     // FOV
                     'q' | 'Q' | 'e' | 'E' => {
@@ -179,8 +194,32 @@ fn main() {
             None => (),
         }
 
-        camera.position[0] += mouse_left_x;
-        camera.position[2] -= mouse_left_y; // Terminal coordinates are upsidedown.
+        let rotation = (rotation_diff.0 / 2.0, rotation_diff.1 / 2.0);
+        let pitch = Quaternion {
+            q0: rotation.0.cos(),
+            q1: rotation.0.sin() * (rotation.1 * 2.0).cos(),
+            q2: rotation.0.sin() * (rotation.1 * 2.0).sin(),
+            q3: 0.0,
+        };
+        let yaw = Quaternion {
+            q0: rotation.1.cos(),
+            q1: 0.0,
+            q2: 0.0,
+            q3: rotation.1.sin(),
+        };
+        let rotation = &(&rotation_total * &pitch) * &yaw;
+        let rotation_inverse = Quaternion {
+            q0: rotation.q0,
+            q1: -rotation.q1,
+            q2: -rotation.q2,
+            q3: -rotation.q3,
+        };
+
+        let position_new = quaternion::rotate(&position_diff, &rotation, &rotation_inverse);
+        camera.position = (&camera.position.0 + &position_new.0).into();
+
+        // camera.position[0] += mouse_left_x;
+        // camera.position[2] -= mouse_left_y; // Terminal coordinates are upsidedown.
 
         // camera.rotation.0 = -mouse_right_y;
         // camera.rotation.1 = -mouse_right_x;

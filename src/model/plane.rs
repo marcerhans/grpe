@@ -40,7 +40,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     ]);
 
     for vertex in vertices.iter_mut() {
-        vertex.0.scale(10.0);
+        vertex.0.scale(7.0);
     }
 
     vertices
