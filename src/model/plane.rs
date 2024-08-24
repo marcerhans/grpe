@@ -52,8 +52,11 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     {
         // Left wing
         vertices.append(&mut vec![
-            VectorRow::from([4.0 * unit, -(wing_span / 2.0), 0.0]),
-            VectorRow::from([4.0 * unit, -(wing_span / 2.0), 0.0]),
+            VectorRow::from([4.0 * unit, 2.0 * unit, 0.0]),
+            VectorRow::from([4.5 * unit, (2.0 + 0.5) * unit, 0.0]),
+            VectorRow::from([4.5 * unit, (wing_span / 2.0), 0.0]),
+            VectorRow::from([(4.5 + 1.0) * unit, (wing_span / 2.0), 0.0]),
+            VectorRow::from([(6.5 + 7.0) * unit, 2.0 * unit, 0.0]),
         ]);
     }
 
@@ -73,9 +76,12 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
 pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     let mut lines = vec![];
 
+    // Exhaust1
     lines.push(vec![
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0,
-    ]); // Exhaust1
+    ]);
+
+    // Exhaust2
     lines.push(vec![
         1 + 23,
         2 + 23,
@@ -102,12 +108,22 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
         23 + 23,
         24 + 23,
         1 + 23,
-    ]); // Exhaust2
+    ]);
 
+    // Between exhaust 1 and 2
     for i in 0..8 {
-        lines.push(vec![i*3,i*3+24]); // Between exhaust 1 and 2
+        lines.push(vec![i*3,i*3+24]);
     }
-    // lines.push(vec![27, 28, 29, 30]);
+
+     // Left wing
+     lines.push(vec![
+         24 + 6,
+         54,
+         54+1,
+         54+2,
+         54+3,
+         54+4,
+     ]);
 
     lines
 }
