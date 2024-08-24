@@ -191,6 +191,9 @@ fn main() {
             None => (),
         }
 
+        position_diff[0] += mouse_left_x;
+        position_diff[2] -= mouse_left_y; // Terminal coordinates are upsidedown.
+
         rotation_total = (rotation_total.0 + rotation_diff.0 - mouse_right_y, rotation_total.1 + rotation_diff.1 - mouse_right_x);
         let rotation = (rotation_total.0 / 2.0, rotation_total.1 / 2.0);
         let pitch = Quaternion {
@@ -217,12 +220,6 @@ fn main() {
 
         camera.rotation = rotation_total;
         camera.position = (&camera.position.0 + &position_new.0).into();
-
-        // camera.position[0] += mouse_left_x;
-        // camera.position[2] -= mouse_left_y; // Terminal coordinates are upsidedown.
-
-        // camera.rotation.0 = -mouse_right_y;
-        // camera.rotation.1 = -mouse_right_x;
 
         if let ViewMode::FirstPerson = camera.view_mode {
             camera.rotation.0 = f64::max(

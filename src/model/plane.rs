@@ -18,7 +18,6 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         );
     }
 
-    // Prime
     vertices.append(&mut vec![
         // Fuselage
         VectorRow::from([15.2, 0.0, 0.0]), // Tip
@@ -48,7 +47,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
 
 pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     let mut lines = vec![];
-    lines.push(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
+    lines.push(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0]);
     lines.push(vec![27, 28, 29, 30]);
     lines
 }

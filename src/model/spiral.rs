@@ -38,6 +38,7 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
         line.push(i);
     }
     lines.push(line);
+    lines.push(vec![999, 0]);
 
     lines
 }
