@@ -182,8 +182,8 @@ fn main() {
         camera.position[0] += mouse_left_x;
         camera.position[2] -= mouse_left_y; // Terminal coordinates are upsidedown.
 
-        camera.rotation.0 = -mouse_right_y;
-        camera.rotation.1 = -mouse_right_x;
+        // camera.rotation.0 = -mouse_right_y;
+        // camera.rotation.1 = -mouse_right_x;
 
         if let ViewMode::FirstPerson = camera.view_mode {
             camera.rotation.0 = f64::max(

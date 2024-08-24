@@ -310,14 +310,18 @@ impl Terminal {
 
     fn render_pixel(buffer: &mut Vec<Vec<char>>, camera: &Camera, x: isize, z: isize) {
         // Extract and adjust position based on camera position and resolution (-1 for 0-indexing).
-        let x = x - camera.position[0] as isize + (camera.resolution.0 / 2) as isize - 1;
-        let mut z = z - camera.position[2] as isize + (camera.resolution.1 / 2) as isize - 1;
+        let x = x - camera.position[0] as isize + (camera.resolution.0 / 2) as isize;
+        let mut z = z - camera.position[2] as isize + (camera.resolution.1 / 2) as isize;
 
-        // Only show points within view of [Camera].
-        if !(x >= 0 && x < camera.resolution.0 as isize)
-            || !(z >= 0 && z < camera.resolution.1 as isize)
+        #[cfg(debug_assertions)]
         {
-            return;
+            // Only show points within view of [Camera].
+            // This should have been filtered already.
+            if !(x >= 0 && x < camera.resolution.0 as isize)
+                || !(z >= 0 && z < camera.resolution.1 as isize)
+            {
+                panic!("Camera: {:?} - {x} and {z}", camera.resolution);
+            }
         }
 
         // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
@@ -342,6 +346,11 @@ impl Terminal {
         let vertices = self.vertices.as_ref().unwrap().as_ref().borrow();
         self.vertices_projected.fill(None);
 
+        let x_min = self.config.camera.position[0] as isize - ((self.config.camera.resolution.0 / 2) as isize);
+        let x_max = self.config.camera.position[0] as isize + ((self.config.camera.resolution.0 / 2) as isize) - 1; // 0 included as positive
+        let z_min = self.config.camera.position[2] as isize - ((self.config.camera.resolution.1 / 2) as isize);
+        let z_max = self.config.camera.position[2] as isize + ((self.config.camera.resolution.1 / 2) as isize) - 1; // 0 included as positive
+
         for (index, vertex) in vertices.iter().enumerate() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
                 // Undo any previously applied rotation.
@@ -354,6 +363,12 @@ impl Terminal {
                 );
                 let intersection =
                     VectorRow::<f64, 3>::from(&intersection.0 + &self.config.camera.position.0);
+                
+                // Do not store the point if it is outside of visible viewport space.
+                if !(((intersection[0] as isize) >= x_min && (intersection[0] as isize) < x_max) && ((intersection[2] as isize) >= z_min && (intersection[2] as isize) < z_max)) {
+                    continue;
+                }
+
                 self.vertices_projected[index] = Some(intersection);
             }
         }
@@ -408,11 +423,8 @@ impl Terminal {
                     let dz = (a[2] - b[2]) as isize;
                     let dx_sign = dx.signum();
                     let dz_sign = dz.signum();
-
-                    // We only care for the absolute distance/difference.
-                    // Inclusive (+1) last point.
-                    let dx = dx.abs() + 1;
-                    let dz = dz.abs() + 1;
+                    let dx = dx.abs();
+                    let dz = dz.abs();
 
                     let (
                         large_base,
@@ -430,69 +442,27 @@ impl Terminal {
                             dz,
                             dx_sign,
                             dz_sign,
-                            false,
+                            true,
                         )
                     } else {
-                        (a[2] as isize, a[0] as isize, dz, dx, dz_sign, dx_sign, true)
+                        (a[2] as isize, a[0] as isize, dz, dx, dz_sign, dx_sign, false)
                     };
 
-                    // Start with 1 instead of 0 for modulu operations to behave properly. Semantics I guess.
-                    // Therefore we take -1 when actually rendering the pixel.
-                    let mut step_large = 1;
-                    let mut step_small = 1;
-
-                    let ratio = if dsmall != 0 {
-                        Some(dlarge / dsmall)
-                    } else {
-                        None
-                    };
-                    let rest = if dsmall != 0 {
-                        let rest = dlarge % dsmall;
-                        if rest != 0 {
-                            Some(dlarge % dsmall)
-                        } else {
-                            None
+                    if dsmall == 0 {
+                        // Just draw straight line.
+                        for step_large in 0..=dlarge {
+                            render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, small_base, 0, large_base, step_large * dlarge_direction, swap);
                         }
-                    } else {
-                        None
-                    };
-                    let mut extra_left = if let Some(rest) = rest { rest } else { 0 };
-                    let mut extra_taken = 0;
-
-                    while step_large <= dlarge {
-                        render_pixel_wrapper(
-                            &mut self.canvas.buffer,
-                            &self.config.camera,
-                            large_base,
-                            -(step_large - 1) * dlarge_direction,
-                            small_base,
-                            -(step_small - 1) * dsmall_direction,
-                            swap,
-                        );
-
-                        if let Some(ratio) = ratio {
-                            if (step_large - extra_taken) % ratio == 0 {
-                                if extra_left > 0 {
-                                    step_large += 1;
-                                    render_pixel_wrapper(
-                                        &mut self.canvas.buffer,
-                                        &self.config.camera,
-                                        large_base,
-                                        -(step_large - 1) * dlarge_direction,
-                                        small_base,
-                                        -(step_small - 1) * dsmall_direction,
-                                        swap,
-                                    );
-                                    extra_left -= 1;
-                                    extra_taken += 1;
-                                }
-
-                                step_small += 1;
-                            }
-                        }
-
-                        step_large += 1;
+                        continue;
                     }
+
+                    // let ratio = dsmall / dlarge;
+                    // let mut step_small;
+
+                    // for step_large in 0..dlarge {
+                    //     step_small = ratio * step_large;
+                    //     render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, large_base, step_large * dlarge_direction, small_base, step_small, swap);
+                    // }
                 }
             }
         }

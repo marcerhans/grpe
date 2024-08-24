@@ -54,9 +54,9 @@ impl Default for Camera {
 
 #[derive(Default, Clone)]
 pub enum RenderOption {
-    #[default]
     All,
     Line,
+    #[default]
     Vertices,
 }
 
