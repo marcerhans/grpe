@@ -47,12 +47,7 @@ fn main() {
 
     let mut position_diff = VectorRow::from([0.0, 0.0, 0.0]);
     let mut rotation_diff = (0.0, 0.0);
-    let mut rotation_total = Quaternion {
-        q0: 1.0,
-        q1: 0.0,
-        q2: 0.0,
-        q3: 0.0,
-    };
+    let mut rotation_total = (0.0, 0.0);
 
     let event_handler = EventHandler::init();
     let mut mouse_left_x_start = 0.0;
@@ -96,6 +91,8 @@ fn main() {
         position_diff[2] = 0.0;
         rotation_diff.0 = 0.0;
         rotation_diff.1 = 0.0;
+        mouse_right_x = 0.0;
+        mouse_right_y = 0.0;
 
         match event_handler.get_latest_event() {
             Some(Event::Mouse(mouse_event)) => match mouse_event {
@@ -148,10 +145,10 @@ fn main() {
                     '_' => position_diff[1] = -16.0,
 
                     // Rotation
-                    'i' => rotation_diff.0 -= std::f64::consts::FRAC_PI_8,
-                    'j' => rotation_diff.1 -= std::f64::consts::FRAC_PI_8,
-                    'k' => rotation_diff.0 += std::f64::consts::FRAC_PI_8,
-                    'l' => rotation_diff.1 += std::f64::consts::FRAC_PI_8,
+                    'i' => rotation_diff.0 = -std::f64::consts::FRAC_PI_8,
+                    'j' => rotation_diff.1 = -std::f64::consts::FRAC_PI_8,
+                    'k' => rotation_diff.0 = std::f64::consts::FRAC_PI_8,
+                    'l' => rotation_diff.1 = std::f64::consts::FRAC_PI_8,
 
                     // FOV
                     'q' | 'Q' | 'e' | 'E' => {
@@ -194,7 +191,8 @@ fn main() {
             None => (),
         }
 
-        let rotation = (rotation_diff.0 / 2.0, rotation_diff.1 / 2.0);
+        rotation_total = (rotation_total.0 + rotation_diff.0 - mouse_right_y, rotation_total.1 + rotation_diff.1 - mouse_right_x);
+        let rotation = (rotation_total.0 / 2.0, rotation_total.1 / 2.0);
         let pitch = Quaternion {
             q0: rotation.0.cos(),
             q1: rotation.0.sin() * (rotation.1 * 2.0).cos(),
@@ -207,7 +205,7 @@ fn main() {
             q2: 0.0,
             q3: rotation.1.sin(),
         };
-        let rotation = &(&rotation_total * &pitch) * &yaw;
+        let rotation = &pitch * &yaw;
         let rotation_inverse = Quaternion {
             q0: rotation.q0,
             q1: -rotation.q1,
@@ -216,6 +214,8 @@ fn main() {
         };
 
         let position_new = quaternion::rotate(&position_diff, &rotation, &rotation_inverse);
+
+        camera.rotation = rotation_total;
         camera.position = (&camera.position.0 + &position_new.0).into();
 
         // camera.position[0] += mouse_left_x;
@@ -242,6 +242,7 @@ fn main() {
             mouse_right_x = 0.0;
             mouse_right_y = 0.0;
             camera = camera_default.clone();
+            rotation_total = (0.0, 0.0);
         }
 
         renderer = renderer.set_camera(camera.clone()).unwrap();
