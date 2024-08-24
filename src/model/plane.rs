@@ -5,14 +5,12 @@ use renderer::VectorRow;
 pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     let mut vertices = vec![];
 
-    // let single_step = 15.2 / 12.0;
-    // for along_x_axis in 0..12 {
-    //     let x_pos = single_step * (along_x_axis as f64);
+    let length = 15.2;
+    let wing_span = 8.6;
+    let unit = 15.2 / 21.0;
 
-    // }
-
-    // Exhaust
     {
+        // Exhaust
         let points = 24.0;
         let radius = 0.4;
         for around_x_axis in 0..(points as usize) {
@@ -26,38 +24,48 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         let radius = 0.6;
         for around_x_axis in 0..(points as usize) {
             vertices.push(VectorRow::from([
-                0.7,
+                unit,
                 radius * (around_x_axis as f64 * (2.0 * consts::PI / points)).sin(),
                 radius * (around_x_axis as f64 * (2.0 * consts::PI / points)).cos(),
             ]));
         }
     }
 
-    vertices.append(&mut vec![
+    {
         // Fuselage
-        VectorRow::from([15.2, 0.0, 0.0]),        // Tip
-        VectorRow::from([15.7, 0.0, 0.0]),        // Tip + pitot
-        VectorRow::from([15.2 / 2.0, 0.0, -1.0]), // Bottom at middle
+        vertices.append(&mut vec![
+            VectorRow::from([length, 0.0, 0.0]),        // Tip
+            VectorRow::from([length + 0.5, 0.0, 0.0]),  // Tip + pitot
+        ]);
+    }
+
+    {
         // Sidroder
-        VectorRow::from([1.0, 0.0, 0.5]),
-        VectorRow::from([1.1, 0.0, 3.0]),
-        VectorRow::from([1.7, 0.0, 3.0]),
-        VectorRow::from([1.7 + 2.5, 0.0, 0.5]),
-        // // Left wing
-        // VectorRow::from([1.2, 0.0, 4.3]), // Wing span is 8.6 (/ 2 = 4.3)
-        // VectorRow::from([2.0, 0.0, 4.3]),
-        // VectorRow::from([15.2 / 2.0, 0.0, 1.0]),
+        vertices.append(&mut vec![
+            VectorRow::from([1.0, 0.0, 0.5]),
+            VectorRow::from([1.1, 0.0, 3.0]),
+            VectorRow::from([1.7, 0.0, 3.0]),
+            VectorRow::from([1.7 + 2.5, 0.0, 0.5]),
+        ]);
+    }
+
+    {
+        // Left wing
+        vertices.append(&mut vec![
+            VectorRow::from([4.0 * unit, -(wing_span / 2.0), 0.0]),
+            VectorRow::from([4.0 * unit, -(wing_span / 2.0), 0.0]),
+        ]);
+    }
+
         // // Left canard wing
         // VectorRow::from([15.2 / 2.0, 0.0, 4.3 / 1.75]), // Wing span is 8.6 (/ 2 = 4.3)
         // VectorRow::from([15.2 / 2.0 + 0.4, 0.0, 4.3 / 1.75]),
         // VectorRow::from([15.2 / 2.0 + 2.0, 0.0, 1.0]),
-    ]);
 
     for vertex in vertices.iter_mut() {
         vertex[0] = vertex[0] - 15.7 / 2.0; // Center plane
         vertex.0.scale(16.0);
     }
-
 
     vertices
 }

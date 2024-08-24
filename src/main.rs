@@ -48,7 +48,7 @@ fn main() {
 
     let mut position_diff = VectorRow::from([0.0, 0.0, 0.0]);
     let mut rotation_diff = (0.0, 0.0);
-    let mut rotation_total = (0.0, 0.0);
+    let mut rotation_total = (std::f64::consts::PI / 2.0, std::f64::consts::PI);
 
     let event_handler = EventHandler::init();
     let mut mouse_left_x_start = 0.0;
