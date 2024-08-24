@@ -23,7 +23,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
             ]));
         }
 
-        let radius = 0.5;
+        let radius = 0.6;
         for around_x_axis in 0..(points as usize) {
             vertices.push(VectorRow::from([
                 0.7,
@@ -54,8 +54,10 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     ]);
 
     for vertex in vertices.iter_mut() {
+        vertex[0] = vertex[0] - 15.7 / 2.0; // Center plane
         vertex.0.scale(16.0);
     }
+
 
     vertices
 }
