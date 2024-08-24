@@ -346,10 +346,16 @@ impl Terminal {
         let vertices = self.vertices.as_ref().unwrap().as_ref().borrow();
         self.vertices_projected.fill(None);
 
-        let x_min = self.config.camera.position[0] as isize - ((self.config.camera.resolution.0 / 2) as isize);
-        let x_max = self.config.camera.position[0] as isize + ((self.config.camera.resolution.0 / 2) as isize) - 1; // 0 included as positive
-        let z_min = self.config.camera.position[2] as isize - ((self.config.camera.resolution.1 / 2) as isize);
-        let z_max = self.config.camera.position[2] as isize + ((self.config.camera.resolution.1 / 2) as isize) - 1; // 0 included as positive
+        let x_min = self.config.camera.position[0] as isize
+            - ((self.config.camera.resolution.0 / 2) as isize);
+        let x_max = self.config.camera.position[0] as isize
+            + ((self.config.camera.resolution.0 / 2) as isize)
+            - 1; // 0 included as positive
+        let z_min = self.config.camera.position[2] as isize
+            - ((self.config.camera.resolution.1 / 2) as isize);
+        let z_max = self.config.camera.position[2] as isize
+            + ((self.config.camera.resolution.1 / 2) as isize)
+            - 1; // 0 included as positive
 
         for (index, vertex) in vertices.iter().enumerate() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
@@ -363,9 +369,11 @@ impl Terminal {
                 );
                 let intersection =
                     VectorRow::<f64, 3>::from(&intersection.0 + &self.config.camera.position.0);
-                
+
                 // Do not store the point if it is outside of visible viewport space.
-                if !(((intersection[0] as isize) >= x_min && (intersection[0] as isize) < x_max) && ((intersection[2] as isize) >= z_min && (intersection[2] as isize) < z_max)) {
+                if !(((intersection[0] as isize) >= x_min && (intersection[0] as isize) < x_max)
+                    && ((intersection[2] as isize) >= z_min && (intersection[2] as isize) < z_max))
+                {
                     continue;
                 }
 
@@ -429,32 +437,32 @@ impl Terminal {
                     let (
                         large_base,
                         small_base,
-                        dlarge,
-                        dsmall,
-                        dlarge_direction,
-                        dsmall_direction,
+                        large_diff,
+                        small_diff,
+                        large_direction,
+                        small_direction,
                         swap,
                     ) = if dx >= dz {
-                        (
-                            a[0] as isize,
-                            a[2] as isize,
-                            dx,
-                            dz,
-                            dx_sign,
-                            dz_sign,
-                            true,
-                        )
+                        (a[0] as isize, a[2] as isize, dx, dz, dx_sign, dz_sign, true)
                     } else {
-                        (a[2] as isize, a[0] as isize, dz, dx, dz_sign, dx_sign, false)
+                        (
+                            a[2] as isize,
+                            a[0] as isize,
+                            dz,
+                            dx,
+                            dz_sign,
+                            dx_sign,
+                            false,
+                        )
                     };
 
-                    if dsmall == 0 {
-                        // Just draw straight line.
-                        for step_large in 0..=dlarge {
-                            render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, small_base, 0, large_base, step_large * dlarge_direction, swap);
-                        }
-                        continue;
-                    }
+                    // if dsmall == 0 {
+                    //     // Just draw straight line.
+                    //     for step_large in 0..=dlarge {
+                    //         render_pixel_wrapper(&mut self.canvas.buffer, &self.config.camera, small_base, 0, large_base, step_large * dlarge_direction, swap);
+                    //     }
+                    //     continue;
+                    // }
 
                     // let ratio = dsmall / dlarge;
                     // let mut step_small;
