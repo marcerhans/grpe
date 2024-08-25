@@ -398,27 +398,6 @@ impl Terminal {
 
     /// Maps lines between vertices to a [Canvas::buffer].
     fn render_lines_between_projected_vertices(&mut self) {
-        fn render_pixel_wrapper(
-            buffer: &mut Vec<Vec<char>>,
-            camera: &Camera,
-            mut x_base: isize,
-            mut x: isize,
-            mut z_base: isize,
-            mut z: isize,
-            swap: bool,
-        ) {
-            if swap {
-                let mut tmp = x_base;
-                x_base = z_base;
-                z_base = tmp;
-                tmp = x;
-                x = z;
-                z = tmp;
-            }
-
-            Terminal::render_pixel(buffer, camera, x_base + x, z_base + z);
-        }
-
         let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
 
         for order in line_draw_order.iter() {
@@ -478,11 +457,11 @@ impl Terminal {
                         continue;
                     }
 
-                    let ratio = small_diff as f64 / large_diff as f64;
+                    let ratio = large_diff as f64 / small_diff as f64;
                     let mut small_step;
 
                     for large_step in 0..=large_diff {
-                        small_step = (large_step as f64 * ratio) as isize;
+                        small_step = (large_step as f64 / ratio) as isize;
 
                         if !swap {
                             Self::render_pixel(
