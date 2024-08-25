@@ -6,138 +6,69 @@ const LENGTH: f64 = 15.2;
 const WING_SPAN: f64 = 8.6;
 const UNIT: f64 = 15.2 / 21.0;
 
-fn add_vertex(
-    vertices: &mut Vec<VectorRow<f64, 3>>,
-    vertices_counter: &mut usize,
-    vertex: VectorRow<f64, 3>,
-) {
-    vertices.push(vertex);
-    *vertices_counter += 1;
-}
-
 mod exhaust {
     use super::*;
 
-    pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) -> usize {
-        let mut count: usize = 0;
+    pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) {
         let points = 24.0;
         let radius = UNIT / 2.0;
 
         for around_x_axis in 0..(points as usize) {
-            add_vertex(
-                vertices,
-                &mut count,
-                VectorRow::from([
-                    0.0,
-                    radius * (around_x_axis as f64 * (2.0 * consts::PI / points)).sin(),
-                    radius * (around_x_axis as f64 * (2.0 * consts::PI / points)).cos(),
-                ]),
-            );
+            vertices.push(VectorRow::from([
+                0.0,
+                radius * (around_x_axis as f64 * (2.0 * consts::PI / points)).sin(),
+                radius * (around_x_axis as f64 * (2.0 * consts::PI / points)).cos(),
+            ]));
         }
 
         let radius = radius * 1.5;
         for around_x_axis in 0..(points as usize) {
-            add_vertex(
-                vertices,
-                &mut count,
-                VectorRow::from([
-                    UNIT,
-                    radius * (around_x_axis as f64 * (2.0 * consts::PI / points)).sin(),
-                    radius * (around_x_axis as f64 * (2.0 * consts::PI / points)).cos(),
-                ]),
-            );
+            vertices.push(VectorRow::from([
+                UNIT,
+                radius * (around_x_axis as f64 * (2.0 * consts::PI / points)).sin(),
+                radius * (around_x_axis as f64 * (2.0 * consts::PI / points)).cos(),
+            ]));
         }
-
-        count
     }
 }
 
 mod fuselage {
     use super::*;
 
-    pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) -> usize {
-        let mut count: usize = 0;
-
-        add_vertex(vertices, &mut count, VectorRow::from([LENGTH, 0.0, 0.0]));
-        add_vertex(
-            vertices,
-            &mut count,
+    pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) {
+        vertices.append(&mut vec![
+            VectorRow::from([LENGTH, 0.0, 0.0]),
+            VectorRow::from([LENGTH, 0.0, 0.0]),
             VectorRow::from([LENGTH + 0.5, 0.0, 0.0]),
-        );
-
-        count
+        ]);
     }
 }
 
 mod rudder {
     use super::*;
 
-    pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) -> usize {
-        let mut count: usize = 0;
-
-        add_vertex(
-            vertices,
-            &mut count,
+    pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) {
+        vertices.append(&mut vec![
             VectorRow::from([1.0, 0.0, 0.7]),
-        );
-        add_vertex(
-            vertices,
-            &mut count,
             VectorRow::from([1.3, 0.0, 3.0 - UNIT]),
-        );
-        add_vertex(
-            vertices,
-            &mut count,
             VectorRow::from([1.3, 0.0, 3.0]),
-        );
-        add_vertex(
-            vertices,
-            &mut count,
             VectorRow::from([1.3 + UNIT, 0.0, 3.0]),
-        );
-        add_vertex(
-            vertices,
-            &mut count,
             VectorRow::from([1.3 + UNIT + UNIT * 4.0, 0.0, 1.0]),
-        );
-
-        count
+        ]);
     }
 }
 
 mod left_wing {
     use super::*;
 
-    pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) -> usize {
-        let mut count: usize = 0;
-
-        add_vertex(
-            vertices,
-            &mut count,
+    pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) {
+        vertices.append(&mut vec![
             VectorRow::from([4.0 * UNIT, 2.0 * UNIT, 0.0]),
-        );
-        add_vertex(
-            vertices,
-            &mut count,
             VectorRow::from([4.5 * UNIT, (2.0 + 0.5) * UNIT, 0.0]),
-        );
-        add_vertex(
-            vertices,
-            &mut count,
             VectorRow::from([4.5 * UNIT, (WING_SPAN / 2.0), 0.0]),
-        );
-        add_vertex(
-            vertices,
-            &mut count,
             VectorRow::from([(4.5 + 1.0) * UNIT, (WING_SPAN / 2.0), 0.0]),
-        );
-        add_vertex(
-            vertices,
-            &mut count,
             VectorRow::from([(6.5 + 7.0) * UNIT, 2.0 * UNIT, 0.0]),
-        );
-
-        count
+        ]);
     }
 }
 
@@ -159,12 +90,11 @@ mod left_wing {
 
 pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     let mut vertices = vec![];
-    let mut vertices_count = 0;
 
-    vertices_count += exhaust::add_vertices(&mut vertices);
-    vertices_count += fuselage::add_vertices(&mut vertices);
-    vertices_count += rudder::add_vertices(&mut vertices);
-    vertices_count += left_wing::add_vertices(&mut vertices);
+    exhaust::add_vertices(&mut vertices);
+    fuselage::add_vertices(&mut vertices);
+    rudder::add_vertices(&mut vertices);
+    left_wing::add_vertices(&mut vertices);
 
     for vertex in vertices.iter_mut() {
         vertex[0] = vertex[0] - 15.7 / 2.0; // Center plane
