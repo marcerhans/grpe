@@ -38,7 +38,6 @@ mod fuselage {
     pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) {
         vertices.append(&mut vec![
             VectorRow::from([LENGTH, 0.0, 0.0]),
-            VectorRow::from([LENGTH, 0.0, 0.0]),
             VectorRow::from([LENGTH + 0.5, 0.0, 0.0]),
         ]);
     }
