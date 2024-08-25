@@ -42,10 +42,11 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     {
         // Sidroder
         vertices.append(&mut vec![
-            VectorRow::from([1.0, 0.0, 0.5]),
-            VectorRow::from([1.1, 0.0, 3.0]),
-            VectorRow::from([1.7, 0.0, 3.0]),
-            VectorRow::from([1.7 + 2.5, 0.0, 0.5]),
+            VectorRow::from([1.0, 0.0, 0.7]),
+            VectorRow::from([1.3, 0.0, 3.0 - unit]),
+            VectorRow::from([1.3, 0.0, 3.0]),
+            VectorRow::from([1.3 + unit, 0.0, 3.0]),
+            VectorRow::from([1.3 + unit + unit * 4.0, 0.0, 1.0]),
         ]);
     }
 
@@ -115,15 +116,25 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
         lines.push(vec![i*3,i*3+24]);
     }
 
-     // Left wing
-     lines.push(vec![
-         24 + 6,
-         54,
-         54+1,
-         54+2,
-         54+3,
-         54+4,
-     ]);
+    // Sidroder
+    lines.push(vec![
+        24,
+        50,
+        50 + 1,
+        50 + 2,
+        50 + 3,
+        50 + 4,
+    ]);
+
+    // Left wing
+    lines.push(vec![
+        24 + 6,
+        55,
+        55+1,
+        55+2,
+        55+3,
+        55+4,
+    ]);
 
     lines
 }
