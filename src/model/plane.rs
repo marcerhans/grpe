@@ -141,6 +141,22 @@ mod left_wing {
     }
 }
 
+// mod left_canard {
+//     use super::*;
+
+//     pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) -> usize {
+//         let mut count: usize = 0;
+
+//         add_vertex(
+//             vertices,
+//             &mut count,
+//             VectorRow::from([4.0 * UNIT, 2.0 * UNIT, 0.0]),
+//         );
+
+//         count
+//     }
+// }
+
 pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     let mut vertices = vec![];
     let mut vertices_count = 0;
