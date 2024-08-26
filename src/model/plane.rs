@@ -7,6 +7,8 @@ const WING_SPAN: f64 = 8.6;
 const HEIGHT: f64 = 4.5;
 const UNIT: f64 = 15.2 / 21.0;
 
+const LENGTH_PX: f64 = 650.0; // Length i pixels based on an image (without pitot tube).
+
 mod exhaust {
     use super::*;
 
@@ -95,16 +97,18 @@ mod left_canard {
     const REAL_LENGTH: f64 = RATIO_LENGTH * LENGTH;
     const START_X: f64 = RATIO_START * LENGTH;
     const END_X: f64 = START_X + REAL_LENGTH;
+    // const START_Y: f64 = RATIO_START * LENGTH;
+    // const END_Y: f64 = START_X + LENGTH;
 
     pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         let mut vertices = Vec::new();
 
         vertices.append(&mut vec![
-            VectorRow::from([START_X, 2.0 * UNIT, 0.25]),
-            VectorRow::from([START_X, 2.2 * UNIT, 0.25]),
-            VectorRow::from([START_X - 2.4 * UNIT, (WING_SPAN / 3.0), 0.25]),
-            VectorRow::from([START_X, (WING_SPAN / 3.0), 0.25]),
-            VectorRow::from([END_X, 2.0 * UNIT, 0.0]),
+            VectorRow::from([START_X, 2.0, 0.25]),
+            VectorRow::from([START_X, 3.0, 0.25]),
+            VectorRow::from([START_X, 4.0, 0.25]),
+            VectorRow::from([START_X, 5.0, 0.25]),
+            VectorRow::from([END_X, 6.0, 0.0]),
         ]);
 
         vertices
