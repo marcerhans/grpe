@@ -11,7 +11,7 @@ mod exhaust {
 
     pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) {
         let points = 24.0;
-        let radius = UNIT / 2.0;
+        let radius = UNIT / 2.25;
 
         for around_x_axis in 0..(points as usize) {
             vertices.push(VectorRow::from([
@@ -21,7 +21,7 @@ mod exhaust {
             ]));
         }
 
-        let radius = radius * 1.5;
+        let radius = (UNIT / 2.0) * 1.5;
         for around_x_axis in 0..(points as usize) {
             vertices.push(VectorRow::from([
                 UNIT,
@@ -48,7 +48,7 @@ mod rudder {
 
     pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) {
         vertices.append(&mut vec![
-            VectorRow::from([1.0, 0.0, 0.7]),
+            VectorRow::from([1.1, 0.0, 0.65]),
             VectorRow::from([1.3, 0.0, 3.0 - UNIT]),
             VectorRow::from([1.3, 0.0, 3.0]),
             VectorRow::from([1.3 + UNIT, 0.0, 3.0]),
@@ -67,6 +67,20 @@ mod left_wing {
             VectorRow::from([4.5 * UNIT, (WING_SPAN / 2.0), 0.0]),
             VectorRow::from([(4.5 + 1.0) * UNIT, (WING_SPAN / 2.0), 0.0]),
             VectorRow::from([(6.5 + 7.0) * UNIT, 2.0 * UNIT, 0.0]),
+        ]);
+    }
+}
+
+mod left_canard {
+    use super::*;
+
+    pub fn add_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) {
+        vertices.append(&mut vec![
+            VectorRow::from([(6.5 + 7.0) * UNIT, 2.0 * UNIT, 0.25]),
+            VectorRow::from([(6.5 + 7.0) * UNIT, 2.2 * UNIT, 0.25]),
+            VectorRow::from([(6.5 + 7.0 - 1.0) * UNIT, (WING_SPAN / 3.0), 0.25]),
+            VectorRow::from([(6.5 + 7.0 - 1.0 + UNIT) * UNIT, (WING_SPAN / 3.0), 0.25]),
+            VectorRow::from([(6.5 + 7.0 + 3.5) * UNIT, 2.0 * UNIT, 0.0]),
         ]);
     }
 }
@@ -94,10 +108,11 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     fuselage::add_vertices(&mut vertices);
     rudder::add_vertices(&mut vertices);
     left_wing::add_vertices(&mut vertices);
+    left_canard::add_vertices(&mut vertices);
 
     for vertex in vertices.iter_mut() {
         vertex[0] = vertex[0] - 15.7 / 2.0; // Center plane
-        vertex.0.scale(16.0);
+        vertex.0.scale(24.0);
     }
 
     vertices
@@ -150,6 +165,9 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
 
     // Left wing
     lines.push(vec![55, 55 + 1, 55 + 2, 55 + 3, 55 + 4]);
+
+    // Left canard
+    lines.push(vec![60, 61, 62, 63, 64]);
 
     lines
 }
