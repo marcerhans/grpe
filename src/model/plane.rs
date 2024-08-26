@@ -90,36 +90,53 @@ mod left_wing {
 mod left_canard {
     use super::*;
 
+    const RATIO_START: f64 = 370.0 / 650.0;
+    const RATIO_LENGTH: f64 = 85.0 / 650.0;
+    const REAL_LENGTH: f64 = RATIO_LENGTH * LENGTH;
+    const START_X: f64 = RATIO_START * LENGTH;
+    const END_X: f64 = START_X + REAL_LENGTH;
+
     pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         let mut vertices = Vec::new();
 
         vertices.append(&mut vec![
-            VectorRow::from([(6.5 + 7.0) * UNIT, 2.0 * UNIT, 0.25]),
-            VectorRow::from([(6.5 + 7.0) * UNIT, 2.2 * UNIT, 0.25]),
-            VectorRow::from([(6.5 + 7.0 - 1.0) * UNIT, (WING_SPAN / 3.0), 0.25]),
-            VectorRow::from([(6.5 + 7.0 - 1.0 + UNIT) * UNIT, (WING_SPAN / 3.0), 0.25]),
-            VectorRow::from([(6.5 + 7.0 + 3.5) * UNIT, 2.0 * UNIT, 0.0]),
+            VectorRow::from([START_X, 2.0 * UNIT, 0.25]),
+            VectorRow::from([START_X, 2.2 * UNIT, 0.25]),
+            VectorRow::from([START_X - 2.4 * UNIT, (WING_SPAN / 3.0), 0.25]),
+            VectorRow::from([START_X, (WING_SPAN / 3.0), 0.25]),
+            VectorRow::from([END_X, 2.0 * UNIT, 0.0]),
         ]);
 
         vertices
     }
 }
 
-// mod left_canard {
-//     use super::*;
+mod cockpit {
+    use super::*;
 
-//     pub fn get_vertices(vertices: &mut Vec<VectorRow<f64, 3>>) -> usize {
-//         let mut count: usize = 0;
+    pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
+        let mut vertices = Vec::new();
 
-//         add_vertex(
-//             vertices,
-//             &mut count,
-//             VectorRow::from([4.0 * UNIT, 2.0 * UNIT, 0.0]),
-//         );
+        vertices.append(&mut vec![
+            VectorRow::from([(6.5 + 7.0 + 0.5) * UNIT, 0.2, 1.0]),
+            VectorRow::from([(6.5 + 7.0 + 0.5 * 5.0) * UNIT, 0.3, 1.0]),
+            VectorRow::from([(6.5 + 7.0 + 0.5 * 5.0 + 0.5 * 7.5) * UNIT, 0.3, 1.0]),
+            VectorRow::from([(6.5 + 7.0 + 0.5 * 5.0 + 0.5 * 7.5 + 0.5 * 4.0) * UNIT, 0.3, 1.0]),
+        ]);
 
-//         count
-//     }
-// }
+        let mut mirror = Vec::new();
+
+        for vertex in &vertices {
+            let mut v = vertex.clone();
+            v[1] = -v[1];
+            mirror.push(v);
+        }
+
+        vertices.append(&mut mirror);
+
+        vertices
+    }
+}
 
 pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     let mut vertices = vec![];
@@ -142,6 +159,9 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     }
     vertices.append(&mut right_canard);
 
+    vertices.append(&mut cockpit::get_vertices());
+
+    // Scale and center
     for vertex in vertices.iter_mut() {
         vertex[0] = vertex[0] - 15.7 / 2.0; // Center plane
         vertex.0.scale(16.0);
@@ -152,56 +172,6 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
 
 pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     let mut lines = vec![];
-
-    // Exhaust1
-    lines.push(vec![
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0,
-    ]);
-
-    // Exhaust2
-    lines.push(vec![
-        1 + 23,
-        2 + 23,
-        3 + 23,
-        4 + 23,
-        5 + 23,
-        6 + 23,
-        7 + 23,
-        8 + 23,
-        9 + 23,
-        11 + 23,
-        11 + 23,
-        12 + 23,
-        13 + 23,
-        14 + 23,
-        15 + 23,
-        16 + 23,
-        17 + 23,
-        18 + 23,
-        19 + 23,
-        20 + 23,
-        21 + 23,
-        22 + 23,
-        23 + 23,
-        24 + 23,
-        1 + 23,
-    ]);
-
-    // Between exhaust 1 and 2
-    // for i in 0..8 {
-    //     lines.push(vec![i * 3, i * 3 + 24]);
-    // }
-
-    // // Sidroder
-    // lines.push(vec![24, 50, 50 + 1, 50 + 2, 50 + 3, 50 + 4]);
-
-    // Wings
-    // lines.push(vec![55, 55 + 1, 55 + 2, 55 + 3, 55 + 4]);
-    // lines.push(vec![65, 65 + 1, 65 + 2, 65 + 3, 65 + 4]);
-
-    // Canards
-    // lines.push(vec![60, 61, 62, 63, 64]);
-    // lines.push(vec![70, 71, 72, 73, 74]);
 
     lines
 }
