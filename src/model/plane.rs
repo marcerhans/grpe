@@ -91,7 +91,7 @@ mod fuselage {
             VectorRow::from([2.05, 0.85, 0.0]),
             VectorRow::from([2.7, 0.94, 0.0]),
             VectorRow::from([10.7, 0.90, 0.0]),
-            VectorRow::from([10.9, 0.80, 0.0]),
+            VectorRow::from([11.0, 0.80, 0.0]),
             VectorRow::from([11.0, 0.60, 0.0]),
             VectorRow::from([11.0, 0.48, 0.0]),
             VectorRow::from([12.0, 0.47, 0.0]),
@@ -370,7 +370,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // Scale and center
     for vertex in vertices.iter_mut() {
         vertex[0] = vertex[0] - 15.7 / 2.0; // Center plane
-        vertex[1] = vertex[1] + 0.05; // Whilst using draft image to center it. TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // vertex[1] = vertex[1] + 0.05; // Whilst using draft image to center it. TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         vertex.0.scale(21.0);
     }
 
