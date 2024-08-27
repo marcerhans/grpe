@@ -137,26 +137,35 @@ mod wings {
 mod canards {
     use super::*;
 
-    const RATIO_START: f64 = 370.0 / 650.0;
-    const RATIO_LENGTH: f64 = 85.0 / 650.0;
-    const REAL_LENGTH: f64 = RATIO_LENGTH * LENGTH;
-    const START_X: f64 = RATIO_START * LENGTH;
-    const END_X: f64 = START_X + REAL_LENGTH;
-    // const START_Y: f64 = RATIO_START * LENGTH;
-    // const END_Y: f64 = START_X + LENGTH;
-
     pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         let mut vertices = Vec::new();
 
+        // Outline
         vertices.append(&mut vec![
-            VectorRow::from([START_X, 2.0, 0.25]),
-            VectorRow::from([START_X, 3.0, 0.25]),
-            VectorRow::from([START_X, 4.0, 0.25]),
-            VectorRow::from([START_X, 5.0, 0.25]),
-            VectorRow::from([END_X, 6.0, 0.0]),
+            VectorRow::from([8.63, 0.9, 0.0]),
+            VectorRow::from([8.63, 1.07, 0.0]),
+            VectorRow::from([8.0, 2.05, 0.0]),
+            VectorRow::from([8.45, 2.05, 0.0]),
+            VectorRow::from([10.5, 0.9, 0.0]),
         ]);
 
         vertices
+    }
+
+    pub fn get_line_draw_order(start: usize) -> Vec<Vec<usize>> {
+        let mut line_draw_order = vec![vec![]];
+
+        // Outline
+        line_draw_order.append(&mut vec![vec![
+            start + 0,
+            start + 1,
+            start + 2,
+            start + 3,
+            start + 4,
+            start + 0,
+        ]]);
+
+        line_draw_order
     }
 }
 
@@ -194,6 +203,7 @@ mod cockpit {
 pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     let mut vertices = vec![];
 
+    // Length for reference
     vertices.append(&mut vec![
         VectorRow::from([0.0, 0.0, 0.0]),
         VectorRow::from([LENGTH, 0.0, 0.0]),
@@ -204,7 +214,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // vertices.append(&mut rudder::get_vertices());
 
     vertices.append(&mut wings::get_vertices());
-    // vertices.append(&mut canards::get_vertices());
+    vertices.append(&mut canards::get_vertices());
 
     // vertices.append(&mut cockpit::get_vertices());
 
@@ -221,7 +231,14 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
 pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     let mut line_draw_order = vec![];
 
-    line_draw_order.append(&mut wings::get_line_draw_order(2));
+    let mut index_start = 2;
+
+    let mut wings = wings::get_line_draw_order(index_start);
+    index_start += wings::get_vertices().len();
+    line_draw_order.append(&mut wings);
+
+    let mut canards = canards::get_line_draw_order(index_start);
+    line_draw_order.append(&mut canards);
 
     line_draw_order
 }
