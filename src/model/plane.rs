@@ -8,6 +8,16 @@ const HEIGHT: f64 = 4.5;
 const UNIT: f64 = 15.2 / 21.0;
 
 // const LENGTH_PX: f64 = 650.0; // Length i pixels based on an image (without pitot tube).
+fn mirror_y(vertices: &Vec<VectorRow<f64, 3>>) -> Vec<VectorRow<f64, 3>> {
+    // Duplicate and mirror.
+    let mut mirror = vertices.clone();
+
+    for vertex in &mut mirror {
+        vertex[1] = vertex[1] * -1.0;
+    }
+
+    mirror
+}
 
 mod exhaust {
     use super::*;
@@ -103,6 +113,9 @@ mod wings {
             VectorRow::from([5.45, 2.92, 0.0]),
         ]);
 
+        // Duplicate and mirror.
+        vertices.append(&mut mirror_y(&vertices));
+
         vertices
     }
 
@@ -110,6 +123,28 @@ mod wings {
         let mut line_draw_order = vec![vec![]];
 
         // Outline
+        line_draw_order.append(&mut vec![vec![
+            start + 0,
+            start + 1,
+            start + 2,
+            start + 3,
+            start + 4,
+            start + 5,
+            start + 6,
+            start + 7,
+            start + 8,
+            start + 9,
+        ]]);
+
+        // Extra points to draw details
+        line_draw_order.append(&mut vec![
+            vec![start + 0, start + 10, start + 11, start + 2],
+            vec![start + 12, start + 4],
+            vec![start + 13, start + 7],
+        ]);
+
+        // Mirror
+        let start = start + 14;
         line_draw_order.append(&mut vec![vec![
             start + 0,
             start + 1,
@@ -149,6 +184,9 @@ mod canards {
             VectorRow::from([10.5, 0.9, 0.0]),
         ]);
 
+        // Duplicate and mirror.
+        vertices.append(&mut mirror_y(&vertices));
+
         vertices
     }
 
@@ -163,6 +201,41 @@ mod canards {
             start + 3,
             start + 4,
             start + 0,
+        ]]);
+
+        // Mirror
+        let start = start + 5;
+        line_draw_order.append(&mut vec![vec![
+            start + 0,
+            start + 1,
+            start + 2,
+            start + 3,
+            start + 4,
+            start + 0,
+        ]]);
+
+        line_draw_order
+    }
+}
+
+mod intake {
+    use super::*;
+
+    pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
+        let mut vertices = Vec::new();
+
+        // Outline
+        vertices.append(&mut vec![
+        ]);
+
+        vertices
+    }
+
+    pub fn get_line_draw_order(start: usize) -> Vec<Vec<usize>> {
+        let mut line_draw_order = vec![vec![]];
+
+        // Outline
+        line_draw_order.append(&mut vec![vec![
         ]]);
 
         line_draw_order
@@ -215,6 +288,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
 
     vertices.append(&mut wings::get_vertices());
     vertices.append(&mut canards::get_vertices());
+    vertices.append(&mut intake::get_vertices());
 
     // vertices.append(&mut cockpit::get_vertices());
 
@@ -238,7 +312,12 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     line_draw_order.append(&mut wings);
 
     let mut canards = canards::get_line_draw_order(index_start);
+    index_start += canards::get_vertices().len();
     line_draw_order.append(&mut canards);
+
+    let mut intake = intake::get_line_draw_order(index_start);
+    index_start += intake::get_vertices().len();
+    line_draw_order.append(&mut intake);
 
     line_draw_order
 }
