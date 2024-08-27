@@ -370,7 +370,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // Scale and center
     for vertex in vertices.iter_mut() {
         vertex[0] = vertex[0] - 15.7 / 2.0; // Center plane
-        vertex[1] = vertex[1] + 0.05; // Whilst using draft image to center it.
+        vertex[1] = vertex[1] + 0.05; // Whilst using draft image to center it. TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         vertex.0.scale(21.0);
     }
 
