@@ -104,6 +104,9 @@ mod fuselage {
 
         vertices.append(&mut vec![VectorRow::from([15.2, 0.0, 0.0])]);
 
+        // Extra points to draw details
+        vertices.append(&mut vec![VectorRow::from([15.9, 0.0, 0.0])]);
+
         vertices
     }
 
@@ -125,6 +128,9 @@ mod fuselage {
 
         line_draw_order.push(order);
         line_draw_order.push(mirror_order);
+
+        // Extra points to draw details
+        line_draw_order.append(&mut vec![vec![start + 28, start + 29]]);
 
         line_draw_order
     }
@@ -150,7 +156,6 @@ mod rudder {
             // Pitot tube
             VectorRow::from([3.4, 0.0, 1.5]),
             VectorRow::from([4.3, 0.0, 1.5]),
-
             // Blocky thing
             VectorRow::from([1.05, 0.0, 2.2]),
             VectorRow::from([1.15, 0.0, 2.25]),
@@ -370,7 +375,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // Scale and center
     for vertex in vertices.iter_mut() {
         vertex[0] = vertex[0] - 15.7 / 2.0; // Center plane
-        // vertex[1] = vertex[1] + 0.05; // Whilst using draft image to center it. TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                                            // vertex[1] = vertex[1] + 0.05; // Whilst using draft image to center it. TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         vertex.0.scale(21.0);
     }
 
@@ -390,7 +395,7 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     index_start += fuselage::get_vertices().len();
     line_draw_order.append(&mut fuselage);
 
-    let mut rudder= rudder::get_line_draw_order(index_start);
+    let mut rudder = rudder::get_line_draw_order(index_start);
     index_start += rudder::get_vertices().len();
     line_draw_order.append(&mut rudder);
 
