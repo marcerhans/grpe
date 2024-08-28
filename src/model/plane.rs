@@ -38,7 +38,7 @@ mod exhaust {
         let radius = 0.3;
         for around_x_axis in 0..(points as usize) {
             vertices.push(VectorRow::from([
-                0.65,
+                0.62,
                 radius
                     * (consts::PI / 10.0 + around_x_axis as f64 * (2.0 * consts::PI / points))
                         .sin(),
@@ -207,25 +207,23 @@ mod wings {
 
         // Outline
         vertices.append(&mut vec![
-            VectorRow::from([2.88, 1.0, 0.0]),
-            VectorRow::from([3.22, 1.42, 0.0]),
-            VectorRow::from([3.24, 2.6, 0.0]),
-            VectorRow::from([3.3, 4.0, 0.0]),
-            VectorRow::from([3.55, 4.0, 0.0]),
-            VectorRow::from([4.3, 4.0, 0.0]),
-            VectorRow::from([5.9, 2.92, 0.0]),
-            VectorRow::from([5.7, 2.92, 0.0]),
-            VectorRow::from([8.2, 1.15, 0.0]),
-            VectorRow::from([8.9, 0.9, 0.0]),
+            VectorRow::from([2.68, 0.68, 0.0]),
+            VectorRow::from([3.07, 1.0, 0.0]),
+            VectorRow::from([3.24, 2.9, 0.0]),
+            VectorRow::from([4.3, 2.9, 0.0]),
+            VectorRow::from([5.9, 2.13, 0.0]),
+            VectorRow::from([5.65, 2.13, 0.0]),
+            VectorRow::from([8.1, 0.87, 0.0]),
+            VectorRow::from([8.8, 0.68, 0.0]),
         ]);
 
         // Extra points to draw details
-        vertices.append(&mut vec![
-            VectorRow::from([3.82, 0.95, 0.0]),
-            VectorRow::from([3.69, 2.52, 0.0]),
-            VectorRow::from([3.64, 2.52, 0.0]),
-            VectorRow::from([5.45, 2.92, 0.0]),
-        ]);
+        // vertices.append(&mut vec![
+        //     VectorRow::from([3.82, 0.95, 0.0]),
+        //     VectorRow::from([3.69, 2.52, 0.0]),
+        //     VectorRow::from([3.64, 2.52, 0.0]),
+        //     VectorRow::from([5.45, 2.92, 0.0]),
+        // ]);
 
         // Duplicate and mirror.
         vertices.append(&mut mirror_y(&vertices));
@@ -246,19 +244,17 @@ mod wings {
             start + 5,
             start + 6,
             start + 7,
-            start + 8,
-            start + 9,
         ]]);
 
         // Extra points to draw details
-        line_draw_order.append(&mut vec![
-            vec![start + 0, start + 10, start + 11, start + 2],
-            vec![start + 12, start + 4],
-            vec![start + 13, start + 7],
-        ]);
+        // line_draw_order.append(&mut vec![
+        //     vec![start + 0, start + 10, start + 11, start + 2],
+        //     vec![start + 12, start + 4],
+        //     vec![start + 13, start + 7],
+        // ]);
 
         // Mirror
-        let start = start + 14;
+        let start = start + 8;
         line_draw_order.append(&mut vec![vec![
             start + 0,
             start + 1,
@@ -268,16 +264,14 @@ mod wings {
             start + 5,
             start + 6,
             start + 7,
-            start + 8,
-            start + 9,
         ]]);
 
         // Extra points to draw details
-        line_draw_order.append(&mut vec![
-            vec![start + 0, start + 10, start + 11, start + 2],
-            vec![start + 12, start + 4],
-            vec![start + 13, start + 7],
-        ]);
+        // line_draw_order.append(&mut vec![
+        //     vec![start + 0, start + 10, start + 11, start + 2],
+        //     vec![start + 12, start + 4],
+        //     vec![start + 13, start + 7],
+        // ]);
 
         line_draw_order
     }
@@ -363,7 +357,6 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         VectorRow::from([LENGTH, 0.0, 0.0]),
     ]);
 
-    // vertices.append(&mut fuselage::get_vertices());
     // vertices.append(&mut exhaust::get_vertices());
     // vertices.append(&mut fuselage::get_vertices());
     // vertices.append(&mut rudder::get_vertices());
