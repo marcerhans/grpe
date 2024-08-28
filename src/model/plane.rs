@@ -285,11 +285,14 @@ mod canards {
 
         // Outline
         vertices.append(&mut vec![
-            VectorRow::from([8.63, 0.9, 0.0]),
-            VectorRow::from([8.63, 1.07, 0.0]),
-            VectorRow::from([8.0, 2.05, 0.0]),
-            VectorRow::from([8.45, 2.05, 0.0]),
-            VectorRow::from([10.5, 0.9, 0.0]),
+            VectorRow::from([8.68, 0.66, 0.0]),
+            VectorRow::from([8.52, 0.7, 0.0]),
+            VectorRow::from([8.51, 0.86, 0.0]),
+            VectorRow::from([7.95, 1.56, 0.0]),
+            VectorRow::from([8.4, 1.56, 0.0]),
+            VectorRow::from([10.42, 0.73, 0.0]),
+            VectorRow::from([10.2, 0.7, 0.0]),
+            VectorRow::from([9.5, 0.67, 0.0]),
         ]);
 
         // Duplicate and mirror.
@@ -308,17 +311,23 @@ mod canards {
             start + 2,
             start + 3,
             start + 4,
+            start + 5,
+            start + 6,
+            start + 7,
             start + 0,
         ]]);
 
         // Mirror
-        let start = start + 5;
+        let start = start + 8;
         line_draw_order.append(&mut vec![vec![
             start + 0,
             start + 1,
             start + 2,
             start + 3,
             start + 4,
+            start + 5,
+            start + 6,
+            start + 7,
             start + 0,
         ]]);
 
@@ -357,11 +366,11 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         VectorRow::from([LENGTH, 0.0, 0.0]),
     ]);
 
-    // vertices.append(&mut exhaust::get_vertices());
+    vertices.append(&mut exhaust::get_vertices());
     // vertices.append(&mut fuselage::get_vertices());
     // vertices.append(&mut rudder::get_vertices());
     vertices.append(&mut wings::get_vertices());
-    // vertices.append(&mut canards::get_vertices());
+    vertices.append(&mut canards::get_vertices());
     // vertices.append(&mut intake::get_vertices());
 
     // vertices.append(&mut cockpit::get_vertices());
@@ -372,7 +381,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
 
         // WHILE DRAFING ONLY!
         vertex[0] = vertex[0] + 0.045; // Whilst using draft image to center it. TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        vertex[1] = vertex[1] + 0.03; // Whilst using draft image to center it. TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        vertex[1] = vertex[1] + 0.02; // Whilst using draft image to center it. TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         vertex.0.scale(101.0);
     }
 
@@ -384,9 +393,9 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
 
     let mut index_start = 2;
 
-    // let mut exhaust = exhaust::get_line_draw_order(index_start);
-    // index_start += exhaust::get_vertices().len();
-    // line_draw_order.append(&mut exhaust);
+    let mut exhaust = exhaust::get_line_draw_order(index_start);
+    index_start += exhaust::get_vertices().len();
+    line_draw_order.append(&mut exhaust);
 
     // let mut fuselage = fuselage::get_line_draw_order(index_start);
     // index_start += fuselage::get_vertices().len();
@@ -400,9 +409,9 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     index_start += wings::get_vertices().len();
     line_draw_order.append(&mut wings);
 
-    // let mut canards = canards::get_line_draw_order(index_start);
-    // index_start += canards::get_vertices().len();
-    // line_draw_order.append(&mut canards);
+    let mut canards = canards::get_line_draw_order(index_start);
+    index_start += canards::get_vertices().len();
+    line_draw_order.append(&mut canards);
 
     // let mut intake = intake::get_line_draw_order(index_start);
     // index_start += intake::get_vertices().len();
