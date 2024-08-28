@@ -1,3 +1,4 @@
+/// Modelled with image of brazillian plane. Top down image. FOV: 15.
 use std::f64::consts;
 
 use renderer::VectorRow;
@@ -25,7 +26,7 @@ mod exhaust {
         let mut vertices = Vec::new();
         let points = 24.0;
 
-        let radius = 0.25;
+        let radius = 0.20;
         for around_x_axis in 0..(points as usize) {
             vertices.push(VectorRow::from([
                 0.0,
@@ -34,10 +35,10 @@ mod exhaust {
             ]));
         }
 
-        let radius = 0.43;
+        let radius = 0.3;
         for around_x_axis in 0..(points as usize) {
             vertices.push(VectorRow::from([
-                0.7,
+                0.65,
                 radius
                     * (consts::PI / 10.0 + around_x_axis as f64 * (2.0 * consts::PI / points))
                         .sin(),
@@ -363,7 +364,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     ]);
 
     // vertices.append(&mut fuselage::get_vertices());
-    // vertices.append(&mut exhaust::get_vertices());
+    vertices.append(&mut exhaust::get_vertices());
     // vertices.append(&mut fuselage::get_vertices());
     // vertices.append(&mut rudder::get_vertices());
     // vertices.append(&mut wings::get_vertices());
