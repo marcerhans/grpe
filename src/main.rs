@@ -63,8 +63,8 @@ fn main() {
     let mut mouse_right_x = 0.0;
     let mut mouse_right_y = 0.0;
 
-    let mut pixel_width_scaling = 1.0;
-    let mut pixel_height_scaling = 1.0;
+    let mut pixel_width_scaling = 97.8; // Just for drafting model from image. Shoule be 1.0.
+    let mut pixel_height_scaling = 67.0; // Just for drafting model from image. Shoule be 1.0.
 
     let mut camera_fov = if let ProjectionMode::Perspective { fov } = renderer.config().camera.projection_mode {
         fov
@@ -78,7 +78,7 @@ fn main() {
     renderer.clear_screen();
 
     // 4. Engine loop
-    loop {
+    // loop {
         let start = std::time::Instant::now();
         loop {
             if std::time::Instant::now() - start > time_wait {
@@ -89,10 +89,13 @@ fn main() {
 
         renderer.set_vertices(Rc::clone(&vertices));
         renderer.set_vertices_line_draw_order(Rc::clone(&line_draw_order));
+        let mut extras = renderer.get_extras().clone();
+        extras.pixel_width_scaling = pixel_width_scaling;
+        extras.pixel_height_scaling = pixel_height_scaling;
+        renderer.set_extras(extras);
         renderer.render();
 
         let mut camera = renderer.config().camera.clone();
-        let mut extras = renderer.get_extras().clone();
 
         position_diff[0] = 0.0;
         position_diff[1] = 0.0;
@@ -256,9 +259,6 @@ fn main() {
             pixel_height_scaling = 1.0;
         }
 
-        extras.pixel_width_scaling = pixel_width_scaling;
-        extras.pixel_height_scaling = pixel_height_scaling;
-        renderer.set_extras(extras);
         renderer = renderer.set_camera(camera.clone()).unwrap();
 
         // Statistics
@@ -300,5 +300,5 @@ fn main() {
             print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner_char}\x1B[0m");
         }
         println!();
-    }
+    // }
 }
