@@ -1,3 +1,5 @@
+// 200x454 (width x height)
+
 use std::cell::RefCell;
 use std::io::Write;
 use std::io::{BufWriter, Stdout};
