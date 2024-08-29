@@ -240,6 +240,13 @@ impl Canvas {
     }
 }
 
+/// Extra settings specific to [Terminal].
+#[derive(Default, Clone)]
+pub struct TerminalExtras {
+    pub pixel_width_scaling: f64,
+    pub pixel_height_scaling: f64,
+}
+
 /// Terminal renderer.
 /// TODO: Split config and pipeline stuff up?
 /// (struct TerminalConfiguration(RendererConfiguration, OtherDerivedConfigs, canvas(?)) and struct Pipeline(vertices, vertices_projected, canvas(?), stdout_buffer)
@@ -253,12 +260,24 @@ pub struct Terminal {
     vertices_projected: Vec<Option<VectorRow<f64, 3>>>,
     line_draw_order: Option<Rc<RefCell<Vec<Vec<usize>>>>>,
     stdout_buffer: BufWriter<Stdout>,
+
+    // Extra
+    extras: TerminalExtras,
 }
 
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
 impl Terminal {
     pub fn clear_screen(&self) {
         print!("{}", ansi::CLEAR_SCREEN);
+    }
+
+    // TODO: Add checks like the other setters?
+    pub fn set_extras(&mut self, extras: TerminalExtras) {
+        self.extras = extras;
+    }
+
+    pub fn get_extras(&self) -> &TerminalExtras {
+        &self.extras
     }
 
     /// Check all members of given [Camera].
@@ -369,8 +388,12 @@ impl Terminal {
                     &self.canvas.rotation_inverse,
                     &self.canvas.rotation,
                 );
-                let intersection =
+                let mut intersection =
                     VectorRow::<f64, 3>::from(&intersection.0 + &self.config.camera.position.0);
+
+                // Adjust points according to width heigh pixel ratio.
+                intersection[0] = intersection[0] * self.extras.pixel_width_scaling;
+                intersection[2] = intersection[2] * self.extras.pixel_height_scaling;
 
                 // Do not store the point if it is outside of visible viewport space.
                 if !(((intersection[0] as isize) >= x_min && (intersection[0] as isize) < x_max)
@@ -574,6 +597,7 @@ impl __RendererTrait for Terminal {
             line_draw_order: None,
             canvas: Canvas::new(&config),
             config,
+            extras: TerminalExtras::default(),
         })
     }
 }

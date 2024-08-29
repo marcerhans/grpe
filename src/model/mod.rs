@@ -37,17 +37,18 @@ impl Model {
             }
             Model::Test => {
                 vertices.push(VectorRow::from([0.0, 0.0, 0.0]));
-                vertices.push(VectorRow::from([40.0, 0.0, 0.0]));
-                // vertices.push(VectorRow::from([0.0, 0.0, 1.0]));
-                // vertices.push(VectorRow::from([0.0, 0.0, -1.0]));
-                // vertices.push(VectorRow::from([1.0, 0.0, 0.0]));
-                // vertices.push(VectorRow::from([-1.0, 0.0, 0.0]));
+                vertices.push(VectorRow::from([0.0, 0.0, 1.0]));
+                vertices.push(VectorRow::from([0.0, 0.0, -1.0]));
+                vertices.push(VectorRow::from([1.0, 0.0, 0.0]));
+                vertices.push(VectorRow::from([-1.0, 0.0, 0.0]));
+                vertices.push(VectorRow::from([0.0, 1.0, 0.0]));
+                vertices.push(VectorRow::from([0.0, -1.0, 0.0]));
 
                 // vertices.push(VectorRow::from([7.0, 0.0, 4.0]));
 
-                // for vertex in vertices.iter_mut() {
-                //     vertex.0.scale(10.0);
-                // }
+                for vertex in vertices.iter_mut() {
+                    vertex.0.scale(10.0);
+                }
             }
         }
 
@@ -65,7 +66,7 @@ impl Model {
                 lines.append(&mut spiral::get_line_draw_order());
             }
             Model::Test => {
-                lines.push(vec![0,1]);
+                // lines.push(vec![0,1]);
                 // lines.push(vec![0,2]);
                 // lines.push(vec![0,3]);
                 // lines.push(vec![0,4]);
