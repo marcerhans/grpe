@@ -26,7 +26,7 @@ mod exhaust {
         let mut vertices = Vec::new();
         let points = 24.0;
 
-        let radius = 0.20;
+        let radius = 0.3;
         for around_x_axis in 0..(points as usize) {
             vertices.push(VectorRow::from([
                 0.0,
@@ -35,7 +35,7 @@ mod exhaust {
             ]));
         }
 
-        let radius = 0.3;
+        let radius = 0.42;
         for around_x_axis in 0..(points as usize) {
             vertices.push(VectorRow::from([
                 0.62,
@@ -85,26 +85,25 @@ mod fuselage {
 
         // Outline
         vertices.append(&mut vec![
-            VectorRow::from([0.62, 0.3, 0.0]),
-            VectorRow::from([0.92, 0.34, 0.0]),
-            VectorRow::from([0.98, 0.38, 0.0]),
-            VectorRow::from([2.0, 0.52, 0.0]),
-            VectorRow::from([2.15, 0.6, 0.0]),
-            VectorRow::from([2.65, 0.66, 0.0]),
-            VectorRow::from([5.65, 0.64, 0.0]),
-            VectorRow::from([8.65, 0.66, 0.0]),
-            VectorRow::from([10.0, 0.66, 0.0]),
-            VectorRow::from([10.0, 0.66, 0.0]),
-            VectorRow::from([10.525, 0.73, 0.0]),
-            VectorRow::from([10.7, 0.65, 0.0]),
-            VectorRow::from([10.87, 0.61, 0.0]),
-            VectorRow::from([10.92, 0.57, 0.0]),
-            VectorRow::from([10.98, 0.41, 0.0]),
-            VectorRow::from([11.1, 0.39, 0.0]),
-            VectorRow::from([11.1, 0.36, 0.0]),
-            VectorRow::from([10.88, 0.36, 0.0]),
-            VectorRow::from([10.86, 0.33, 0.0]),
-            VectorRow::from([10.86, 0.33, 0.0]),
+            VectorRow::from([0.62, 0.42, 0.0]),
+            VectorRow::from([0.92, 0.48, 0.0]),
+            VectorRow::from([0.98, 0.54, 0.0]),
+            VectorRow::from([2.0, 0.75, 0.0]),
+            VectorRow::from([2.15, 0.86, 0.0]),
+            VectorRow::from([2.65, 0.98, 0.0]),
+            VectorRow::from([5.65, 0.97, 0.0]),
+            VectorRow::from([8.65, 0.94, 0.0]),
+            VectorRow::from([10.0, 0.98, 0.0]),
+            VectorRow::from([10.525, 1.06, 0.0]),
+            VectorRow::from([10.7, 0.95, 0.0]),
+            VectorRow::from([10.87, 0.90, 0.0]),
+            VectorRow::from([10.92, 0.84, 0.0]),
+            VectorRow::from([10.98, 0.62, 0.0]),
+            VectorRow::from([11.1, 0.55, 0.0]),
+            VectorRow::from([11.1, 0.53, 0.0]),
+            VectorRow::from([10.88, 0.51, 0.0]),
+            VectorRow::from([10.86, 0.51, 0.0]),
+            VectorRow::from([10.86, 0.47, 0.0]),
         ]);
 
         vertices.append(&mut mirror_y(&vertices));
@@ -122,13 +121,13 @@ mod fuselage {
 
         // Outline
         let mut order = vec![];
-        for i in 0..20 {
+        for i in 0..19 {
             order.push(start + i);
         }
         // order.push(start + 28);
 
         let mut mirror_order = vec![];
-        for i in 20..40 {
+        for i in 19..38 {
             mirror_order.push(start + i);
         }
         // mirror_order.push(start + 28);
@@ -210,14 +209,14 @@ mod wings {
 
         // Outline
         vertices.append(&mut vec![
-            VectorRow::from([2.68, 0.68, 0.0]),
-            VectorRow::from([3.07, 1.0, 0.0]),
-            VectorRow::from([3.24, 2.9, 0.0]),
-            VectorRow::from([4.3, 2.9, 0.0]),
-            VectorRow::from([5.9, 2.13, 0.0]),
-            VectorRow::from([5.65, 2.13, 0.0]),
-            VectorRow::from([8.1, 0.87, 0.0]),
-            VectorRow::from([8.8, 0.68, 0.0]),
+            VectorRow::from([2.68, 1.0, 0.0]),
+            VectorRow::from([3.07, 1.4, 0.0]),
+            VectorRow::from([3.24, 4.3, 0.0]),
+            VectorRow::from([4.3, 4.3, 0.0]),
+            VectorRow::from([5.9, 3.15, 0.0]),
+            VectorRow::from([5.65, 3.15, 0.0]),
+            VectorRow::from([8.1, 1.23, 0.0]),
+            VectorRow::from([8.8, 0.94, 0.0]),
         ]);
 
         // Extra points to draw details
@@ -288,14 +287,14 @@ mod canards {
 
         // Outline
         vertices.append(&mut vec![
-            VectorRow::from([8.68, 0.66, 0.0]),
-            VectorRow::from([8.52, 0.7, 0.0]),
-            VectorRow::from([8.51, 0.86, 0.0]),
-            VectorRow::from([7.95, 1.56, 0.0]),
-            VectorRow::from([8.4, 1.56, 0.0]),
-            VectorRow::from([10.42, 0.73, 0.0]),
-            VectorRow::from([10.2, 0.7, 0.0]),
-            VectorRow::from([9.5, 0.67, 0.0]),
+            VectorRow::from([8.68, 0.98, 0.0]),
+            VectorRow::from([8.52, 1.05, 0.0]),
+            VectorRow::from([8.51, 1.3, 0.0]),
+            VectorRow::from([7.93, 2.28, 0.0]),
+            VectorRow::from([8.42, 2.28, 0.0]),
+            VectorRow::from([10.45, 1.07, 0.0]),
+            VectorRow::from([10.2, 1.0, 0.0]),
+            VectorRow::from([9.5, 0.97, 0.0]),
         ]);
 
         // Duplicate and mirror.
@@ -371,11 +370,11 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         VectorRow::from([4.0, -WING_SPAN / 2.0, 0.0]),
     ]);
 
-    // vertices.append(&mut exhaust::get_vertices());
-    // vertices.append(&mut fuselage::get_vertices());
+    vertices.append(&mut exhaust::get_vertices());
+    vertices.append(&mut fuselage::get_vertices());
     // vertices.append(&mut rudder::get_vertices());
-    // vertices.append(&mut wings::get_vertices());
-    // vertices.append(&mut canards::get_vertices());
+    vertices.append(&mut wings::get_vertices());
+    vertices.append(&mut canards::get_vertices());
     // vertices.append(&mut intake::get_vertices());
 
     // vertices.append(&mut cockpit::get_vertices());
@@ -397,25 +396,25 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
         vec![2, 3],
     ]);
 
-    // let mut exhaust = exhaust::get_line_draw_order(index_start);
-    // index_start += exhaust::get_vertices().len();
-    // line_draw_order.append(&mut exhaust);
+    let mut exhaust = exhaust::get_line_draw_order(index_start);
+    index_start += exhaust::get_vertices().len();
+    line_draw_order.append(&mut exhaust);
 
-    // let mut fuselage = fuselage::get_line_draw_order(index_start);
-    // index_start += fuselage::get_vertices().len();
-    // line_draw_order.append(&mut fuselage);
+    let mut fuselage = fuselage::get_line_draw_order(index_start);
+    index_start += fuselage::get_vertices().len();
+    line_draw_order.append(&mut fuselage);
 
-    // // let mut rudder = rudder::get_line_draw_order(index_start);
-    // // index_start += rudder::get_vertices().len();
-    // // line_draw_order.append(&mut rudder);
+    // let mut rudder = rudder::get_line_draw_order(index_start);
+    // index_start += rudder::get_vertices().len();
+    // line_draw_order.append(&mut rudder);
 
-    // let mut wings = wings::get_line_draw_order(index_start);
-    // index_start += wings::get_vertices().len();
-    // line_draw_order.append(&mut wings);
+    let mut wings = wings::get_line_draw_order(index_start);
+    index_start += wings::get_vertices().len();
+    line_draw_order.append(&mut wings);
 
-    // let mut canards = canards::get_line_draw_order(index_start);
-    // index_start += canards::get_vertices().len();
-    // line_draw_order.append(&mut canards);
+    let mut canards = canards::get_line_draw_order(index_start);
+    index_start += canards::get_vertices().len();
+    line_draw_order.append(&mut canards);
 
     // let mut intake = intake::get_line_draw_order(index_start);
     // index_start += intake::get_vertices().len();
