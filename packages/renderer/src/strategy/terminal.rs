@@ -477,18 +477,32 @@ impl Terminal {
                         // Just draw straight line.
                         for large_step in 0..=large_diff {
                             if !swap {
+                                let x = small_base;
+                                let z = large_base + large_direction * large_step;
+
+                                if x < x_min || x > x_max || z < z_min || z > z_max {
+                                    continue;
+                                }
+
                                 Self::render_pixel(
                                     &mut self.canvas.buffer,
                                     &self.config.camera,
-                                    small_base,
-                                    large_base + large_direction * large_step,
+                                    x,
+                                    z,
                                 );
                             } else {
+                                let x = large_base + large_direction * large_step;
+                                let z = small_base;
+
+                                if x < x_min || x > x_max || z < z_min || z > z_max {
+                                    continue;
+                                }
+
                                 Self::render_pixel(
                                     &mut self.canvas.buffer,
                                     &self.config.camera,
-                                    large_base + large_direction * large_step,
-                                    small_base,
+                                    x,
+                                    z,
                                 );
                             }
                         }
