@@ -78,7 +78,7 @@ fn main() {
     renderer.clear_screen();
 
     // 4. Engine loop
-    // loop {
+    loop {
         let start = std::time::Instant::now();
         loop {
             if std::time::Instant::now() - start > time_wait {
@@ -300,5 +300,5 @@ fn main() {
             print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner_char}\x1B[0m");
         }
         println!();
-    // }
+    }
 }
