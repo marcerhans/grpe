@@ -41,7 +41,7 @@ void setExitHandler();
 /**
  * Fetches the most recent input char from stdin.
  * 
- * @return True if successful. False if not initialized or error.
+ * @return True if successful. False if not initialized, on error, or no character is currently in buffer.
  * @param buf Buffer for read character.
  */
 bool getChar(char * const buf);
