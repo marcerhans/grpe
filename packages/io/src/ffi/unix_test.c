@@ -1,3 +1,9 @@
+/**
+ * Just some code to test that the IO C-library does indeed do SOMETHING right.
+ * 
+ * gcc unix_test.c unix.c -o unix_test.bin && ./unix_test.bin
+ */
+
 #include <stdio.h>
 #include <unistd.h>
 
