@@ -1,3 +1,11 @@
+/**
+ * Documentation regarding manipulating the terminal
+ * is quite arcane... A lot of convoluted history >.<
+ * 
+ * This code is only going to be "good enough".
+ * Might not be portable. Target terminal is xterm.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -19,20 +27,35 @@ void disablePartialRawMode();
  *           are read without pressing 'Enter'.)
  * - IEXTEN (Disable Ctrl-v.)
  * - ISIG (Disable SIGNALs like Ctrl-c and -z.)
+ * - OPOST (Do not interpret output, like converting '\n' to '\r\n'.) NOTE: Currently not set.
  */
 void enablePartialRawMode();
 
 /**
  * Sets an exit-handler.
+ * Preferably called before anything else for better cleanup.
+ * Only call once.
  */
 void setExitHandler();
 
 /**
- * Fetches the next input char from stdin.
- * Blocks for 1/10:th of a second or until character has been read
- * before timing out.
+ * Fetches the most recent input char from stdin.
  * 
- * @return True if successful. False on timeout.
+ * @return True if successful. False if not initialized or error.
  * @param buf Buffer for read character.
  */
-bool getNextChar(char * const buf);
+bool getChar(char * const buf);
+
+/**
+ * Initializes threads for maintaining the read/write buffer.
+ * 
+ * Must be called before calling 'getNextChar'.
+ */
+void initialize();
+
+/**
+ * Terminates the runtime code.
+ * 
+ * Should be called before finalizing the runtime.
+ */
+void terminate();
