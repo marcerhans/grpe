@@ -51,7 +51,7 @@ void enablePartialRawMode() {
   tcgetattr(STDIN_FILENO, &orig_termios);
   struct termios raw = orig_termios;
   raw.c_iflag &= ~(ICRNL | IXON);
-  raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); // ISIG can be added here.
+  raw.c_lflag &= ~(ECHO | ICANON | IEXTEN); // ISIG can be added here.
   // raw.c_oflag &= ~(OPOST); // TODO: Enable?
   raw.c_cc[VMIN] = 1; // Only return from read when at least one character is ready (=1), but don't block (=0).
   raw.c_cc[VTIME] = TIMEOUT_SECONDS * 10; // Time to wait for input in deciseconds (i.e. 1/10:th seconds).
