@@ -5,7 +5,7 @@ include!(concat!(env!("OUT_DIR"), "/io_bindings.rs"));
 
 use std::ffi::c_char;
 
-use crate::{Event, EventHandlerTrait};
+use crate::{ansi_interpretor, Event, EventHandlerTrait};
 // use std::sync::atomic::Atomicu8;
 
 pub struct EventHandler {
@@ -23,16 +23,19 @@ impl EventHandlerTrait for EventHandler {
     }
 
     fn get_latest_event(&self) -> Option<crate::Event> {
-        let mut buf: c_char = 0;
+        return ansi_interpretor::interpret(|| {
+            let mut buf: c_char = 0;
 
-        unsafe {
-            let buf_p = &mut buf as *mut c_char;
-            if !getChar(buf_p) {
-                return None;
+            unsafe {
+                let buf_p = &mut buf as *mut c_char;
+
+                if !getChar(buf_p) {
+                    return None;
+                }
             }
-        }
-
-        Some(Event::Letter(buf.to_char()))
+        
+            Some(buf)
+        });
     }
 }
 
