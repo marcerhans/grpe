@@ -1,15 +1,19 @@
-// use io::{platform::unix::*, EventHandlerTrait, Letter};
-// use std::ffi::c_char;
+use io::{platform::unix::*, EventHandlerTrait, Event};
 
-// fn main() {
-//     let event_handler = EventHandler::init();
+fn main() {
+    let event_handler = EventHandler::init();
 
-//     loop {
-//         match event_handler.receiver.recv().unwrap() {
-//             io::Event::Mouse(_) => todo!(),
-//             io::Event::Letter(c) => {
-//                 println!("{}", c.0);
-//             },
-//         }
-//     }
-// }
+    loop {
+        let event = event_handler.get_latest_event();
+
+        match event {
+            Some(event) => {
+                match event {
+                    Event::Mouse(mouse_event) => println!("mouse"),
+                    Event::Letter(character) => println!("Typed character: {character}"),
+                }
+            }
+            None => break,
+        }
+    }
+}
