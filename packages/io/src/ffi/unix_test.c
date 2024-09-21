@@ -17,7 +17,7 @@ int main() {
     while (buf != 'q') {
         getChar(&buf);
         printf("Typed character: %c\n", buf);
-        usleep(1000);       
+        usleep(1000);
     }
 
     terminate();
