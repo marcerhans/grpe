@@ -20,9 +20,11 @@ static char char_buf[CHAR_BUF_SIZE];
 static uint64_t char_buf_index_read = 0;
 static uint64_t char_buf_index_write = 0;
 static bool char_buf_index_flip = false;
-static bool initialized = false;
-static bool error = false;
+static atomic_bool initialized = false;
+static atomic_bool error = false;
 static pthread_t writer;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 static void errorHandler();
 static void exitHandler();
@@ -127,43 +129,43 @@ bool isOkToWrite(const uint64_t index_read, const uint64_t index_write, const bo
 }
 
 void* writerFn(void* _) {
-  // fd_set readfds;
-  // struct timeval timeout;
-  // char buffer;
+  fd_set readfds;
+  struct timeval timeout;
+  char buffer;
 
-  // timeout.tv_sec = 0;
-  // timeout.tv_usec = 1000; // 1 millisecond (1000Hz polling rate).
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 1000; // 1 millisecond (1000Hz polling rate).
 
-  // while (atomic_load(&initialized)) {
-  //   FD_ZERO(&readfds);
-  //   FD_SET(STDIN_FILENO, &readfds);
+  while (atomic_load(&initialized)) {
+    FD_ZERO(&readfds);
+    FD_SET(STDIN_FILENO, &readfds);
 
-  //   // Wait for input using select()
-  //   int retval = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+    // Wait for input using select()
+    int retval = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
 
-  //   if (retval == -1) {
-  //     errorHandler("select() error");
-  //   } else if (retval != 0) {
-  //     // Input is available, read it
-  //     if (read(STDIN_FILENO, &buffer, 1) > 0) {
-  //       uint64_t index_read = atomic_load(&char_buf_index_read);
-  //       uint64_t index_write = atomic_load(&char_buf_index_write);
-  //       bool index_flip = atomic_load(&char_buf_index_flip);
+    if (retval == -1) {
+      errorHandler("select() error");
+    } else if (retval != 0) {
+      // Input is available, read it
+      if (read(STDIN_FILENO, &buffer, 1) > 0) {
+        pthread_mutex_lock(&mutex);
 
-  //       if (isOkToWrite(index_read, index_write, index_flip)) {
-  //         char_buf[index_write] = buffer;
+        if (isOkToWrite(char_buf_index_read, char_buf_index_write, char_buf_index_flip)) {
+          char_buf[char_buf_index_write] = buffer;
 
-  //         uint64_t new_index = (index_write + 1) % CHAR_BUF_SIZE;
-  //         if (new_index < index_write) {
-  //           atomic_store(&char_buf_index_flip, true);
-  //         }
-  //         atomic_store(&char_buf_index_write, new_index);
-  //       }
-  //     } else {
-  //       errorHandler("read() error");
-  //     }
-  //   }
-  // }
+          uint64_t new_index = (char_buf_index_write + 1) % CHAR_BUF_SIZE;
+          if (new_index < char_buf_index_write) {
+            char_buf_index_flip = true;
+          }
+          char_buf_index_write = new_index;
+        }
 
-  // pthread_exit(NULL);
+        pthread_mutex_unlock(&mutex);
+      } else {
+        errorHandler("read() error");
+      }
+    }
+  }
+
+  pthread_exit(NULL);
 }
