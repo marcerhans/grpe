@@ -45,7 +45,7 @@ void enablePartialRawMode() {
   raw.c_iflag &= ~(ICRNL | IXON);
   raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG );
   // raw.c_oflag &= ~(OPOST); // TODO: Enable?
-  raw.c_cc[VMIN] = 0; // Only return from read when at least one character is ready (=1), but don't block (=0).
+  raw.c_cc[VMIN] = 1; // Only return from read when at least one character is ready (=1), but don't block (=0).
   raw.c_cc[VTIME] = 0; // Time to wait for input in deciseconds (i.e. 1/10:th seconds). In our case do not wait. Handle waiting on input elsewhere.
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 
@@ -130,23 +130,23 @@ bool isOkToWrite(const uint64_t index_read, const uint64_t index_write, const bo
 }
 
 void* writerFn(void* _) {
-  fd_set readfds;
-  struct timeval timeout;
+  // fd_set readfds;
+  // struct timeval timeout;
   char buffer;
 
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 1000; // 1 millisecond (1000Hz polling rate).
+  // timeout.tv_sec = 0;
+  // timeout.tv_usec = 1000; // 1 millisecond (1000Hz polling rate).
 
   while (atomic_load(&initialized)) {
-    FD_ZERO(&readfds);
-    FD_SET(STDIN_FILENO, &readfds);
+    // FD_ZERO(&readfds);
+    // FD_SET(STDIN_FILENO, &readfds);
 
     // Wait for input using select()
-    int retval = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+    // int retval = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
 
-    if (retval == -1) {
-      errorHandler("select() error");
-    } else if (retval != 0) {
+    // if (retval == -1) {
+    //   errorHandler("select() error");
+    // } else if (retval != 0) {
       // Input is available, read it
       if (read(STDIN_FILENO, &buffer, 1) > 0) {
         uint64_t index_read = atomic_load(&char_buf_index_read);
@@ -165,7 +165,7 @@ void* writerFn(void* _) {
       } else {
         errorHandler("read() error");
       }
-    }
+    // }
   }
 
   pthread_exit(NULL);
