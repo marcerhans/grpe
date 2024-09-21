@@ -6,6 +6,7 @@
 #include <stdatomic.h> // atomic datatypes.
 #include <pthread.h>
 #include <sys/select.h>
+#include <signal.h>
 
 #include "unix.h"
 
@@ -56,6 +57,8 @@ void enablePartialRawMode() {
 
 void setExitHandler() {
   atexit(exitHandler);
+  signal(SIGINT, exitHandler);
+  signal(SIGTERM, exitHandler);
 }
 
 bool getChar(char * const buf) {

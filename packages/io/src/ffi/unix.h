@@ -26,7 +26,7 @@ void disablePartialRawMode();
  * - ICANON (Disable 'canonical mode' meaning inputs
  *           are read without pressing 'Enter'.)
  * - IEXTEN (Disable Ctrl-v.)
- * - ISIG (Disable SIGNALs like Ctrl-c and -z.)
+ * - ISIG (Disable SIGNALs like Ctrl-c and -z.) NOTE: Currently not set.
  * - OPOST (Do not interpret output, like converting '\n' to '\r\n'.) NOTE: Currently not set.
  */
 void enablePartialRawMode();
@@ -34,14 +34,15 @@ void enablePartialRawMode();
 /**
  * Sets an exit-handler.
  * Preferably called before anything else for better cleanup.
- * Only call once.
+ * Only call once!
  */
 void setExitHandler();
 
 /**
- * Fetches the most recent input char from stdin.
+ * Fetches the most recent input char from stdin. Blocking.
  * 
- * @return True if successful. False if not initialized, on error, or no character is currently in buffer.
+ * @return True if successful. False if not initialized, on error,
+ *         or IO manager has received a SIGINT/SIGTERM.
  * @param buf Buffer for read character.
  */
 bool getChar(char * const buf);

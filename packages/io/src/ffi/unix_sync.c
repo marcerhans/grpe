@@ -7,10 +7,13 @@
 #include <pthread.h>
 #include <sys/select.h>
 #include <assert.h>
+#include <signal.h>
+#include <time.h>
 
 #include "unix.h"
 
 #define CHAR_BUF_SIZE (uint64_t)1000
+#define TIMEOUT_SECONDS (uint64_t)1
 
 // Terminal stuff
 static const char* DEFAULT_ERROR_MSG = "Terminal I/O Failed";
@@ -30,6 +33,7 @@ static pthread_cond_t cond;
 
 static void errorHandler();
 static void exitHandler();
+static void signalHandler();
 static bool isOkToRead(const uint64_t index_read, const uint64_t index_write, const bool index_flip);
 static bool isOkToWrite(const uint64_t index_read, const uint64_t index_write, const bool index_flip);
 static void* writerFn(void* _);
@@ -47,10 +51,10 @@ void enablePartialRawMode() {
   tcgetattr(STDIN_FILENO, &orig_termios);
   struct termios raw = orig_termios;
   raw.c_iflag &= ~(ICRNL | IXON);
-  raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG );
+  raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); // ISIG can be added here.
   // raw.c_oflag &= ~(OPOST); // TODO: Enable?
   raw.c_cc[VMIN] = 1; // Only return from read when at least one character is ready (=1), but don't block (=0).
-  raw.c_cc[VTIME] = 0; // Time to wait for input in deciseconds (i.e. 1/10:th seconds). In our case do not wait. Handle waiting on input elsewhere.
+  raw.c_cc[VTIME] = TIMEOUT_SECONDS * 10; // Time to wait for input in deciseconds (i.e. 1/10:th seconds).
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 
   // Also enable mouse tracking via ANSI escape codes (xterm).
@@ -60,6 +64,8 @@ void enablePartialRawMode() {
 
 void setExitHandler() {
   atexit(exitHandler);
+  signal(SIGINT, signalHandler);
+  signal(SIGTERM, signalHandler);
 }
 
 bool getChar(char * const buf) {
@@ -68,11 +74,21 @@ bool getChar(char * const buf) {
   }
 
   bool ret = false;
+  struct timespec ts;
 
   pthread_mutex_lock(&mutex);
 
-  while (char_buf_available < 1) {
-    pthread_cond_wait(&cond, &mutex);
+  clock_gettime(CLOCK_REALTIME, &ts);
+  ts.tv_sec += TIMEOUT_SECONDS;
+
+  while (char_buf_available < 1 && !atomic_load(&error)) {
+    pthread_cond_timedwait(&cond, &mutex, &ts);
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_sec += TIMEOUT_SECONDS;
+  }
+
+  if (atomic_load(&error)) {
+    return false;
   }
 
   if (isOkToRead(char_buf_index_read, char_buf_index_write, char_buf_index_flip)) {
@@ -115,7 +131,7 @@ void terminate() {
   if (atomic_load(&initialized)) {
     atomic_store(&initialized, false);
     disablePartialRawMode();
-    pthread_join(writer, NULL);
+    pthread_cancel(writer);
     pthread_mutex_destroy(&mutex);
     pthread_cond_destroy(&cond);
   }
@@ -131,8 +147,14 @@ void errorHandler(const char* s) {
 }
 
 void exitHandler() {
-  disablePartialRawMode();
   terminate();
+}
+
+void signalHandler() {
+  if (atomic_load(&initialized)) {
+    disablePartialRawMode();
+    errorHandler("Signal received");
+  }
 }
 
 bool isOkToRead(const uint64_t index_read, const uint64_t index_write, const bool index_flip) {
@@ -149,44 +171,29 @@ bool isOkToWrite(const uint64_t index_read, const uint64_t index_write, const bo
 }
 
 void* writerFn(void* _) {
-  // fd_set readfds;
-  // struct timeval timeout;
   char buffer;
+  uint64_t len = 0;
 
-  // timeout.tv_sec = 0;
-  // timeout.tv_usec = 1000; // 1 millisecond (1000Hz polling rate).
+  while (atomic_load(&initialized) && !atomic_load(&error)) {
+    if ((len = read(STDIN_FILENO, &buffer, 1)) > 0) {
+      pthread_mutex_lock(&mutex);
 
-  while (atomic_load(&initialized)) {
-    // FD_ZERO(&readfds);
-    // FD_SET(STDIN_FILENO, &readfds);
+      if (isOkToWrite(char_buf_index_read, char_buf_index_write, char_buf_index_flip)) {
+        char_buf[char_buf_index_write] = buffer;
 
-    // // Wait for input using select()
-    // int retval = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
-
-    // if (retval == -1) {
-    //   errorHandler("select() error");
-    // } else if (retval != 0) {
-      // Input is available, read it
-      if (read(STDIN_FILENO, &buffer, 1) > 0) {
-        pthread_mutex_lock(&mutex);
-
-        if (isOkToWrite(char_buf_index_read, char_buf_index_write, char_buf_index_flip)) {
-          char_buf[char_buf_index_write] = buffer;
-
-          uint64_t new_index = (char_buf_index_write + 1) % CHAR_BUF_SIZE;
-          if (new_index < char_buf_index_write) {
-            char_buf_index_flip = true;
-          }
-          char_buf_index_write = new_index;
-          char_buf_available += 1;
+        uint64_t new_index = (char_buf_index_write + 1) % CHAR_BUF_SIZE;
+        if (new_index < char_buf_index_write) {
+          char_buf_index_flip = true;
         }
-
-        pthread_cond_signal(&cond);
-        pthread_mutex_unlock(&mutex);
-      } else {
-        errorHandler("read() error");
+        char_buf_index_write = new_index;
+        char_buf_available += 1;
       }
-    // }
+
+      pthread_cond_signal(&cond);
+      pthread_mutex_unlock(&mutex);
+    } else if (len == -1) {
+      errorHandler("read() error");
+    }
   }
 
   pthread_exit(NULL);

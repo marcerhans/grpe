@@ -14,8 +14,7 @@ int main() {
     setExitHandler();
     initialize();
 
-    while (buf != 'q') {
-        getChar(&buf);
+    while (getChar(&buf) && buf != 'q') {
         printf("Typed character: %c\n", buf);
         // usleep(1000);
     }
