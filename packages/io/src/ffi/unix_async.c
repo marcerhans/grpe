@@ -85,6 +85,9 @@ bool getChar(char * const buf) {
 void initialize() {
   if (!atomic_load(&initialized)) {
     enablePartialRawMode();
+    atomic_store(&char_buf_index_read, 0);
+    atomic_store(&char_buf_index_write, 0);
+    atomic_store(&char_buf_index_flip, false);
     pthread_create(&writer, NULL, writerFn, NULL);
     atomic_store(&error, false);
     atomic_store(&initialized, true);

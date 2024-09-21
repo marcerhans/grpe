@@ -6,6 +6,7 @@
 #include <stdatomic.h> // atomic datatypes.
 #include <pthread.h>
 #include <sys/select.h>
+#include <assert.h>
 
 #include "unix.h"
 
@@ -19,12 +20,13 @@ static struct termios orig_termios;
 static char char_buf[CHAR_BUF_SIZE];
 static uint64_t char_buf_index_read = 0;
 static uint64_t char_buf_index_write = 0;
+static uint64_t char_buf_available = 0;
 static bool char_buf_index_flip = false;
 static atomic_bool initialized = false;
 static atomic_bool error = false;
 static pthread_t writer;
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t mutex;
+static pthread_cond_t cond;
 
 static void errorHandler();
 static void exitHandler();
@@ -61,53 +63,71 @@ void setExitHandler() {
 }
 
 bool getChar(char * const buf) {
-  // if (!atomic_load(&initialized) || atomic_load(&error)) {
-  //   return false;
-  // }
+  if (!atomic_load(&initialized) || atomic_load(&error)) {
+    return false;
+  }
 
-  // uint64_t index_read = atomic_load(&char_buf_index_read);
-  // uint64_t index_write = atomic_load(&char_buf_index_write);
-  // bool index_flip = atomic_load(&char_buf_index_flip);
+  bool ret = false;
 
-  // if (!isOkToRead(index_read, index_write, index_flip)) {
-  //   return false;
-  // }
+  pthread_mutex_lock(&mutex);
 
-  // *buf = char_buf[index_read];
+  while (char_buf_available < 1) {
+    pthread_cond_wait(&cond, &mutex);
+  }
 
-  // uint64_t new_index = (index_read + 1) % CHAR_BUF_SIZE;
-  // if (new_index < index_read) {
-  //   atomic_store(&char_buf_index_flip, false);
-  // }
-  // atomic_store(&char_buf_index_read, new_index);
+  if (isOkToRead(char_buf_index_read, char_buf_index_write, char_buf_index_flip)) {
+    *buf = char_buf[char_buf_index_read];
 
-  // return true;
+    uint64_t new_index = (char_buf_index_read + 1) % CHAR_BUF_SIZE;
+    if (new_index < char_buf_index_read) {
+      char_buf_index_flip = false;
+    }
+    char_buf_index_read = new_index;
+
+    char_buf_available -= 1;
+    ret = true;
+  } else {
+    // Should not be possible(?)
+    assert(false);
+  }
+
+  pthread_mutex_unlock(&mutex);
+
+  return ret;
 }
 
 void initialize() {
-  // if (!atomic_load(&initialized)) {
-  //   enablePartialRawMode();
-  //   pthread_create(&writer, NULL, writerFn, NULL);
-  //   atomic_store(&error, false);
-  //   atomic_store(&initialized, true);
-  // }
+  if (!atomic_load(&initialized)) {
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&cond, NULL);
+    enablePartialRawMode();
+    char_buf_index_read = 0;
+    char_buf_index_write = 0;
+    char_buf_available = 0;
+    char_buf_index_flip = false;
+    pthread_create(&writer, NULL, writerFn, NULL);
+    atomic_store(&error, false);
+    atomic_store(&initialized, true);
+  }
 }
 
 void terminate() {
-  // if (atomic_load(&initialized)) {
-  //   atomic_store(&initialized, false);
-  //   disablePartialRawMode();
-  //   pthread_join(writer, NULL);
-  // }
+  if (atomic_load(&initialized)) {
+    atomic_store(&initialized, false);
+    disablePartialRawMode();
+    pthread_join(writer, NULL);
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&cond);
+  }
 }
 
 void errorHandler(const char* s) {
-  // if (s == NULL) {
-  //   s = DEFAULT_ERROR_MSG;
-  // }
+  if (s == NULL) {
+    s = DEFAULT_ERROR_MSG;
+  }
 
-  // atomic_store(&error, true);
-  // perror(s);
+  atomic_store(&error, true);
+  perror(s);
 }
 
 void exitHandler() {
@@ -158,8 +178,10 @@ void* writerFn(void* _) {
             char_buf_index_flip = true;
           }
           char_buf_index_write = new_index;
+          char_buf_available += 1;
         }
 
+        pthread_cond_signal(&cond);
         pthread_mutex_unlock(&mutex);
       } else {
         errorHandler("read() error");
