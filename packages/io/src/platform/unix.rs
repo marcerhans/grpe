@@ -15,7 +15,6 @@ pub struct EventHandler {
 impl EventHandlerTrait for EventHandler {
     fn init() -> Self {
         unsafe {
-            setExitHandler();
             initialize();
         }
 
@@ -34,7 +33,7 @@ impl EventHandlerTrait for EventHandler {
                 }
             }
         
-            Some(buf)
+            Some(buf.to_char())
         });
     }
 }

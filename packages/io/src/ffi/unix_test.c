@@ -14,7 +14,11 @@ int main() {
     initialize();
 
     while (getChar(&buf) && buf != 'q') {
-        printf("Typed character: %c\n", buf);
+        printf("Typed character: %c (binary: ", buf);
+        for (int i = 7; i >= 0; --i) {
+            printf("%d", (buf >> i) & 0x01);
+        }
+        printf(")\n");
     }
 
     terminate();

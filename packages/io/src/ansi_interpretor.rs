@@ -1,37 +1,112 @@
 use crate::{platform::unix::ToChar, Event, MouseEvent};
-use std::ffi::c_char;
+use util::{CharArray, Ansi};
 
-pub mod ascii {
-    #![allow(non_upper_case_globals)]
-    pub const ESC: i8 = 0x1B; // ESCAPE
-    pub const M: i8 = 0x4D; // DOWN
-    pub const m: i8 = 0x6D; // RELEASE
-    pub const SEMI_COLON: i8 = 0x3B; // ;
-}
+mod util {
+    pub struct CharArray<const SIZE: usize, F: Fn() -> Option<char>> {
+        array: [char; SIZE],
+        pos: usize,
+        reader: F,
+    }
 
-pub fn interpret<F: Fn() -> Option<c_char>>(reader: F) -> Option<Event> {
-    let c = reader();
-
-    if let Some(c) = c {
-        if !c.is_escape() {
-            return Some(Event::Letter(c.to_char()));
+    impl<const SIZE: usize, F: Fn() -> Option<char>> CharArray<SIZE, F> {
+        pub fn new(reader: F) -> Self {
+            Self {
+                array: [Default::default(); SIZE],
+                pos: 0,
+                reader,
+            }
         }
 
-        // Try to determine what
+        pub fn read(&mut self) -> Result<char, &'static str> {
+            if self.pos > SIZE {
+                return Err("Array is full.");
+            }
+
+            if let Some(c) = (self.reader)() {
+                self.array[self.pos] = c;
+                self.pos += 1;
+                return Ok(c)
+            }
+
+            Err("Failed to read character.")
+        }
+
+        pub fn last(&self) -> Option<char> {
+            if self.pos == 0 {
+                return None;
+            }
+
+            Some(self.array[self.pos - 1])
+        }
+    }
+
+    pub trait Ansi {
+        fn is_escape(&self) -> bool;
+        fn is_sequence(&self) -> bool;
+
+        /// 0 = MB1, 1 = MB2, 2 = MB3, 32 = MB1_DRAG, 33, MB3_DRAG, 34, MB4_DRAG
+        fn is_mouse_tracking(&self) -> bool;
+    }
+
+    impl<const SIZE: usize, F: Fn() -> Option<char>> Ansi for CharArray<SIZE, F> {
+        fn is_escape(&self) -> bool {
+            // if let Some(last) = self.last {
+            //     self.array[0] == '\x1b'
+            // }
+
+            false
+        }
+
+        fn is_sequence(&self) -> bool {
+            // self.is_escape() && self.len() >= 2 && self[1] == '\x1b'
+            false
+        }
+
+        fn is_mouse_tracking(&self) -> bool {
+            // let mut ret = self.is_sequence() && self.len() > 3 && self[2] == '<';
+            // let mut expected_semicolons = 2;
+
+            // for c in self.iter() {
+            //     if c == ';' {
+            //         expected_semicolons -= 1;
+            //     }
+            // }
+
+            // if 
+
+            // ret
+            false
+        }
+    }
+
+
+}
+
+struct SGRMouse {
+
+}
+
+enum ControlSequence {
+    CSI,
+    SGRMouse(SGRMouse),
+}
+
+pub fn interpret<F: Fn() -> Option<char>>(reader: F) -> Option<Event> {
+    let mut chars = CharArray::<64, F>::new(reader);
+
+    if let Ok(c) = chars.read() {
+        if !chars.is_escape() {
+            return Some(Event::Letter(c));
+        }
+
+        if chars.is_sequence() {
+
+        }
     }
 
     None
 }
 
-trait Ansi {
-    fn is_escape(&self) -> bool;
-}
-
-impl Ansi for c_char {
-    fn is_escape(&self) -> bool {
-        *self == ascii::ESC
-    }
-}
 
 // pub fn is_escape_sequence(c: c_char) -> bool {
 //     static START_0: i8 = 0x1B; // ESC
@@ -109,7 +184,7 @@ impl Ansi for c_char {
 //     //         let button = c - 32;
 
 //     //         match button {
-//     //             0 => return 
+//     //             0 => return
 //     //             1 => return Some(Event::Mouse(Mouse::RightDown(x, y))),
 //     //             2 => return Some(Event::Mouse(Mouse::MiddleDown(x, y))),
 //     //             _ => return None,
