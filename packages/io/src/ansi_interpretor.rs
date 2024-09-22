@@ -1,8 +1,10 @@
-use crate::{platform::unix::ToChar, Event, MouseEvent, Modifier, Motion};
-use util::{CharArray, Ansi};
+use crate::Event;
+use util::{Ansi, CharArray};
 
 mod util {
-    use crate::{Modifier, MouseEvent, Motion};
+    use crate::{
+        platform::unix::ToU8, Direction, Modifier, Motion, MouseButton, MouseEvent, MouseEventBuilder
+    };
 
     pub struct CharArray<const SIZE: usize, F: Fn() -> Option<char>> {
         array: [char; SIZE],
@@ -27,7 +29,7 @@ mod util {
             if let Some(c) = (self.reader)() {
                 self.array[self.pos] = c;
                 self.pos += 1;
-                return Ok(c)
+                return Ok(c);
             }
 
             Err("Failed to read character.")
@@ -42,10 +44,11 @@ mod util {
         }
     }
 
-    impl<const SIZE: usize, F: Fn() -> Option<char>> std::ops::Index<usize> for CharArray<SIZE, F> {
-        type Output = char;
+    impl<const SIZE: usize, Idx, F: Fn() -> Option<char>> std::ops::Index<Idx> for CharArray<SIZE, F> 
+    where Idx: std::slice::SliceIndex<[char]> {
+        type Output = Idx::Output;
     
-        fn index(&self, index: usize) -> &Self::Output {
+        fn index(&self, index: Idx) -> &Self::Output {
             &self.array[index]
         }
     }
@@ -88,42 +91,33 @@ mod util {
 
             if let Ok(c) = self.read() {
                 if c != '<' {
-                    return Err("Not a mouse tracking sequence.")
+                    return Err("Not a mouse tracking sequence.");
                 }
             }
-
-            // Parse (motion + button type).
-            // Easiest way to figure this out is to run unix_test.c or look at docs for xterm control sequences.
-            // None + 00110000 = Click left (0)
-            // None + 00110001 = Click middle (1)
-            // None + 00110010 = Click right (2)
-            // 00110011 + 00110000 = Move left (32)
-            // 00110011 + 00110001 = Move middle (33)
-            // 00110011 + 00110010 = Move right (34)
-            // 00110110 + 00110100 = Scroll up (64)
-            // 00110110 + 00110101 = Scroll down (65)
-            let mut semicolons_left: usize = 2;
-            let mut semicolon_positions: [usize; 2] = [0; 2];
 
             // Read data and check formatting
             // Note: If parsing took place here too, it would be faster
             //       but I'd rather have the separation.
+            let mut semicolons_left: usize = 2;
+            let mut semicolon_positions: [usize; 2] = [0; 2];
+            let mut m_position: usize = 0;
             while match self.read() {
                 Ok(c) => {
                     if c == ';' {
+                        if semicolons_left > 0 {
+                            semicolon_positions[2 - semicolons_left] = self.pos - 1;
+                        }
+
                         if let Some(new) = semicolons_left.checked_sub(1) {
                             semicolons_left = new;
                         } else {
                             return Err("Badly formatted sequence.");
                         }
 
-                        if semicolons_left < 1 {
-                            semicolon_positions[semicolons_left - 2] = self.pos - 1;
-                        }
-
                         true
                     } else {
                         if c == 'm' || c == 'M' {
+                            m_position = self.pos - 1;
                             false
                         } else {
                             true
@@ -134,22 +128,70 @@ mod util {
             } {}
 
             // Parsing of read data.
-            // Parse button.
-            if semicolon_positions[0] - 3 == 2 {
-                // Parse single character for button type.
+            // Parse (motion + button type).
+            // Easiest way to figure this out is to run unix_test.c or look at docs for xterm control sequences.
+            // None + 00110000 = Click left (0)
+            // None + 00110001 = Click middle (1)
+            // None + 00110010 = Click right (2)
+            // 00110011 + 00110000 = Move left (32)
+            // 00110011 + 00110001 = Move middle (33)
+            // 00110011 + 00110010 = Move right (34)
+            // 00110110 + 00110100 = Scroll up (64)
+            // 00110110 + 00110101 = Scroll down (65)
+            let mut meb = MouseEventBuilder::default();
+
+            if self[m_position] == 'M' {
+                meb.motion = Some(Motion::Down);
             } else {
-                // Parse two characters for motion + button type.
+                meb.motion = Some(Motion::Up);
+            }
+
+            if semicolon_positions[0] == 4 {
+                // Parse single character for button type.
+                meb.button = match self[3].to_u8() {
+                    0 => Some(MouseButton::Left),
+                    1 => Some(MouseButton::Middle),
+                    2 => Some(MouseButton::Right),
+                    _ => return Err("Not supported."),
+                }
+            } else {
+                meb.button = match self[3].to_u8() {
+                    3 => match self[4].to_u8() {
+                        2 => Some(MouseButton::Left),
+                        3 => Some(MouseButton::Middle),
+                        4 => Some(MouseButton::Right),
+                        _ => return Err("Not supported."),
+                    },
+                    6 => match self[4].to_u8() {
+                        4 => {
+                            meb.direction = Some(Direction::Up);
+                            Some(MouseButton::Scroll)
+                        }
+                        5 => {
+                            meb.direction = Some(Direction::Down);
+                            Some(MouseButton::Scroll)
+                        }
+                        _ => return Err("Not supported."),
+                    },
+                    _ => return Err("Not supported."),
+                }
             }
 
             // Parse X-coordinate.
+            let x = &self[(semicolon_positions[0] + 1)..semicolon_positions[1]];
+            if let Ok(val) = x.iter().collect::<String>().parse() {
+                meb.x = Some(val);
+            }
 
             // Parse Y-coordinate.
+            let y = &self[(semicolon_positions[1] + 1)..m_position];
+            if let Ok(val) = y.iter().collect::<String>().parse() {
+                meb.y = Some(val);
+            }
 
-            Err("Failed to read.")
+            Ok((Modifier::None, meb.build())) // (modifiers not supported yet)
         }
     }
-
-
 }
 
 pub fn interpret<F: Fn() -> Option<char>>(reader: F) -> Option<Event> {

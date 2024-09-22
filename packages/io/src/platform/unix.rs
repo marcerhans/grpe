@@ -84,6 +84,16 @@ impl ToChar for c_char {
     }
 }
 
+pub trait ToU8 {
+    fn to_u8(&self) -> u8;
+}
+
+impl ToU8 for char {
+    fn to_u8(&self) -> u8 {
+        *self as u8 - 48
+    }
+}
+
 // pub struct EventHandler {
 //     pub event_buf: Arc<Mutex<Option<Event>>>,
 // }
