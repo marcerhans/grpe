@@ -56,8 +56,7 @@ fn main() {
 
     // 6. Engine loop
     renderer.clear_screen();
-    // while event_handler.running() {
-    loop {
+    while event_handler.running() {
         renderer.set_vertices(Rc::clone(&vertices));
         renderer.set_vertices_line_draw_order(Rc::clone(&line_draw_order));
         renderer.render();
