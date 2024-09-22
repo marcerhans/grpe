@@ -241,10 +241,19 @@ impl Canvas {
 }
 
 /// Extra settings specific to [Terminal].
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct TerminalExtras {
     pub pixel_width_scaling: f64,
     pub pixel_height_scaling: f64,
+}
+
+impl Default for TerminalExtras {
+    fn default() -> Self {
+        Self {
+            pixel_width_scaling: 1.0,
+            pixel_height_scaling: 1.0,
+        }
+    }
 }
 
 /// Terminal renderer.
@@ -271,7 +280,6 @@ impl Terminal {
         print!("{}", ansi::CLEAR_SCREEN);
     }
 
-    // TODO: Add checks like the other setters?
     pub fn set_extras(&mut self, extras: TerminalExtras) {
         self.extras = extras;
     }
@@ -460,7 +468,15 @@ impl Terminal {
                         small_direction,
                         swap,
                     ) = if dx >= dz {
-                        (a[0] as isize, a[2] as isize, dx, dz, -dx_sign, -dz_sign, true)
+                        (
+                            a[0] as isize,
+                            a[2] as isize,
+                            dx,
+                            dz,
+                            -dx_sign,
+                            -dz_sign,
+                            true,
+                        )
                     } else {
                         (
                             a[2] as isize,
@@ -523,12 +539,7 @@ impl Terminal {
                                 continue;
                             }
 
-                            Self::render_pixel(
-                                &mut self.canvas.buffer,
-                                &self.config.camera,
-                                x,
-                                z,
-                            );
+                            Self::render_pixel(&mut self.canvas.buffer, &self.config.camera, x, z);
                         } else {
                             let x = large_base + large_direction * large_step;
                             let z = small_base + small_direction * small_step;
@@ -537,12 +548,7 @@ impl Terminal {
                                 continue;
                             }
 
-                            Self::render_pixel(
-                                &mut self.canvas.buffer,
-                                &self.config.camera,
-                                x,
-                                z,
-                            );
+                            Self::render_pixel(&mut self.canvas.buffer, &self.config.camera, x, z);
                         }
                     }
                 }

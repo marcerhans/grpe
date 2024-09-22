@@ -59,9 +59,9 @@ fn main() {
     while event_handler.running() {
         renderer.set_vertices(Rc::clone(&vertices));
         renderer.set_vertices_line_draw_order(Rc::clone(&line_draw_order));
-        renderer.render();
         let camera_updated = state.update(&event_handler, renderer.config().camera.clone());
         renderer = renderer.set_camera(camera_updated.clone()).unwrap();
+        renderer.render();
 
         let banner_text = "GRPE";
         let banner_fill_width = (camera_updated.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
