@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
-use io::{mouse, platform::unix::EventHandler, Event};
-use renderer::{renderer::Terminal, VectorRow};
+use io::{mouse, platform::unix::EventHandler, Event, EventHandlerTrait};
+use renderer::{renderer::Terminal, Camera, RendererConfiguration, RendererTrait, VectorRow};
 
 pub struct State {
     pub event_handler: EventHandler,
@@ -22,7 +22,40 @@ impl State {
         }
     }
 
-    pub fn update(&mut self, renderer: &mut Terminal) {
+    pub fn update(&mut self, mut config: RendererConfiguration) -> RendererConfiguration {
+        self.handle_event(self.event_handler.latest_event().expect("Failed to handle event."));
+        config.camera = self.update_camera(config.camera);
+        config
+    }
+
+    fn handle_event(&mut self, event: Event) {
+        match event {
+            Event::Mouse(_modifier, event) => match (_modifier, event) {
+                (io::Modifier::None, mouse::Event::Left(motion, x, y)) => match motion {
+                    mouse::Motion::Down => todo!(),
+                    mouse::Motion::Up => todo!(),
+                },
+                (io::Modifier::None, mouse::Event::Middle(motion, x, y)) => match motion {
+                    mouse::Motion::Down => todo!(),
+                    mouse::Motion::Up => todo!(),
+                },
+                (io::Modifier::None, mouse::Event::Right(motion, x, y)) => match motion {
+                    mouse::Motion::Down => todo!(),
+                    mouse::Motion::Up => todo!(),
+                },
+                (io::Modifier::None, mouse::Event::Scroll(direction)) => match direction {
+                    mouse::Direction::Down => todo!(),
+                    mouse::Direction::Up => todo!(),
+                },
+                _ => (),
+            },
+            Event::Character(c) => match c {
+                _ => (),
+            },
+        }
+    }
+
+    fn update_camera(&mut self, camera: Camera) -> Camera {
         // rotation_total = (
         //     rotation_total.0 + rotation_diff.0 - mouse_right_y,
         //     rotation_total.1 + rotation_diff.1 - mouse_right_x,
@@ -80,34 +113,6 @@ impl State {
         //         );
         //     }
         // }
+        todo!()
     }
-
-    fn handle_event(&mut self, event: Event) {
-        match event {
-            Event::Mouse(_modifier, event) => match (_modifier, event) {
-                (io::Modifier::None, mouse::Event::Left(motion, x, y)) => match motion {
-                    mouse::Motion::Down => todo!(),
-                    mouse::Motion::Up => todo!(),
-                },
-                (io::Modifier::None, mouse::Event::Middle(motion, x, y)) => match motion {
-                    mouse::Motion::Down => todo!(),
-                    mouse::Motion::Up => todo!(),
-                },
-                (io::Modifier::None, mouse::Event::Right(motion, x, y)) => match motion {
-                    mouse::Motion::Down => todo!(),
-                    mouse::Motion::Up => todo!(),
-                },
-                (io::Modifier::None, mouse::Event::Scroll(direction)) => match direction {
-                    mouse::Direction::Down => todo!(),
-                    mouse::Direction::Up => todo!(),
-                },
-                _ => (),
-            },
-            Event::Character(c) => match c {
-                _ => (),
-            },
-        }
-    }
-
-    fn update_camera(&mut self) {}
 }

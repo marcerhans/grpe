@@ -284,7 +284,7 @@ impl Terminal {
         self.extras = extras;
     }
 
-    pub fn get_extras(&self) -> &TerminalExtras {
+    pub fn extras(&self) -> &TerminalExtras {
         &self.extras
     }
 

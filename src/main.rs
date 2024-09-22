@@ -59,8 +59,9 @@ fn main() {
     // 6. Engine loop
     renderer.clear_screen();
     while state.event_handler.running() {
-        state.update(&mut renderer);
         renderer.render();
+        let updated_config = state.update(renderer.config().clone());
+        renderer = renderer.set_config(updated_config).expect("Bad configuration.");
 
         // let banner_text = "GRPE";
         // let banner_fill_width = (camera_updated.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
