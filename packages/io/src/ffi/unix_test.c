@@ -11,12 +11,10 @@
 
 int main() {
     char buf = 0;
-    setExitHandler();
     initialize();
 
     while (getChar(&buf) && buf != 'q') {
         printf("Typed character: %c\n", buf);
-        // usleep(1000);
     }
 
     terminate();

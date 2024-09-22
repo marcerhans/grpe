@@ -32,7 +32,6 @@ static pthread_mutex_t mutex;
 static pthread_cond_t cond;
 
 static void errorHandler();
-static void exitHandler();
 static void signalHandler();
 static bool isOkToRead(const uint64_t index_read, const uint64_t index_write, const bool index_flip);
 static bool isOkToWrite(const uint64_t index_read, const uint64_t index_write, const bool index_flip);
@@ -60,12 +59,6 @@ void enablePartialRawMode() {
   // Also enable mouse tracking via ANSI escape codes (xterm).
   puts("\x1B[?1002h"); // Track button presses + movement while pressed.
   puts("\x1B[?1006h"); // Enable SGR mouse mode to support large terminals (> char/u8 size coordinates).
-}
-
-void setExitHandler() {
-  atexit(exitHandler);
-  signal(SIGINT, signalHandler);
-  signal(SIGTERM, signalHandler);
 }
 
 bool getChar(char * const buf) {
@@ -114,6 +107,8 @@ bool getChar(char * const buf) {
 
 void initialize() {
   if (!atomic_load(&initialized)) {
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&cond, NULL);
     enablePartialRawMode();
@@ -144,10 +139,6 @@ void errorHandler(const char* s) {
 
   atomic_store(&error, true);
   perror(s);
-}
-
-void exitHandler() {
-  terminate();
 }
 
 void signalHandler() {

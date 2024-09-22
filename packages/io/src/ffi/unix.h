@@ -32,13 +32,6 @@ void disablePartialRawMode();
 void enablePartialRawMode();
 
 /**
- * Sets an exit-handler.
- * Preferably called before anything else for better cleanup.
- * Only call once!
- */
-void setExitHandler();
-
-/**
  * Fetches the most recent input char from stdin. Blocking.
  * 
  * @return True if successful. False if not initialized, on error,
@@ -48,7 +41,7 @@ void setExitHandler();
 bool getChar(char * const buf);
 
 /**
- * Initializes threads for maintaining the read/write buffer.
+ * Initializes signal handling and threads for maintaining the read/write buffer.
  * 
  * Must be called before calling 'getNextChar'.
  */
