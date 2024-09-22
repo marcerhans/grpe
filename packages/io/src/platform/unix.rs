@@ -22,19 +22,21 @@ impl EventHandlerTrait for EventHandler {
     }
 
     fn latest_event(&self) -> Result<Event, &'static str> {
-        return ansi_interpretor::interpret(|| {
-            let mut buf: c_char = 0;
+        return ansi_interpretor::interpret(|| self.latest_character());
+    }
 
-            unsafe {
-                let buf_p = &mut buf as *mut c_char;
+    fn latest_character(&self) -> Result<char, &'static str> {
+        let mut buf: c_char = 0;
 
-                if !getChar(buf_p) {
-                    return Err("Failed to read.");
-                }
+        unsafe {
+            let buf_p = &mut buf as *mut c_char;
+
+            if !getChar(buf_p) {
+                return Err("Failed to read.");
             }
+        }
         
-            Ok(buf.to_char())
-        });
+        Ok(buf.to_char())
     }
     
     fn running(&self) -> bool {
