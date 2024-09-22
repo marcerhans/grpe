@@ -123,14 +123,16 @@ pub fn interpret<F: Fn() -> Option<char>>(reader: F) -> Option<Event> {
 
     if let Ok(is_escape) = chars.is_escape() {
         if !is_escape {
-            // Not an escape sequence. Just a character
+            // Not an escape sequence. Just a character.
             return Some(Event::Character(chars.last().unwrap()));
         }
     }
 
     if let Ok(is_sequence) = chars.is_sequence() {
-        if let Ok((modifier, event)) = chars.is_mouse_tracking() {
-            return Some(Event::Mouse(modifier, event));
+        if is_sequence {
+            if let Ok((modifier, event)) = chars.is_mouse_tracking() {
+                return Some(Event::Mouse(modifier, event));
+            }
         }
     }
 
