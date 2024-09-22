@@ -24,7 +24,7 @@ impl EventHandlerTrait for EventHandler {
         Self {}
     }
 
-    fn get_latest_event(&self) -> Option<crate::Event> {
+    fn get_latest_event(&self) -> Result<Option<crate::Event>, &'static str> {
         return ansi_interpretor::interpret(|| {
             let mut buf: c_char = 0;
 

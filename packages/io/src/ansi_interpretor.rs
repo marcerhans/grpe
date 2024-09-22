@@ -3,7 +3,8 @@ use util::{Ansi, CharArray};
 
 mod util {
     use crate::{
-        platform::unix::ToU8, Direction, Modifier, Motion, MouseButton, MouseEvent, MouseEventBuilder
+        platform::unix::ToU8, Direction, Modifier, Motion, MouseButton, MouseEvent,
+        MouseEventBuilder,
     };
 
     pub struct CharArray<const SIZE: usize, F: Fn() -> Option<char>> {
@@ -44,10 +45,12 @@ mod util {
         }
     }
 
-    impl<const SIZE: usize, Idx, F: Fn() -> Option<char>> std::ops::Index<Idx> for CharArray<SIZE, F> 
-    where Idx: std::slice::SliceIndex<[char]> {
+    impl<const SIZE: usize, Idx, F: Fn() -> Option<char>> std::ops::Index<Idx> for CharArray<SIZE, F>
+    where
+        Idx: std::slice::SliceIndex<[char]>,
+    {
         type Output = Idx::Output;
-    
+
         fn index(&self, index: Idx) -> &Self::Output {
             &self.array[index]
         }
@@ -194,23 +197,34 @@ mod util {
     }
 }
 
-pub fn interpret<F: Fn() -> Option<char>>(reader: F) -> Option<Event> {
+pub fn interpret<F: Fn() -> Option<char>>(reader: F) -> Result<Option<Event>, &'static str> {
     let mut chars = CharArray::<64, F>::new(reader);
 
     if let Ok(is_escape) = chars.is_escape() {
         if !is_escape {
             // Not an escape sequence. Just a character.
-            return Some(Event::Character(chars.last().unwrap()));
+            return Ok(Some(Event::Character(chars.last().unwrap())));
         }
     }
 
+    match chars.is_sequence() {
+        Ok(is_sequence) => {
+            if is_sequence {
+                match chars.is_mouse_tracking() {
+                    Ok((modifier, event)) => return Ok(Some(Event::Mouse(modifier, event))),
+                    Err(msg) => return Err(msg),
+                }
+            }
+        }
+        Err(msg) => return Err(msg),
+    }
     if let Ok(is_sequence) = chars.is_sequence() {
         if is_sequence {
             if let Ok((modifier, event)) = chars.is_mouse_tracking() {
-                return Some(Event::Mouse(modifier, event));
+                return Ok(Some(Event::Mouse(modifier, event)));
             }
         }
     }
 
-    None
+    Err("Could not parse.")
 }
