@@ -1,17 +1,28 @@
-use io::{mouse, platform::unix::EventHandler, Event, EventHandlerTrait};
-use renderer::Camera;
+use std::{cell::RefCell, rc::Rc};
 
+use io::{mouse, platform::unix::EventHandler, Event};
+use renderer::{renderer::Terminal, VectorRow};
 
 pub struct State {
-
+    pub event_handler: EventHandler,
+    pub vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>,
+    pub line_draw_order: Rc<RefCell<Vec<Vec<usize>>>>,
 }
 
 impl State {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(
+        event_handler: EventHandler,
+        vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>,
+        line_draw_order: Rc<RefCell<Vec<Vec<usize>>>>,
+    ) -> Self {
+        Self {
+            event_handler,
+            vertices,
+            line_draw_order,
+        }
     }
 
-    pub fn update(&mut self, event_handler: &EventHandler, camera: Camera) -> Camera {
+    pub fn update(&mut self, renderer: &mut Terminal) {
         // rotation_total = (
         //     rotation_total.0 + rotation_diff.0 - mouse_right_y,
         //     rotation_total.1 + rotation_diff.1 - mouse_right_x,
@@ -69,8 +80,6 @@ impl State {
         //         );
         //     }
         // }
-
-        camera
     }
 
     fn handle_event(&mut self, event: Event) {
