@@ -9,13 +9,8 @@ fn main() {
         match event {
             Ok(event) => {
                 match event {
-                    Some(event) => {
-                        match event {
-                            Event::Mouse(modifier, mouse_event) => println!("Modifier: {:?} | MouseEvent: {:?}", modifier, mouse_event),
-                            Event::Character(character) => println!("Typed character: {character}"),
-                        }
-                    }
-                    None => break,
+                    Event::Mouse(modifier, mouse_event) => println!("Modifier: {:?} | MouseEvent: {:?}", modifier, mouse_event),
+                    Event::Character(character) => println!("Typed character: {character}"),
                 }
             }
             Err(msg) => println!("Error: {msg}"),

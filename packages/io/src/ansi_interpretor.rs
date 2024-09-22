@@ -4,13 +4,13 @@ use util::{Ansi, CharArray};
 mod util {
     use crate::{mouse, platform::unix::ToU8, Modifier};
 
-    pub struct CharArray<const SIZE: usize, F: Fn() -> Option<char>> {
+    pub struct CharArray<const SIZE: usize, F: Fn() -> Result<char, &'static str>> {
         array: [char; SIZE],
         pos: usize,
         reader: F,
     }
 
-    impl<const SIZE: usize, F: Fn() -> Option<char>> CharArray<SIZE, F> {
+    impl<const SIZE: usize, F: Fn() -> Result<char, &'static str>> CharArray<SIZE, F> {
         pub fn new(reader: F) -> Self {
             Self {
                 array: [Default::default(); SIZE],
@@ -24,7 +24,7 @@ mod util {
                 return Err("Array is full.");
             }
 
-            if let Some(c) = (self.reader)() {
+            if let Ok(c) = (self.reader)() {
                 self.array[self.pos] = c;
                 self.pos += 1;
                 return Ok(c);
@@ -33,16 +33,16 @@ mod util {
             Err("Failed to read character.")
         }
 
-        pub fn last(&self) -> Option<char> {
+        pub fn last(&self) -> Result<char, &'static str> {
             if self.pos == 0 {
-                return None;
+                return Err("No character read yet.");
             }
 
-            Some(self.array[self.pos - 1])
+            Ok(self.array[self.pos - 1])
         }
     }
 
-    impl<const SIZE: usize, Idx, F: Fn() -> Option<char>> std::ops::Index<Idx> for CharArray<SIZE, F>
+    impl<const SIZE: usize, Idx, F: Fn() -> Result<char, &'static str>> std::ops::Index<Idx> for CharArray<SIZE, F>
     where
         Idx: std::slice::SliceIndex<[char]>,
     {
@@ -59,7 +59,7 @@ mod util {
         fn is_mouse_tracking(&mut self) -> Result<(Modifier, mouse::Event), &'static str>;
     }
 
-    impl<const SIZE: usize, F: Fn() -> Option<char>> Ansi for CharArray<SIZE, F> {
+    impl<const SIZE: usize, F: Fn() -> Result<char, &'static str>> Ansi for CharArray<SIZE, F> {
         fn is_escape(&mut self) -> Result<bool, &'static str> {
             if self.pos != 0 {
                 return Err("Not in correct state to check for escape sequence.");
@@ -155,6 +155,7 @@ mod util {
                     _ => return Err("Not supported."),
                 }
             } else {
+                // Parse two characters for button type.
                 meb.button = match self[3].to_u8() {
                     3 => match self[4].to_u8() {
                         2 => Some(mouse::Button::Left),
@@ -194,13 +195,13 @@ mod util {
     }
 }
 
-pub fn interpret<F: Fn() -> Option<char>>(reader: F) -> Result<Option<Event>, &'static str> {
+pub fn interpret<F: Fn() -> Result<char, &'static str>>(reader: F) -> Result<Event, &'static str> {
     let mut chars = CharArray::<64, F>::new(reader);
 
     if let Ok(is_escape) = chars.is_escape() {
         if !is_escape {
             // Not an escape sequence. Just a character.
-            return Ok(Some(Event::Character(chars.last().unwrap())));
+            return Ok(Event::Character(chars.last().unwrap()));
         }
     }
 
@@ -208,7 +209,7 @@ pub fn interpret<F: Fn() -> Option<char>>(reader: F) -> Result<Option<Event>, &'
         Ok(is_sequence) => {
             if is_sequence {
                 match chars.is_mouse_tracking() {
-                    Ok((modifier, event)) => return Ok(Some(Event::Mouse(modifier, event))),
+                    Ok((modifier, event)) => return Ok(Event::Mouse(modifier, event)),
                     Err(msg) => return Err(msg),
                 }
             }

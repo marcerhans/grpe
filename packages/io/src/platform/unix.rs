@@ -8,10 +8,9 @@ include!(concat!(env!("OUT_DIR"), "/io_bindings.rs"));
 
 use std::ffi::c_char;
 
-use crate::{ansi_interpretor, EventHandlerTrait};
+use crate::{ansi_interpretor, EventHandlerTrait, Event};
 
-pub struct EventHandler {
-}
+pub struct EventHandler;
 
 impl EventHandlerTrait for EventHandler {
     fn init() -> Self {
@@ -22,7 +21,7 @@ impl EventHandlerTrait for EventHandler {
         Self {}
     }
 
-    fn latest_event(&self) -> Result<Option<crate::Event>, &'static str> {
+    fn latest_event(&self) -> Result<Event, &'static str> {
         return ansi_interpretor::interpret(|| {
             let mut buf: c_char = 0;
 
@@ -30,11 +29,11 @@ impl EventHandlerTrait for EventHandler {
                 let buf_p = &mut buf as *mut c_char;
 
                 if !getChar(buf_p) {
-                    return None;
+                    return Err("Failed to read.");
                 }
             }
         
-            Some(buf.to_char())
+            Ok(buf.to_char())
         });
     }
     
