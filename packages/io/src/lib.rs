@@ -47,24 +47,24 @@ pub mod mouse {
     }
 
     impl EventBuilder {
-        pub fn build(&self) -> Event {
-            match self.button.as_ref().unwrap() {
+        pub fn build(self) -> Event {
+            match self.button.unwrap() {
                 Button::Left => Event::Left(
-                    self.motion.as_ref().unwrap().clone(),
+                    self.motion.unwrap(),
                     self.x.unwrap(),
                     self.y.unwrap(),
                 ),
                 Button::Middle => Event::Middle(
-                    self.motion.as_ref().unwrap().clone(),
+                    self.motion.unwrap(),
                     self.x.unwrap(),
                     self.y.unwrap(),
                 ),
                 Button::Right => Event::Right(
-                    self.motion.as_ref().unwrap().clone(),
+                    self.motion.unwrap(),
                     self.x.unwrap(),
                     self.y.unwrap(),
                 ),
-                Button::Scroll => Event::Scroll(self.direction.as_ref().unwrap().clone()),
+                Button::Scroll => Event::Scroll(self.direction.unwrap()),
             }
         }
     }
