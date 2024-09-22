@@ -2,10 +2,7 @@ use crate::Event;
 use util::{Ansi, CharArray};
 
 mod util {
-    use crate::{
-        platform::unix::ToU8, Direction, Modifier, Motion, MouseButton, MouseEvent,
-        MouseEventBuilder,
-    };
+    use crate::{mouse, platform::unix::ToU8, Modifier};
 
     pub struct CharArray<const SIZE: usize, F: Fn() -> Option<char>> {
         array: [char; SIZE],
@@ -59,7 +56,7 @@ mod util {
     pub trait Ansi {
         fn is_escape(&mut self) -> Result<bool, &'static str>;
         fn is_sequence(&mut self) -> Result<bool, &'static str>;
-        fn is_mouse_tracking(&mut self) -> Result<(Modifier, MouseEvent), &'static str>;
+        fn is_mouse_tracking(&mut self) -> Result<(Modifier, mouse::Event), &'static str>;
     }
 
     impl<const SIZE: usize, F: Fn() -> Option<char>> Ansi for CharArray<SIZE, F> {
@@ -87,7 +84,7 @@ mod util {
             Err("Failed to read.")
         }
 
-        fn is_mouse_tracking(&mut self) -> Result<(Modifier, MouseEvent), &'static str> {
+        fn is_mouse_tracking(&mut self) -> Result<(Modifier, mouse::Event), &'static str> {
             if self.pos != 2 {
                 return Err("Not in correct state to check for mouse tracking sequence.");
             }
@@ -141,38 +138,38 @@ mod util {
             // 00110011 + 00110010 = Move right (34)
             // 00110110 + 00110100 = Scroll up (64)
             // 00110110 + 00110101 = Scroll down (65)
-            let mut meb = MouseEventBuilder::default();
+            let mut meb = mouse::EventBuilder::default();
 
             if self[m_position] == 'M' {
-                meb.motion = Some(Motion::Down);
+                meb.motion = Some(mouse::Motion::Down);
             } else {
-                meb.motion = Some(Motion::Up);
+                meb.motion = Some(mouse::Motion::Up);
             }
 
             if semicolon_positions[0] == 4 {
                 // Parse single character for button type.
                 meb.button = match self[3].to_u8() {
-                    0 => Some(MouseButton::Left),
-                    1 => Some(MouseButton::Middle),
-                    2 => Some(MouseButton::Right),
+                    0 => Some(mouse::Button::Left),
+                    1 => Some(mouse::Button::Middle),
+                    2 => Some(mouse::Button::Right),
                     _ => return Err("Not supported."),
                 }
             } else {
                 meb.button = match self[3].to_u8() {
                     3 => match self[4].to_u8() {
-                        2 => Some(MouseButton::Left),
-                        3 => Some(MouseButton::Middle),
-                        4 => Some(MouseButton::Right),
+                        2 => Some(mouse::Button::Left),
+                        3 => Some(mouse::Button::Middle),
+                        4 => Some(mouse::Button::Right),
                         _ => return Err("Not supported."),
                     },
                     6 => match self[4].to_u8() {
                         4 => {
-                            meb.direction = Some(Direction::Up);
-                            Some(MouseButton::Scroll)
+                            meb.direction = Some(mouse::Direction::Up);
+                            Some(mouse::Button::Scroll)
                         }
                         5 => {
-                            meb.direction = Some(Direction::Down);
-                            Some(MouseButton::Scroll)
+                            meb.direction = Some(mouse::Direction::Down);
+                            Some(mouse::Button::Scroll)
                         }
                         _ => return Err("Not supported."),
                     },

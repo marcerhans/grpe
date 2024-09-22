@@ -8,11 +8,9 @@ include!(concat!(env!("OUT_DIR"), "/io_bindings.rs"));
 
 use std::ffi::c_char;
 
-use crate::{ansi_interpretor, Event, EventHandlerTrait};
-// use std::sync::atomic::Atomicu8;
+use crate::{ansi_interpretor, EventHandlerTrait};
 
 pub struct EventHandler {
-    // pub event_buf: ,
 }
 
 impl EventHandlerTrait for EventHandler {
@@ -73,7 +71,6 @@ impl Drop for EventHandler {
 // /// Buffer for [Event]s.
 // static IO_THREAD_BUF: OnceLock<Arc<Mutex<Option<Event>>>> = OnceLock::new();
 
-/// Trait to convert a [c_char] to a [char].
 pub trait ToChar {
     fn to_char(&self) -> char;
 }

@@ -9,56 +9,70 @@ pub enum Modifier {
     Alt,
 }
 
-#[derive(Debug, Clone)]
-pub enum Motion {
-    Down,
-    Up,
-    Move,
-}
+pub(crate) mod mouse {
+    #[derive(Debug, Clone)]
+    pub enum Motion {
+        Down,
+        Up,
+        Move,
+    }
 
-#[derive(Debug, Clone)]
-pub enum Direction {
-    Down,
-    Up,
-}
+    #[derive(Debug, Clone)]
+    pub enum Direction {
+        Down,
+        Up,
+    }
 
-#[derive(Debug)]
-pub enum MouseEvent {
-    Left(Motion, u32, u32),
-    Middle(Motion, u32, u32),
-    Right(Motion, u32, u32),
-    Scroll(Direction),
-}
+    #[derive(Debug)]
+    pub enum Event {
+        Left(Motion, u32, u32),
+        Middle(Motion, u32, u32),
+        Right(Motion, u32, u32),
+        Scroll(Direction),
+    }
 
-pub(crate) enum MouseButton {
-    Left,
-    Middle,
-    Right,
-    Scroll,
-}
+    pub(crate) enum Button {
+        Left,
+        Middle,
+        Right,
+        Scroll,
+    }
 
-#[derive(Default)]
-pub(crate) struct MouseEventBuilder {
-    motion: Option<Motion>,
-    x: Option<u32>,
-    y: Option<u32>,
-    direction: Option<Direction>,
-    button: Option<MouseButton>,
-}
+    #[derive(Default)]
+    pub(crate) struct EventBuilder {
+        pub motion: Option<Motion>,
+        pub x: Option<u32>,
+        pub y: Option<u32>,
+        pub direction: Option<Direction>,
+        pub button: Option<Button>,
+    }
 
-impl MouseEventBuilder {
-    fn build(&self) -> MouseEvent {
-        match self.button.as_ref().unwrap() {
-            MouseButton::Left => MouseEvent::Left(self.motion.as_ref().unwrap().clone(), self.x.unwrap(), self.y.unwrap()),
-            MouseButton::Middle => MouseEvent::Middle(self.motion.as_ref().unwrap().clone(), self.x.unwrap(), self.y.unwrap()),
-            MouseButton::Right => MouseEvent::Right(self.motion.as_ref().unwrap().clone(), self.x.unwrap(), self.y.unwrap()),
-            MouseButton::Scroll => MouseEvent::Scroll(self.direction.as_ref().unwrap().clone())
+    impl EventBuilder {
+        pub fn build(&self) -> Event {
+            match self.button.as_ref().unwrap() {
+                Button::Left => Event::Left(
+                    self.motion.as_ref().unwrap().clone(),
+                    self.x.unwrap(),
+                    self.y.unwrap(),
+                ),
+                Button::Middle => Event::Middle(
+                    self.motion.as_ref().unwrap().clone(),
+                    self.x.unwrap(),
+                    self.y.unwrap(),
+                ),
+                Button::Right => Event::Right(
+                    self.motion.as_ref().unwrap().clone(),
+                    self.x.unwrap(),
+                    self.y.unwrap(),
+                ),
+                Button::Scroll => Event::Scroll(self.direction.as_ref().unwrap().clone()),
+            }
         }
     }
 }
 
 pub enum Event {
-    Mouse(Modifier, MouseEvent),
+    Mouse(Modifier, mouse::Event),
     Character(char),
 }
 
