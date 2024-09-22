@@ -1,12 +1,43 @@
 use std::{cell::RefCell, rc::Rc};
 
-use io::{mouse, platform::unix::EventHandler, Event, EventHandlerTrait};
-use renderer::{renderer::Terminal, Camera, RendererConfiguration, RendererTrait, VectorRow};
+use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
+use renderer::{Camera, RendererConfiguration, VectorRow};
+
+mod mouse {
+    pub enum Event {
+        Movement((f64, f64), (f64, f64)),
+    }
+
+    pub struct State {
+        pub prev_pos: Option<(f64, f64)>,
+        events: Vec<Event>,
+    }
+
+    impl State {
+        pub fn push(&mut self, event: Event) {
+            self.events.push(event);
+        }
+
+        pub fn pop(&mut self) -> Option<Event> {
+            self.events.pop()
+        }
+    }
+
+    impl Default for State {
+        fn default() -> Self {
+            Self {
+                prev_pos: Default::default(),
+                events: Default::default(),
+            }
+        }
+    }
+}
 
 pub struct State {
     pub event_handler: EventHandler,
     pub vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>,
     pub line_draw_order: Rc<RefCell<Vec<Vec<usize>>>>,
+    mouse: mouse::State,
 }
 
 impl State {
@@ -19,11 +50,14 @@ impl State {
             event_handler,
             vertices,
             line_draw_order,
+            mouse: Default::default(),
         }
     }
 
     pub fn update(&mut self, mut config: RendererConfiguration) -> RendererConfiguration {
-        self.handle_event(self.event_handler.latest_event().expect("Failed to handle event."));
+        if let Ok(event) = self.event_handler.latest_event() {
+            self.handle_event(event);
+        }
         config.camera = self.update_camera(config.camera);
         config
     }
@@ -31,31 +65,54 @@ impl State {
     fn handle_event(&mut self, event: Event) {
         match event {
             Event::Mouse(_modifier, event) => match (_modifier, event) {
-                (io::Modifier::None, mouse::Event::Left(motion, x, y)) => match motion {
-                    mouse::Motion::Down => todo!(),
-                    mouse::Motion::Up => todo!(),
+                (io::Modifier::None, io::mouse::Event::Left(motion, x, y)) => match motion {
+                    io::mouse::Motion::Down => {
+                        if let Some(pp) = self.mouse.prev_pos {
+                            self.mouse
+                                .push(mouse::Event::Movement((pp.0, pp.1), (x as f64, y as f64)));
+                            *self.mouse.prev_pos.as_mut().unwrap() = (x as f64, y as f64);
+                        } else {
+                            self.mouse.prev_pos = Some((x as f64, y as f64));
+                        }
+                    }
+                    io::mouse::Motion::Up => self.mouse.prev_pos = None,
                 },
-                (io::Modifier::None, mouse::Event::Middle(motion, x, y)) => match motion {
-                    mouse::Motion::Down => todo!(),
-                    mouse::Motion::Up => todo!(),
+                (io::Modifier::None, io::mouse::Event::Middle(motion, x, y)) => match motion {
+                    io::mouse::Motion::Down => todo!(),
+                    io::mouse::Motion::Up => (),
                 },
-                (io::Modifier::None, mouse::Event::Right(motion, x, y)) => match motion {
-                    mouse::Motion::Down => todo!(),
-                    mouse::Motion::Up => todo!(),
+                (io::Modifier::None, io::mouse::Event::Right(motion, x, y)) => match motion {
+                    io::mouse::Motion::Down => todo!(),
+                    io::mouse::Motion::Up => (),
                 },
-                (io::Modifier::None, mouse::Event::Scroll(direction)) => match direction {
-                    mouse::Direction::Down => todo!(),
-                    mouse::Direction::Up => todo!(),
+                (io::Modifier::None, io::mouse::Event::Scroll(direction)) => match direction {
+                    io::mouse::Direction::Down => todo!(),
+                    io::mouse::Direction::Up => (),
                 },
                 _ => (),
             },
             Event::Character(c) => match c {
+                'q' => std::process::exit(0),
                 _ => (),
             },
         }
     }
 
-    fn update_camera(&mut self, camera: Camera) -> Camera {
+    fn update_camera(&mut self, mut camera: Camera) -> Camera {
+        // Update position
+        let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
+
+        while let Some(event) = self.mouse.pop() {
+            match event {
+                mouse::Event::Movement(a, b) => {
+                    pos_diff[0] = b.0 - a.0;
+                    pos_diff[1] = b.1 - a.1;
+                }
+            }
+        }
+
+        camera.position = (&camera.position.0 + &pos_diff.0).into();
+        camera
         // rotation_total = (
         //     rotation_total.0 + rotation_diff.0 - mouse_right_y,
         //     rotation_total.1 + rotation_diff.1 - mouse_right_x,
@@ -113,6 +170,5 @@ impl State {
         //         );
         //     }
         // }
-        todo!()
     }
 }

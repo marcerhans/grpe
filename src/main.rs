@@ -37,6 +37,7 @@ fn main() {
             .unwrap_or(&model::Model::Plane)
             .get_vertices(),
     ));
+    renderer.set_vertices(Rc::clone(&vertices));
 
     // 4. Define line order.
     let line_draw_order = Rc::new(RefCell::new(
@@ -45,8 +46,6 @@ fn main() {
             .unwrap_or(&model::Model::Plane)
             .get_line_draw_order(),
     ));
-
-    renderer.set_vertices(Rc::clone(&vertices));
     renderer.set_vertices_line_draw_order(Rc::clone(&line_draw_order));
 
     // 5. Create a state tracker.
