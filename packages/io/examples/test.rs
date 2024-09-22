@@ -10,7 +10,7 @@ fn main() {
             Some(event) => {
                 match event {
                     Event::Mouse(modifier, mouse_event) => println!("mouse"),
-                    Event::Letter(character) => println!("Typed character: {character}"),
+                    Event::Character(character) => println!("Typed character: {character}"),
                 }
             }
             None => break,
