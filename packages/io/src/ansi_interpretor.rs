@@ -102,18 +102,48 @@ mod util {
             // 00110011 + 00110010 = Move right (34)
             // 00110110 + 00110100 = Scroll up (64)
             // 00110110 + 00110101 = Scroll down (65)
-            let mut expected_semicolons_left = 2;
-            let mut expected_m_left = 1;
+            let mut semicolons_left: usize = 2;
+            let mut semicolon_positions: [usize; 2] = [0; 2];
 
-            // while match self.read() {
-            //     Ok(c) => match c {
-            //         ';' | 'm' | 'M' => {
-            //             true
-            //         }
-            //         _ => false,
-            //     }
-            //     Err(_) => return None,
-            // } {}
+            // Read data and check formatting
+            // Note: If parsing took place here too, it would be faster
+            //       but I'd rather have the separation.
+            while match self.read() {
+                Ok(c) => {
+                    if c == ';' {
+                        if let Some(new) = semicolons_left.checked_sub(1) {
+                            semicolons_left = new;
+                        } else {
+                            return Err("Badly formatted sequence.");
+                        }
+
+                        if semicolons_left < 1 {
+                            semicolon_positions[semicolons_left - 2] = self.pos - 1;
+                        }
+
+                        true
+                    } else {
+                        if c == 'm' || c == 'M' {
+                            false
+                        } else {
+                            true
+                        }
+                    }
+                }
+                Err(_) => false,
+            } {}
+
+            // Parsing of read data.
+            // Parse button.
+            if semicolon_positions[0] - 3 == 2 {
+                // Parse single character for button type.
+            } else {
+                // Parse two characters for motion + button type.
+            }
+
+            // Parse X-coordinate.
+
+            // Parse Y-coordinate.
 
             Err("Failed to read.")
         }
