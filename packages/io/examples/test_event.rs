@@ -17,16 +17,5 @@ fn main() {
         }
     }
 
-    // while event_handler.running() {
-    //     let character = event_handler.latest_character();
-
-    //     match character {
-    //         Ok(character) => {
-    //             println!("Typed character: {character}");
-    //         }
-    //         Err(msg) => println!("Error: {msg}"),
-    //     }
-    // }
-
     println!("IO handler stopped running.");
 }

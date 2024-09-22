@@ -129,7 +129,7 @@ mod util {
 
             // Parsing of read data.
             // Parse (motion + button type).
-            // Easiest way to figure this out is to run unix_test.c or look at docs for xterm control sequences.
+            // These are just some examples of what is parsed. Note that 0 is the CHARACTER for 0. Not the integer value 0.
             // None + 00110000 = Click left (0)
             // None + 00110001 = Click middle (1)
             // None + 00110010 = Click right (2)
