@@ -14,7 +14,6 @@ pub(crate) mod mouse {
     pub enum Motion {
         Down,
         Up,
-        Move,
     }
 
     #[derive(Debug, Clone)]

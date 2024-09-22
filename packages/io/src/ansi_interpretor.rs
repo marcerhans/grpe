@@ -215,13 +215,6 @@ pub fn interpret<F: Fn() -> Option<char>>(reader: F) -> Result<Option<Event>, &'
         }
         Err(msg) => return Err(msg),
     }
-    if let Ok(is_sequence) = chars.is_sequence() {
-        if is_sequence {
-            if let Ok((modifier, event)) = chars.is_mouse_tracking() {
-                return Ok(Some(Event::Mouse(modifier, event)));
-            }
-        }
-    }
 
     Err("Could not parse.")
 }
