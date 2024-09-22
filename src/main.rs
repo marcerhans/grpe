@@ -45,6 +45,8 @@ fn main() {
         .expect("Bad camera config.")
         .build()
         .unwrap();
+    renderer.set_vertices(Rc::clone(&vertices));
+    renderer.set_vertices_line_draw_order(Rc::clone(&line_draw_order));
 
     // 5. Create a state tracker.
     // It is a tad unclear what should/should not be part of this structure.
@@ -57,10 +59,9 @@ fn main() {
     // 6. Engine loop
     renderer.clear_screen();
     while event_handler.running() {
-        renderer.set_vertices(Rc::clone(&vertices));
-        renderer.set_vertices_line_draw_order(Rc::clone(&line_draw_order));
         let camera_updated = state.update(&event_handler, renderer.config().camera.clone());
         renderer = renderer.set_camera(camera_updated.clone()).unwrap();
+
         renderer.render();
 
         let banner_text = "GRPE";
