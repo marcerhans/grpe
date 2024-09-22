@@ -58,6 +58,10 @@ mod util {
 
     impl<const SIZE: usize, F: Fn() -> Option<char>> Ansi for CharArray<SIZE, F> {
         fn is_escape(&mut self) -> Result<bool, &'static str> {
+            if self.pos != 0 {
+                return Err("Not in correct state to check for escape sequence.");
+            }
+
             if let Ok(c) = self.read() {
                 return Ok(c == '\x1b');
             }
@@ -67,7 +71,7 @@ mod util {
 
         fn is_sequence(&mut self) -> Result<bool, &'static str> {
             if self.pos != 1 {
-                return Err("Not in correct state to check for CSI symbols.");
+                return Err("Not in correct state to check for sequence start symbol ('[').");
             }
 
             if let Ok(c) = self.read() {
