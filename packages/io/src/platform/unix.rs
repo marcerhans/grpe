@@ -3,6 +3,9 @@
 #![allow(non_snake_case)]
 include!(concat!(env!("OUT_DIR"), "/io_bindings.rs"));
 
+/// Documentation regarding escape codes and control sequences
+/// can be found in the Xterm Control Sequence Documentation.
+
 use std::ffi::c_char;
 
 use crate::{ansi_interpretor, Event, EventHandlerTrait};

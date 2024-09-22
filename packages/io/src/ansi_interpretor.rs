@@ -1,7 +1,9 @@
-use crate::{platform::unix::ToChar, Event, MouseEvent};
+use crate::{platform::unix::ToChar, Event, MouseEvent, Modifier, Motion};
 use util::{CharArray, Ansi};
 
 mod util {
+    use crate::{Modifier, MouseEvent, Motion};
+
     pub struct CharArray<const SIZE: usize, F: Fn() -> Option<char>> {
         array: [char; SIZE],
         pos: usize,
@@ -40,175 +42,97 @@ mod util {
         }
     }
 
-    pub trait Ansi {
-        fn is_escape(&self) -> bool;
-        fn is_sequence(&self) -> bool;
+    impl<const SIZE: usize, F: Fn() -> Option<char>> std::ops::Index<usize> for CharArray<SIZE, F> {
+        type Output = char;
+    
+        fn index(&self, index: usize) -> &Self::Output {
+            &self.array[index]
+        }
+    }
 
-        /// 0 = MB1, 1 = MB2, 2 = MB3, 32 = MB1_DRAG, 33, MB3_DRAG, 34, MB4_DRAG
-        fn is_mouse_tracking(&self) -> bool;
+    pub trait Ansi {
+        fn is_escape(&mut self) -> Result<bool, &'static str>;
+        fn is_sequence(&mut self) -> Result<bool, &'static str>;
+        fn is_mouse_tracking(&mut self) -> Result<(Modifier, MouseEvent), &'static str>;
     }
 
     impl<const SIZE: usize, F: Fn() -> Option<char>> Ansi for CharArray<SIZE, F> {
-        fn is_escape(&self) -> bool {
-            // if let Some(last) = self.last {
-            //     self.array[0] == '\x1b'
-            // }
+        fn is_escape(&mut self) -> Result<bool, &'static str> {
+            if let Ok(c) = self.read() {
+                return Ok(c == '\x1b');
+            }
 
-            false
+            Err("Failed to read.")
         }
 
-        fn is_sequence(&self) -> bool {
-            // self.is_escape() && self.len() >= 2 && self[1] == '\x1b'
-            false
+        fn is_sequence(&mut self) -> Result<bool, &'static str> {
+            if self.pos != 1 {
+                return Err("Not in correct state to check for CSI symbols.");
+            }
+
+            if let Ok(c) = self.read() {
+                return Ok(c == '[');
+            }
+
+            Err("Failed to read.")
         }
 
-        fn is_mouse_tracking(&self) -> bool {
-            // let mut ret = self.is_sequence() && self.len() > 3 && self[2] == '<';
-            // let mut expected_semicolons = 2;
+        fn is_mouse_tracking(&mut self) -> Result<(Modifier, MouseEvent), &'static str> {
+            if self.pos != 2 {
+                return Err("Not in correct state to check for mouse tracking sequence.");
+            }
 
-            // for c in self.iter() {
-            //     if c == ';' {
-            //         expected_semicolons -= 1;
+            if let Ok(c) = self.read() {
+                if c != '<' {
+                    return Err("Not a mouse tracking sequence.")
+                }
+            }
+
+            // Parse (motion + button type).
+            // Easiest way to figure this out is to run unix_test.c or look at docs for xterm control sequences.
+            // None + 00110000 = Click left (0)
+            // None + 00110001 = Click middle (1)
+            // None + 00110010 = Click right (2)
+            // 00110011 + 00110000 = Move left (32)
+            // 00110011 + 00110001 = Move middle (33)
+            // 00110011 + 00110010 = Move right (34)
+            // 00110110 + 00110100 = Scroll up (64)
+            // 00110110 + 00110101 = Scroll down (65)
+            let mut expected_semicolons_left = 2;
+            let mut expected_m_left = 1;
+
+            // while match self.read() {
+            //     Ok(c) => match c {
+            //         ';' | 'm' | 'M' => {
+            //             true
+            //         }
+            //         _ => false,
             //     }
-            // }
+            //     Err(_) => return None,
+            // } {}
 
-            // if 
-
-            // ret
-            false
+            Err("Failed to read.")
         }
     }
 
 
-}
-
-struct SGRMouse {
-
-}
-
-enum ControlSequence {
-    CSI,
-    SGRMouse(SGRMouse),
 }
 
 pub fn interpret<F: Fn() -> Option<char>>(reader: F) -> Option<Event> {
     let mut chars = CharArray::<64, F>::new(reader);
 
-    if let Ok(c) = chars.read() {
-        if !chars.is_escape() {
-            return Some(Event::Letter(c));
+    if let Ok(is_escape) = chars.is_escape() {
+        if !is_escape {
+            // Not an escape sequence. Just a character
+            return Some(Event::Character(chars.last().unwrap()));
         }
+    }
 
-        if chars.is_sequence() {
-
+    if let Ok(is_sequence) = chars.is_sequence() {
+        if let Ok((modifier, event)) = chars.is_mouse_tracking() {
+            return Some(Event::Mouse(modifier, event));
         }
     }
 
     None
 }
-
-
-// pub fn is_escape_sequence(c: c_char) -> bool {
-//     static START_0: i8 = 0x1B; // ESC
-//     return c as i8 == START_0;
-// }
-
-// pub fn is_csi_sequence(c: c_char) -> bool {
-//     static START_1: i8 = 0x5B; // [
-//     return c as i8 == START_1;
-// }
-
-// /// Reads csi sequence with given reader [Fn] and returns [Event] based on input if recognized.
-// pub fn read_csi_sequence<F: Fn() -> c_char>(reader: F) -> Option<Event> {
-//     let mut sequence = vec![];
-
-//     // Read to end of sequence ('m' or 'M')
-//     loop {
-//         sequence.push((reader)());
-
-//         let last = sequence.last().unwrap();
-//         if *last == ascii::m || *last == ascii::M {
-//             break;
-//         }
-//     }
-
-//     let items: Vec<&[i8]> = sequence.split(|c| *c == ascii::SEMI_COLON).collect();
-
-//     if items.len() != 3 {
-//         panic!("CSI Sequence badly formatted or parsed")
-//     }
-
-//     // Convert from chars to string to values.
-//     let button_chrs = &items[0][1..];
-//     let x_chrs = &items[1];
-//     let y_chrs = &items[2][..(items[2].len() - 1)];
-
-//     fn digits_to_num(digits: &[i8]) -> u32 {
-//         let mut num = 0;
-
-//         for digit in digits.iter() {
-//             num = 10 * num + ((*digit - 48) as u32); // -48 because of ascii
-//         }
-
-//         num
-//     }
-
-//     let button = digits_to_num(button_chrs);
-//     let x = digits_to_num(x_chrs);
-//     let y = digits_to_num(y_chrs);
-
-//     // 0 = MB1, 1 = MB3, 2 = MB2, 32 = MB1_DRAG, 33, MB3_DRAG, 34, MB4_DRAG
-//     let ret = if *sequence.last().unwrap() == ascii::M {
-//         match button {
-//             0 => Some(Event::Mouse(MouseEvent::LeftDown(x, y))),
-//             1 => Some(Event::Mouse(MouseEvent::MiddleDown(x, y))),
-//             2 => Some(Event::Mouse(MouseEvent::RightDown(x, y))),
-//             32 => Some(Event::Mouse(MouseEvent::LeftMove(x, y))),
-//             33 => Some(Event::Mouse(MouseEvent::MiddleMove(x, y))),
-//             34 => Some(Event::Mouse(MouseEvent::RightMove(x, y))),
-//             _ => None
-//         }
-//     } else {
-//         match button {
-//             0 => Some(Event::Mouse(MouseEvent::LeftUp(x, y))),
-//             1 => Some(Event::Mouse(MouseEvent::MiddleUp(x, y))),
-//             2 => Some(Event::Mouse(MouseEvent::RightUp(x, y))),
-//             _ => None
-//         }
-//     };
-//     // sequence.split
-
-//     //     // Down?
-//     //     if c >= 32 && c <= 34 { // MB1 = 32+0, MB2 = 32+1, MB3 = 32+2
-//     //         // Which button ?
-//     //         let button = c - 32;
-
-//     //         match button {
-//     //             0 => return
-//     //             1 => return Some(Event::Mouse(Mouse::RightDown(x, y))),
-//     //             2 => return Some(Event::Mouse(Mouse::MiddleDown(x, y))),
-//     //             _ => return None,
-//     //         }
-//     //     }
-
-//     //     // Move?
-//     //     if c >= 64 && c <= 66 { // MB1DRAG = 32+32+0, MB2DRAG = 32+32+1, ...
-//     //         // Which button ?
-//     //         let button = c - 64;
-
-//     //         match button {
-//     //             0 => return Some(Event::Mouse(Mouse::LeftMove(x, y))),
-//     //             1 => return Some(Event::Mouse(Mouse::RightMove(x, y))),
-//     //             2 => return Some(Event::Mouse(Mouse::MiddleMove(x, y))),
-//     //             _ => return None,
-//     //         }
-//     //     }
-
-//     //     // Release?
-//     //     if c == 35 {
-//     //         return Some(Event::Mouse(Mouse::Up(x, y)));
-//     //     }
-//     // }
-
-//     ret
-// }

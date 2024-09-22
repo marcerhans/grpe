@@ -1,21 +1,29 @@
 pub mod platform;
 mod ansi_interpretor;
 
+pub enum Modifier {
+    None,
+    Shift,
+    Ctrl,
+    Alt,
+}
+
+pub enum Motion {
+    Down,
+    Up,
+    Move,
+}
+
 pub enum MouseEvent {
-    LeftDown(u32, u32),
-    LeftMove(u32, u32),
-    LeftUp(u32, u32),
-    MiddleDown(u32, u32),
-    MiddleMove(u32, u32),
-    MiddleUp(u32, u32),
-    RightDown(u32, u32),
-    RightMove(u32, u32),
-    RightUp(u32, u32),
+    Left(Motion, u32, u32),
+    Middle(Motion, u32, u32),
+    RightDown(Motion, u32, u32),
+    Scroll(Motion),
 }
 
 pub enum Event {
-    Mouse(MouseEvent),
-    Letter(char),
+    Mouse(Modifier, MouseEvent),
+    Character(char),
 }
 
 pub trait EventHandlerTrait {
