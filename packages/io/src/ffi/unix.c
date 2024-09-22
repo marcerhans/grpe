@@ -40,6 +40,7 @@ static void* writerFn(void* _);
 void disablePartialRawMode() {
   puts("\x1B[?1002l");
   puts("\x1B[?1006l");
+  puts("\x1B[?25h");
 
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1) {
     errorHandler(NULL);
@@ -59,6 +60,7 @@ void enablePartialRawMode() {
   // Also enable mouse tracking via ANSI escape codes (xterm).
   puts("\x1B[?1002h"); // Track button presses + movement while pressed.
   puts("\x1B[?1006h"); // Enable SGR mouse mode to support large terminals (> char/u8 size coordinates).
+  puts("\x1B[?25l"); // Hide cursor
 }
 
 bool getChar(char * const buf) {
