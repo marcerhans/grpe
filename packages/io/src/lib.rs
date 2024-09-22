@@ -77,5 +77,6 @@ pub enum Event {
 
 pub trait EventHandlerTrait {
     fn init() -> Self;
-    fn get_latest_event(&self) -> Result<Option<Event>, &'static str>;
+    fn running(&self) -> bool;
+    fn latest_event(&self) -> Result<Option<Event>, &'static str>;
 }

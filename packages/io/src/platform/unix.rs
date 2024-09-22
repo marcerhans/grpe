@@ -22,7 +22,7 @@ impl EventHandlerTrait for EventHandler {
         Self {}
     }
 
-    fn get_latest_event(&self) -> Result<Option<crate::Event>, &'static str> {
+    fn latest_event(&self) -> Result<Option<crate::Event>, &'static str> {
         return ansi_interpretor::interpret(|| {
             let mut buf: c_char = 0;
 
@@ -36,6 +36,10 @@ impl EventHandlerTrait for EventHandler {
         
             Some(buf.to_char())
         });
+    }
+    
+    fn running(&self) -> bool {
+        unsafe { running() }
     }
 }
 

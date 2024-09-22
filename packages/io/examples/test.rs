@@ -3,8 +3,8 @@ use io::{platform::unix::*, EventHandlerTrait, Event};
 fn main() {
     let event_handler = EventHandler::init();
 
-    loop {
-        let event = event_handler.get_latest_event();
+    while event_handler.running() {
+        let event = event_handler.latest_event();
 
         match event {
             Ok(event) => {
@@ -21,4 +21,6 @@ fn main() {
             Err(msg) => println!("Error: {msg}"),
         }
     }
+
+    println!("IO handler was stopped.");
 }

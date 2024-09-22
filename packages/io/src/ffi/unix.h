@@ -41,6 +41,11 @@ void enablePartialRawMode();
 bool getChar(char * const buf);
 
 /**
+ * Checks whether or not the service is active.
+ */
+bool running();
+
+/**
  * Initializes signal handling and threads for maintaining the read/write buffer.
  * 
  * Must be called before calling 'getNextChar'.

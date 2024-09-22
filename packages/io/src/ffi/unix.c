@@ -105,6 +105,10 @@ bool getChar(char * const buf) {
   return ret;
 }
 
+bool running() {
+  return atomic_load(&initialized) && !atomic_load(&error);
+}
+
 void initialize() {
   if (!atomic_load(&initialized)) {
     signal(SIGINT, signalHandler);
