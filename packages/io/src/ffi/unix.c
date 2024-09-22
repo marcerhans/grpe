@@ -35,7 +35,7 @@ static void errorHandler();
 static void signalHandler();
 static bool isOkToRead(const uint64_t index_read, const uint64_t index_write, const bool index_flip);
 static bool isOkToWrite(const uint64_t index_read, const uint64_t index_write, const bool index_flip);
-static void* writerFn(void* _);
+static void* writerFn(void*);
 
 void disablePartialRawMode() {
   puts("\x1B[?1002l");
@@ -167,9 +167,9 @@ bool isOkToWrite(const uint64_t index_read, const uint64_t index_write, const bo
   return flip_guard && (non_flip || flip);
 }
 
-void* writerFn(void* _) {
+void* writerFn(void*) {
   char buffer;
-  uint64_t len = 0;
+  int64_t len = 0;
 
   while (atomic_load(&initialized) && !atomic_load(&error)) {
     if ((len = read(STDIN_FILENO, &buffer, 1)) > 0) {
