@@ -9,7 +9,7 @@ pub enum Modifier {
     Alt,
 }
 
-pub(crate) mod mouse {
+pub mod mouse {
     #[derive(Debug, Clone)]
     pub enum Motion {
         Down,

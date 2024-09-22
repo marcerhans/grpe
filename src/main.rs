@@ -1,5 +1,6 @@
 mod arg;
 mod model;
+mod state;
 
 use std::{
     cell::RefCell,
@@ -7,7 +8,7 @@ use std::{
     time::{self, Duration},
 };
 
-use io::{platform::unix::EventHandler, Event, EventHandlerTrait, MouseEvent};
+use io::{platform::unix::EventHandler, Event, EventHandlerTrait, mouse};
 use linear_algebra::quaternion::{self, Quaternion};
 use renderer::{
     renderer::TerminalBuilder, Camera, ProjectionMode, RendererBuilderTrait, RendererTrait, VectorRow, ViewMode
@@ -24,7 +25,11 @@ fn main() {
     // 2. Define line order.
     let line_draw_order = Rc::new(RefCell::new(args.model.as_ref().unwrap_or(&model::Model::Plane).get_line_draw_order()));
 
-    // 3. Instantiate renderer.
+    // 3. Instantiate IO handler.
+    let event_handler = EventHandler::init();
+    let mut event = None;
+
+    // 4. Instantiate renderer.
     let camera_default = Camera {
         resolution: args.resolution.unwrap_or((64, 64)),
         position: VectorRow::from([0.0, 0.0, 0.0]),
@@ -77,16 +82,8 @@ fn main() {
 
     renderer.clear_screen();
 
-    // 4. Engine loop
-    loop {
-        let start = std::time::Instant::now();
-        loop {
-            if std::time::Instant::now() - start > time_wait {
-                break;
-            }
-        }
-        let start = std::time::Instant::now();
-
+    // 5. Engine loop
+    while event_handler.running() {
         renderer.set_vertices(Rc::clone(&vertices));
         renderer.set_vertices_line_draw_order(Rc::clone(&line_draw_order));
         let mut extras = renderer.get_extras().clone();
@@ -105,105 +102,130 @@ fn main() {
         mouse_right_x = 0.0;
         mouse_right_y = 0.0;
 
-        match event_handler.get_latest_event() {
-            Some(Event::Mouse(mouse_event)) => match mouse_event {
-                MouseEvent::LeftDown(x, y) => {
-                    mouse_left_x_start = x as f64;
-                    mouse_left_y_start = y as f64;
-                }
-                MouseEvent::LeftMove(x, y) => {
-                    mouse_left_x = (x as f64 - mouse_left_x_start) * 0.5;
-                    mouse_left_y = (y as f64 - mouse_left_y_start) * 0.5;
-                }
-                MouseEvent::LeftUp(_, _) => {
-                    mouse_left_x = 0.0;
-                    mouse_left_y = 0.0;
-                }
-                MouseEvent::RightDown(x, y) => {
-                    mouse_right_x_start = x as f64;
-                    mouse_right_y_start = y as f64;
-                }
-                MouseEvent::RightMove(x, y) => {
-                    mouse_right_x += (x as f64 - mouse_right_x_start) * 0.08;
-                    mouse_right_y += (y as f64 - mouse_right_y_start) * 0.08;
-                    mouse_right_x_start = x as f64;
-                    mouse_right_y_start = y as f64;
-                }
-                MouseEvent::RightUp(_, _) => {
-                    // mouse_right_x = 0.0;
-                    // mouse_right_y = 0.0;
-                }
-                _ => (),
-            },
-            Some(Event::Letter(c)) => {
-                match c {
-                    // Axis movement
-                    'a' => position_diff[0] = -2.0,
-                    'd' => position_diff[0] = 2.0,
-                    // 'j' => camera.position[1] -= 2.0,
-                    // 'k' => camera.position[1] += 2.0,
-                    'w' => position_diff[1] = 2.0,
-                    's' => position_diff[1] = -2.0,
-                    'A' => position_diff[0] = -8.0,
-                    'D' => position_diff[0] = 8.0,
-                    // 'J' => camera.position[1] -= 8.0,
-                    // 'K' => camera.position[1] += 8.0,
-                    'W' => position_diff[1] = 8.0,
-                    'S' => position_diff[1] = -8.0,
-                    // '+' => position_diff[1] = 8.0,
-                    // '?' => position_diff[1] = 16.0,
-                    // '-' => position_diff[1] = -8.0,
-                    // '_' => position_diff[1] = -16.0,
-
-                    // Rotation
-                    'i' => rotation_diff.0 = -std::f64::consts::FRAC_PI_8,
-                    'j' => rotation_diff.1 = -std::f64::consts::FRAC_PI_8,
-                    'k' => rotation_diff.0 = std::f64::consts::FRAC_PI_8,
-                    'l' => rotation_diff.1 = std::f64::consts::FRAC_PI_8,
-
-                    // FOV
-                    'q' | 'Q' | 'e' | 'E' => {
-                        if let ProjectionMode::Perspective { fov } = &mut camera.projection_mode {
-                            match c {
-                                'q' => *fov -= 1,
-                                'e' => *fov += 1,
-                                'Q' => *fov -= 2,
-                                'E' => *fov += 2,
-                                _ => (),
-                            }
-                        }
+        match event {
+            Some(event) => match event {
+                Event::Mouse(_modifier, event) => match (_modifier, event) {
+                    (io::Modifier::None, mouse::Event::Left(motion, x, y)) => match motion {
+                        mouse::Motion::Down => todo!(),
+                        mouse::Motion::Up => todo!(),
                     }
-
-                    // Projection Mode
-                    'p' => {
-                        match camera.projection_mode {
-                            ProjectionMode::Orthographic => camera.projection_mode = ProjectionMode::Perspective { fov: camera_fov },
-                            ProjectionMode::Perspective { fov } => {
-                                camera_fov = fov;
-                                camera.projection_mode = ProjectionMode::Orthographic;
-                            }
-                        }
+                    (io::Modifier::None, mouse::Event::Middle(motion, x, y)) => match motion {
+                        mouse::Motion::Down => todo!(),
+                        mouse::Motion::Up => todo!(),
                     }
-
-                    // View mode
-                    'v' => {
-                        match camera.view_mode {
-                            ViewMode::FirstPerson => camera.view_mode = ViewMode::Orbital,
-                            ViewMode::Orbital => camera.view_mode = ViewMode::FirstPerson,
-                        }
+                    (io::Modifier::None, mouse::Event::Right(motion, x, y)) => match motion {
+                        mouse::Motion::Down => todo!(),
+                        mouse::Motion::Up => todo!(),
                     }
-
-                    // Utils
-                    'R' => reset = true,
-                    'x' => pixel_width_scaling -= 0.01,
-                    'X' => pixel_width_scaling += 0.01,
-                    'z' => pixel_height_scaling -= 0.01,
-                    'Z' => pixel_height_scaling += 0.01,
-
+                    (io::Modifier::None, mouse::Event::Scroll(direction)) => match direction {
+                        mouse::Direction::Down => todo!(),
+                        mouse::Direction::Up => todo!(),
+                    }
+                    _ => (),
+                }
+                Event::Character(c) => match c {
                     _ => (),
                 }
             }
             None => (),
+            // Some(Event::Mouse(_modifier, mouse_event)) => match mouse_event {
+            //     // mouse::Event::LeftDown(x, y) => {
+            //     //     mouse_left_x_start = x as f64;
+            //     //     mouse_left_y_start = y as f64;
+            //     // }
+            //     // mouse::Event::LeftMove(x, y) => {
+            //     //     mouse_left_x = (x as f64 - mouse_left_x_start) * 0.5;
+            //     //     mouse_left_y = (y as f64 - mouse_left_y_start) * 0.5;
+            //     // }
+            //     // mouse::Event::LeftUp(_, _) => {
+            //     //     mouse_left_x = 0.0;
+            //     //     mouse_left_y = 0.0;
+            //     // }
+            //     // mouse::Event::RightDown(x, y) => {
+            //     //     mouse_right_x_start = x as f64;
+            //     //     mouse_right_y_start = y as f64;
+            //     // }
+            //     // mouse::Event::RightMove(x, y) => {
+            //     //     mouse_right_x += (x as f64 - mouse_right_x_start) * 0.08;
+            //     //     mouse_right_y += (y as f64 - mouse_right_y_start) * 0.08;
+            //     //     mouse_right_x_start = x as f64;
+            //     //     mouse_right_y_start = y as f64;
+            //     // }
+            //     // mouse::Event::RightUp(_, _) => {
+            //     //     // mouse_right_x = 0.0;
+            //     //     // mouse_right_y = 0.0;
+            //     // }
+            //     _ => (),
+            // },
+            // Some(Event::Letter(c)) => {
+            //     match c {
+            //         // Axis movement
+            //         'a' => position_diff[0] = -2.0,
+            //         'd' => position_diff[0] = 2.0,
+            //         // 'j' => camera.position[1] -= 2.0,
+            //         // 'k' => camera.position[1] += 2.0,
+            //         'w' => position_diff[1] = 2.0,
+            //         's' => position_diff[1] = -2.0,
+            //         'A' => position_diff[0] = -8.0,
+            //         'D' => position_diff[0] = 8.0,
+            //         // 'J' => camera.position[1] -= 8.0,
+            //         // 'K' => camera.position[1] += 8.0,
+            //         'W' => position_diff[1] = 8.0,
+            //         'S' => position_diff[1] = -8.0,
+            //         // '+' => position_diff[1] = 8.0,
+            //         // '?' => position_diff[1] = 16.0,
+            //         // '-' => position_diff[1] = -8.0,
+            //         // '_' => position_diff[1] = -16.0,
+
+            //         // Rotation
+            //         'i' => rotation_diff.0 = -std::f64::consts::FRAC_PI_8,
+            //         'j' => rotation_diff.1 = -std::f64::consts::FRAC_PI_8,
+            //         'k' => rotation_diff.0 = std::f64::consts::FRAC_PI_8,
+            //         'l' => rotation_diff.1 = std::f64::consts::FRAC_PI_8,
+
+            //         // FOV
+            //         'q' | 'Q' | 'e' | 'E' => {
+            //             if let ProjectionMode::Perspective { fov } = &mut camera.projection_mode {
+            //                 match c {
+            //                     'q' => *fov -= 1,
+            //                     'e' => *fov += 1,
+            //                     'Q' => *fov -= 2,
+            //                     'E' => *fov += 2,
+            //                     _ => (),
+            //                 }
+            //             }
+            //         }
+
+            //         // Projection Mode
+            //         'p' => {
+            //             match camera.projection_mode {
+            //                 ProjectionMode::Orthographic => camera.projection_mode = ProjectionMode::Perspective { fov: camera_fov },
+            //                 ProjectionMode::Perspective { fov } => {
+            //                     camera_fov = fov;
+            //                     camera.projection_mode = ProjectionMode::Orthographic;
+            //                 }
+            //             }
+            //         }
+
+            //         // View mode
+            //         'v' => {
+            //             match camera.view_mode {
+            //                 ViewMode::FirstPerson => camera.view_mode = ViewMode::Orbital,
+            //                 ViewMode::Orbital => camera.view_mode = ViewMode::FirstPerson,
+            //             }
+            //         }
+
+            //         // Utils
+            //         'R' => reset = true,
+            //         'x' => pixel_width_scaling -= 0.01,
+            //         'X' => pixel_width_scaling += 0.01,
+            //         'z' => pixel_height_scaling -= 0.01,
+            //         'Z' => pixel_height_scaling += 0.01,
+
+            //         _ => (),
+            //     }
+            // }
+            // None => (),
         }
 
         position_diff[0] += mouse_left_x;
@@ -300,5 +322,7 @@ fn main() {
             print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner_char}\x1B[0m");
         }
         println!();
+
+        event = Some(event_handler.latest_event().unwrap());
     }
 }
