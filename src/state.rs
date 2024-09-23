@@ -67,25 +67,23 @@ impl State {
                                 input::mouse::Event::Down(x_, y_) => {
                                     self.input.mouse.event = Some(input::mouse::Event::Hold {
                                         from: (*x_, *y_),
-                                        to: (x as f64, y as f64),
+                                        to: (x as f64, -(y as f64)),
                                     });
                                 }
                                 input::mouse::Event::Hold { from, to: _ } => {
                                     self.input.mouse.event = Some(input::mouse::Event::Hold {
                                         from: (from.0, from.1),
-                                        to: (x as f64, y as f64),
+                                        to: (x as f64, -(y as f64)),
                                     });
                                 }
-                                input::mouse::Event::Up(_, _) => unreachable!(),
+                                input::mouse::Event::Up(_x, _y) => unreachable!(),
                             }
                         } else {
                             self.input.mouse.event =
-                                Some(input::mouse::Event::Down(x as f64, y as f64))
+                                Some(input::mouse::Event::Down(x as f64, -(y as f64)))
                         }
                     }
-                    io::mouse::Motion::Up => {
-                        self.input.mouse.event = Some(input::mouse::Event::Up(x as f64, y as f64))
-                    }
+                    io::mouse::Motion::Up => self.input.mouse.event = None,
                 },
                 (io::Modifier::None, io::mouse::Event::Middle(motion, x, y)) => match motion {
                     io::mouse::Motion::Down => todo!(),
@@ -112,16 +110,12 @@ impl State {
         // Update position
         let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
 
-        // if let (Some(start), Some(end)) = (self.mouse.start, self.mouse.end) {
-        //     pos_diff[0] = end.0 - start.0;
-        //     pos_diff[2] = end.1 - start.1;
-        // }
-
-        // if let Some(event) = self.input.mouse.event {
-        //     match event {
-        //         input::mouse::Event::Hold { from, to } => todo!(),
-        //     }
-        // }
+        if let Some(event) = self.input.mouse.event.as_ref() {
+            if let input::mouse::Event::Hold { from, to } = event {
+                pos_diff[0] = to.0 - from.0;
+                pos_diff[2] = to.1 - from.1;
+            }
+        }
 
         camera.position = (&camera.position.0 + &pos_diff.0).into();
         camera
