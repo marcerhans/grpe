@@ -10,15 +10,19 @@ use std::ffi::c_char;
 
 use crate::{ansi_interpretor, EventHandlerTrait, Event};
 
-pub struct EventHandler;
+pub struct EventHandler {
+    blocking: bool,
+}
 
 impl EventHandlerTrait for EventHandler {
-    fn init() -> Self {
+    fn init(blocking: bool) -> Self {
         unsafe {
             initialize();
         }
 
-        Self {}
+        Self {
+            blocking
+        }
     }
 
     fn latest_event(&self) -> Result<Event, &'static str> {
@@ -30,9 +34,12 @@ impl EventHandlerTrait for EventHandler {
 
         unsafe {
             let buf_p = &mut buf as *mut c_char;
+            let result = getChar(buf_p, self.blocking);
 
-            if !getChar(buf_p) {
+            if result == 1 {
                 return Err("Failed to read.");
+            } else if result == 2 {
+                return Err("Nothing to read.")
             }
         }
         
