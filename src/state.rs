@@ -7,7 +7,7 @@ mod input {
     pub mod mouse {
         pub enum Event {
             Down(f64, f64),
-            Hold((f64, f64), (f64, f64)),
+            Hold { from: (f64, f64), to: (f64, f64) },
             Up(f64, f64),
         }
 
@@ -17,9 +17,7 @@ mod input {
 
         impl Default for State {
             fn default() -> Self {
-                Self {
-                    event: None,
-                }
+                Self { event: None }
             }
         }
     }
@@ -29,7 +27,6 @@ mod input {
         pub mouse: mouse::State,
     }
 }
-
 
 pub struct State {
     pub event_handler: EventHandler,
@@ -67,15 +64,21 @@ impl State {
                     io::mouse::Motion::Down => {
                         if let Some(event) = self.input.mouse.event.as_ref() {
                             if let input::mouse::Event::Down(x_, y_) = event {
-                                self.input.mouse.event = Some(input::mouse::Event::Hold((*x_, *y_), (x as f64, y as f64)));
+                                self.input.mouse.event = Some(input::mouse::Event::Hold {
+                                    from: (*x_, *y_),
+                                    to: (x as f64, y as f64),
+                                });
                             } else {
                                 unreachable!()
                             }
                         } else {
-                            self.input.mouse.event = Some(input::mouse::Event::Down(x as f64, y as f64))
+                            self.input.mouse.event =
+                                Some(input::mouse::Event::Down(x as f64, y as f64))
                         }
                     }
-                    io::mouse::Motion::Up => self.input.mouse.event = Some(input::mouse::Event::Up(x as f64, y as f64)),
+                    io::mouse::Motion::Up => {
+                        self.input.mouse.event = Some(input::mouse::Event::Up(x as f64, y as f64))
+                    }
                 },
                 (io::Modifier::None, io::mouse::Event::Middle(motion, x, y)) => match motion {
                     io::mouse::Motion::Down => todo!(),
