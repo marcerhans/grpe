@@ -63,18 +63,23 @@ void enablePartialRawMode() {
   puts("\x1B[?25l"); // Hide cursor
 }
 
-bool getChar(char * const buf) {
+uint8_t getChar(char * const buf, const bool blocking) {
   if (!atomic_load(&initialized) || atomic_load(&error)) {
-    return false;
+    return 1;
   }
 
-  bool ret = false;
+  uint8_t ret = 0;
   struct timespec ts;
 
   pthread_mutex_lock(&mutex);
 
   clock_gettime(CLOCK_REALTIME, &ts);
   ts.tv_sec += TIMEOUT_SECONDS;
+
+  if (!blocking && char_buf_available == 0) {
+    pthread_mutex_unlock(&mutex);
+    return 2;
+  }
 
   while (char_buf_available < 1 && !atomic_load(&error)) {
     pthread_cond_timedwait(&cond, &mutex, &ts);
@@ -83,7 +88,8 @@ bool getChar(char * const buf) {
   }
 
   if (atomic_load(&error)) {
-    return false;
+    pthread_mutex_unlock(&mutex);
+    return 1;
   }
 
   if (isOkToRead(char_buf_index_read, char_buf_index_write, char_buf_index_flip)) {
@@ -96,14 +102,13 @@ bool getChar(char * const buf) {
     char_buf_index_read = new_index;
 
     char_buf_available -= 1;
-    ret = true;
+    ret = 0;
   } else {
     // Should not be possible(?)
     assert(false);
   }
 
   pthread_mutex_unlock(&mutex);
-
   return ret;
 }
 

@@ -34,11 +34,13 @@ void enablePartialRawMode();
 /**
  * Fetches the most recent input char from stdin. Blocking.
  * 
- * @return True if successful. False if not initialized, on error,
- *         or IO manager has received a SIGINT/SIGTERM.
+ * @return 0 if successful.
+ *         1 if not initialized, on error, or IO manager has received a SIGINT/SIGTERM.
+ *         2 if no new character has been read (only relevant with blocking = false).
  * @param buf Buffer for read character.
+ * @param blocking Set to true to enable blocking (/waiting for activity).
  */
-bool getChar(char * const buf);
+uint8_t getChar(char * const buf, const bool blocking);
 
 /**
  * Checks whether or not the service is active.
