@@ -198,24 +198,27 @@ mod util {
 pub fn interpret<F: Fn(bool) -> Result<char, &'static str>>(reader: F) -> Result<Event, &'static str> {
     let mut chars = CharArray::<64, F>::new(reader);
 
-    if let Ok(is_escape) = chars.is_escape() {
-        if !is_escape {
-            // Not an escape sequence. Just a character.
-            return Ok(Event::Character(chars.last().unwrap()));
-        }
+    match chars.is_escape() {
+        Ok(is_escape) => {
+            if !is_escape {
+                // Not an escape sequence. Just a character.
+                return Ok(Event::Character(chars.last().unwrap()));
+            }
 
-        match chars.is_sequence() {
-            Ok(is_sequence) => {
-                if is_sequence {
-                    match chars.is_mouse_tracking() {
-                        Ok((modifier, event)) => return Ok(Event::Mouse(modifier, event)),
-                        Err(msg) => return Err(msg),
+            match chars.is_sequence() {
+                Ok(is_sequence) => {
+                    if is_sequence {
+                        match chars.is_mouse_tracking() {
+                            Ok((modifier, event)) => return Ok(Event::Mouse(modifier, event)),
+                            Err(msg) => return Err(msg),
+                        }
+                    } else {
+                        return Err("Unsupported escape format.");
                     }
                 }
+                Err(msg) => return Err(msg),
             }
-            Err(msg) => return Err(msg),
         }
+        Err(msg) => return Err(msg),
     }
-
-    Err("Could not parse.")
 }
