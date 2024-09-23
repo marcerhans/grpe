@@ -2,10 +2,10 @@ use io::{platform::unix::*, EventHandlerTrait};
 
 fn main() {
     let blocking = false;
-    let event_handler = EventHandler::init(blocking);
+    let event_handler = EventHandler::init();
 
     while event_handler.running() {
-        let character = event_handler.latest_character();
+        let character = event_handler.latest_character(blocking);
 
         match character {
             Ok(character) => {

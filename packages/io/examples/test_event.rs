@@ -1,8 +1,7 @@
 use io::{platform::unix::*, EventHandlerTrait, Event};
 
 fn main() {
-    let blocking = false;
-    let event_handler = EventHandler::init(blocking);
+    let event_handler = EventHandler::init();
 
     while event_handler.running() {
         let event = event_handler.latest_event();
@@ -14,11 +13,7 @@ fn main() {
                     Event::Character(character) => println!("Typed character: {character}"),
                 }
             }
-            Err(msg) => if blocking {
-                println!("{msg}");
-            } else {
-                // Do nothing, will be too much too print!
-            }
+            Err(msg) => (), // println!("{msg}") // Note: If printing the error without any sleep, it will be too much to print!
         }
     }
 

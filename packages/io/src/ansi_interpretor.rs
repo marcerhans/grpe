@@ -4,13 +4,13 @@ use util::{Ansi, CharArray};
 mod util {
     use crate::{mouse, platform::unix::ToU8, Modifier};
 
-    pub struct CharArray<const SIZE: usize, F: Fn() -> Result<char, &'static str>> {
+    pub struct CharArray<const SIZE: usize, F: Fn(bool) -> Result<char, &'static str>> {
         array: [char; SIZE],
         pos: usize,
         reader: F,
     }
 
-    impl<const SIZE: usize, F: Fn() -> Result<char, &'static str>> CharArray<SIZE, F> {
+    impl<const SIZE: usize, F: Fn(bool) -> Result<char, &'static str>> CharArray<SIZE, F> {
         pub fn new(reader: F) -> Self {
             Self {
                 array: [Default::default(); SIZE],
@@ -19,12 +19,12 @@ mod util {
             }
         }
 
-        pub fn read(&mut self) -> Result<char, &'static str> {
+        pub fn read(&mut self, blocking: bool) -> Result<char, &'static str> {
             if self.pos > SIZE {
                 return Err("Array is full.");
             }
 
-            if let Ok(c) = (self.reader)() {
+            if let Ok(c) = (self.reader)(blocking) {
                 self.array[self.pos] = c;
                 self.pos += 1;
                 return Ok(c);
@@ -42,7 +42,7 @@ mod util {
         }
     }
 
-    impl<const SIZE: usize, Idx, F: Fn() -> Result<char, &'static str>> std::ops::Index<Idx> for CharArray<SIZE, F>
+    impl<const SIZE: usize, Idx, F: Fn(bool) -> Result<char, &'static str>> std::ops::Index<Idx> for CharArray<SIZE, F>
     where
         Idx: std::slice::SliceIndex<[char]>,
     {
@@ -59,13 +59,13 @@ mod util {
         fn is_mouse_tracking(&mut self) -> Result<(Modifier, mouse::Event), &'static str>;
     }
 
-    impl<const SIZE: usize, F: Fn() -> Result<char, &'static str>> Ansi for CharArray<SIZE, F> {
+    impl<const SIZE: usize, F: Fn(bool) -> Result<char, &'static str>> Ansi for CharArray<SIZE, F> {
         fn is_escape(&mut self) -> Result<bool, &'static str> {
             if self.pos != 0 {
                 return Err("Not in correct state to check for escape sequence.");
             }
 
-            if let Ok(c) = self.read() {
+            if let Ok(c) = self.read(false) {
                 return Ok(c == '\x1b');
             }
 
@@ -77,7 +77,7 @@ mod util {
                 return Err("Not in correct state to check for sequence start symbol ('[').");
             }
 
-            if let Ok(c) = self.read() {
+            if let Ok(c) = self.read(true) {
                 return Ok(c == '[');
             }
 
@@ -89,7 +89,7 @@ mod util {
                 return Err("Not in correct state to check for mouse tracking sequence.");
             }
 
-            if let Ok(c) = self.read() {
+            if let Ok(c) = self.read(true) {
                 if c != '<' {
                     return Err("Not a mouse tracking sequence.");
                 }
@@ -101,7 +101,7 @@ mod util {
             let mut semicolons_left: usize = 2;
             let mut semicolon_positions: [usize; 2] = [0; 2];
             let mut m_position: usize = 0;
-            while match self.read() {
+            while match self.read(true) {
                 Ok(c) => {
                     if c == ';' {
                         if semicolons_left > 0 {
@@ -195,7 +195,7 @@ mod util {
     }
 }
 
-pub fn interpret<F: Fn() -> Result<char, &'static str>>(reader: F) -> Result<Event, &'static str> {
+pub fn interpret<F: Fn(bool) -> Result<char, &'static str>>(reader: F) -> Result<Event, &'static str> {
     let mut chars = CharArray::<64, F>::new(reader);
 
     if let Ok(is_escape) = chars.is_escape() {

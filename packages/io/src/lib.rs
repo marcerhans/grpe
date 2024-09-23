@@ -76,8 +76,8 @@ pub enum Event {
 }
 
 pub trait EventHandlerTrait {
-    fn init(blocking: bool) -> Self;
+    fn init() -> Self;
     fn running(&self) -> bool;
     fn latest_event(&self) -> Result<Event, &'static str>;
-    fn latest_character(&self) -> Result<char, &'static str>;
+    fn latest_character(&self, blocking: bool) -> Result<char, &'static str>;
 }
