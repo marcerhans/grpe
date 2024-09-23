@@ -73,13 +73,13 @@ uint8_t getChar(char * const buf, const bool blocking) {
 
   pthread_mutex_lock(&mutex);
 
-  clock_gettime(CLOCK_REALTIME, &ts);
-  ts.tv_sec += TIMEOUT_SECONDS;
-
   if (!blocking && char_buf_available == 0) {
     pthread_mutex_unlock(&mutex);
     return 2;
   }
+
+  clock_gettime(CLOCK_REALTIME, &ts);
+  ts.tv_sec += TIMEOUT_SECONDS;
 
   while (char_buf_available < 1 && !atomic_load(&error)) {
     pthread_cond_timedwait(&cond, &mutex, &ts);
