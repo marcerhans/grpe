@@ -63,13 +63,20 @@ impl State {
                 (io::Modifier::None, io::mouse::Event::Left(motion, x, y)) => match motion {
                     io::mouse::Motion::Down => {
                         if let Some(event) = self.input.mouse.event.as_ref() {
-                            if let input::mouse::Event::Down(x_, y_) = event {
-                                self.input.mouse.event = Some(input::mouse::Event::Hold {
-                                    from: (*x_, *y_),
-                                    to: (x as f64, y as f64),
-                                });
-                            } else {
-                                unreachable!()
+                            match event {
+                                input::mouse::Event::Down(x_, y_) => {
+                                    self.input.mouse.event = Some(input::mouse::Event::Hold {
+                                        from: (*x_, *y_),
+                                        to: (x as f64, y as f64),
+                                    });
+                                }
+                                input::mouse::Event::Hold { from, to: _ } => {
+                                    self.input.mouse.event = Some(input::mouse::Event::Hold {
+                                        from: (from.0, from.1),
+                                        to: (x as f64, y as f64),
+                                    });
+                                }
+                                input::mouse::Event::Up(_, _) => unreachable!(),
                             }
                         } else {
                             self.input.mouse.event =
@@ -108,6 +115,12 @@ impl State {
         // if let (Some(start), Some(end)) = (self.mouse.start, self.mouse.end) {
         //     pos_diff[0] = end.0 - start.0;
         //     pos_diff[2] = end.1 - start.1;
+        // }
+
+        // if let Some(event) = self.input.mouse.event {
+        //     match event {
+        //         input::mouse::Event::Hold { from, to } => todo!(),
+        //     }
         // }
 
         camera.position = (&camera.position.0 + &pos_diff.0).into();
