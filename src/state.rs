@@ -3,41 +3,39 @@ use std::{cell::RefCell, rc::Rc};
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
 use renderer::{Camera, RendererConfiguration, VectorRow};
 
-mod mouse {
-    pub enum Event {
-        Movement((f64, f64), (f64, f64)),
-    }
-
-    pub struct State {
-        pub prev_pos: Option<(f64, f64)>,
-        events: Vec<Event>,
-    }
-
-    impl State {
-        pub fn push(&mut self, event: Event) {
-            self.events.push(event);
+mod input {
+    pub mod mouse {
+        pub enum Event {
+            Down(f64, f64),
+            Hold((f64, f64), (f64, f64)),
+            Up(f64, f64),
         }
 
-        pub fn pop(&mut self) -> Option<Event> {
-            self.events.pop()
+        pub struct State {
+            pub event: Option<Event>,
         }
-    }
 
-    impl Default for State {
-        fn default() -> Self {
-            Self {
-                prev_pos: Default::default(),
-                events: Default::default(),
+        impl Default for State {
+            fn default() -> Self {
+                Self {
+                    event: None,
+                }
             }
         }
     }
+
+    #[derive(Default)]
+    pub struct State {
+        pub mouse: mouse::State,
+    }
 }
+
 
 pub struct State {
     pub event_handler: EventHandler,
     pub vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>,
     pub line_draw_order: Rc<RefCell<Vec<Vec<usize>>>>,
-    mouse: mouse::State,
+    input: input::State,
 }
 
 impl State {
@@ -50,12 +48,12 @@ impl State {
             event_handler,
             vertices,
             line_draw_order,
-            mouse: Default::default(),
+            input: Default::default(),
         }
     }
 
     pub fn update(&mut self, mut config: RendererConfiguration) -> RendererConfiguration {
-        if let Ok(event) = self.event_handler.latest_event() {
+        while let Ok(event) = self.event_handler.latest_event() {
             self.handle_event(event);
         }
         config.camera = self.update_camera(config.camera);
@@ -67,15 +65,17 @@ impl State {
             Event::Mouse(_modifier, event) => match (_modifier, event) {
                 (io::Modifier::None, io::mouse::Event::Left(motion, x, y)) => match motion {
                     io::mouse::Motion::Down => {
-                        if let Some(pp) = self.mouse.prev_pos {
-                            self.mouse
-                                .push(mouse::Event::Movement((pp.0, pp.1), (x as f64, y as f64)));
-                            *self.mouse.prev_pos.as_mut().unwrap() = (x as f64, y as f64);
+                        if let Some(event) = self.input.mouse.event.as_ref() {
+                            if let input::mouse::Event::Down(x_, y_) = event {
+                                self.input.mouse.event = Some(input::mouse::Event::Hold((*x_, *y_), (x as f64, y as f64)));
+                            } else {
+                                unreachable!()
+                            }
                         } else {
-                            self.mouse.prev_pos = Some((x as f64, y as f64));
+                            self.input.mouse.event = Some(input::mouse::Event::Down(x as f64, y as f64))
                         }
                     }
-                    io::mouse::Motion::Up => self.mouse.prev_pos = None,
+                    io::mouse::Motion::Up => self.input.mouse.event = Some(input::mouse::Event::Up(x as f64, y as f64)),
                 },
                 (io::Modifier::None, io::mouse::Event::Middle(motion, x, y)) => match motion {
                     io::mouse::Motion::Down => todo!(),
@@ -102,14 +102,10 @@ impl State {
         // Update position
         let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
 
-        while let Some(event) = self.mouse.pop() {
-            match event {
-                mouse::Event::Movement(a, b) => {
-                    pos_diff[0] = b.0 - a.0;
-                    pos_diff[1] = b.1 - a.1;
-                }
-            }
-        }
+        // if let (Some(start), Some(end)) = (self.mouse.start, self.mouse.end) {
+        //     pos_diff[0] = end.0 - start.0;
+        //     pos_diff[2] = end.1 - start.1;
+        // }
 
         camera.position = (&camera.position.0 + &pos_diff.0).into();
         camera
