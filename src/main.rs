@@ -12,7 +12,6 @@ use renderer::{
 };
 
 fn main() {
-
     let args = arg::parse_args();
 
     // 1. Instantiate IO handler.
