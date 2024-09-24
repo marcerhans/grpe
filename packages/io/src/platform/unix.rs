@@ -20,11 +20,12 @@ impl EventHandlerTrait for EventHandler {
             return Err("Already initialized.");
         }
 
-        std::panic::set_hook(Box::new(|info| {
+        let prev_hook = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
             unsafe {
                 terminate();
             }
-            std::panic::take_hook()(info);
+            prev_hook(info);
         }));
 
         unsafe {
