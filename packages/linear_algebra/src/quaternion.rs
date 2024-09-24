@@ -10,6 +10,21 @@ pub struct Quaternion<T> {
     pub q3: T,
 }
 
+impl Quaternion<f64> {
+    pub fn new(q0: f64, q1: f64, q2: f64, q3: f64) -> Self {
+        Self { q0, q1, q2, q3 }
+    }
+
+    pub fn inverse(&self) -> Self {
+        Self {
+            q0: self.q0,
+            q1: -self.q1,
+            q2: -self.q2,
+            q3: -self.q3,
+        }
+    }
+}
+
 impl Mul for &Quaternion<f64> {
     type Output = Quaternion<f64>;
 
@@ -25,22 +40,13 @@ impl Mul for &Quaternion<f64> {
 
 impl Into<VectorRow<f64, 4>> for Quaternion<f64> {
     fn into(self) -> VectorRow<f64, 4> {
-        VectorRow::from([
-            self.q0,
-            self.q1,
-            self.q2,
-            self.q3,
-        ])
+        VectorRow::from([self.q0, self.q1, self.q2, self.q3])
     }
 }
 
 impl Into<VectorRow<f64, 3>> for Quaternion<f64> {
     fn into(self) -> VectorRow<f64, 3> {
-        VectorRow::from([
-            self.q1,
-            self.q2,
-            self.q3,
-        ])
+        VectorRow::from([self.q1, self.q2, self.q3])
     }
 }
 
@@ -55,7 +61,11 @@ impl From<&VectorRow<f64, 3>> for Quaternion<f64> {
     }
 }
 
-pub fn rotate(point: &VectorRow<f64, 3>, q: &Quaternion<f64>, q_prim: &Quaternion<f64>) -> VectorRow<f64, 3> {
+pub fn rotate(
+    point: &VectorRow<f64, 3>,
+    q: &Quaternion<f64>,
+    q_prim: &Quaternion<f64>,
+) -> VectorRow<f64, 3> {
     (&(q * &point.into()) * q_prim).into()
 }
 
@@ -138,7 +148,7 @@ mod tests {
             q2: -r.q2,
             q3: -r.q3,
         };
-        
+
         let a = &(&r * &v) * &r_prim;
         let b = &r * &v;
 
