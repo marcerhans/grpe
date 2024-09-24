@@ -1,6 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
+use linear_algebra::quaternion::{self, Quaternion};
 use renderer::{Camera, RendererConfiguration, VectorRow};
 
 mod input {
@@ -28,21 +29,28 @@ mod position {
     use renderer::VectorRow;
 
     pub struct State {
-        pub position: VectorRow<f64, 3>,
+        pub value: VectorRow<f64, 3>,
     }
 
     impl Default for State {
         fn default() -> Self {
             Self {
-                position: VectorRow::from([0.0, 0.0, 0.0]),
+                value: VectorRow::from([0.0, 0.0, 0.0]),
             }
         }
     }
 }
 
 mod rotation {
-    #[derive(Default)]
-    pub struct State {}
+    pub struct State {
+        pub value: (f64, f64),
+    }
+
+    impl Default for State {
+        fn default() -> Self {
+            Self { value: (0.0, 0.0) }
+        }
+    }
 }
 
 pub struct State {
@@ -75,6 +83,7 @@ impl State {
             // Batch handling - Read all inputs up until this point.
             self.handle_event(event);
         }
+        self.position.value = config.camera.position.clone(); // Not needed, but want to keep "real" state in [State] (semantics).
         config.camera = self.update_camera(config.camera);
         config
     }
@@ -149,54 +158,56 @@ impl State {
     }
 
     fn update_camera(&mut self, mut camera: Camera) -> Camera {
-        // Update position
-        let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
-
+        // Calculate rotational change based on input.
+        let mut rot_diff = (0.0, 0.0);
         if let Some(event) = self.input.mouse.left.as_ref() {
             if let input::mouse::Event::Hold { from, to } = event {
-                pos_diff[0] = to.0 - from.0;
-                pos_diff[2] = to.1 - from.1;
+                rot_diff.0 = (to.0 - from.0) * 0.01;
+                rot_diff.1 = (to.1 - from.1) * 0.01;
             }
         }
+        if self.input.mouse.left.as_ref().is_some() {
+            self.input.mouse.right = None;
+        }
+        self.rotation.value.0 += rot_diff.0;
+        self.rotation.value.1 += rot_diff.1;
 
-        // Apply rotation
-        // let rotation_total = camera.rotation;
+        // Calculate positional change based on input.
+        let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
+        // if let Some(event) = self.input.mouse.left.as_ref() {
+        //     if let input::mouse::Event::Hold { from, to } = event {
+        //         pos_diff[0] = to.0 - from.0;
+        //         pos_diff[2] = to.1 - from.1;
+        //     }
+        // }
 
-        // In truth, position is stored in in camera, but for the sake of keeping state in [State]
-        // Copy the data into [position::State].
-        self.position.position = camera.position.clone();
-
-        camera.position = (&camera.position.0 + &pos_diff.0).into();
-        camera
-        // rotation_total = (
-        //     rotation_total.0 + rotation_diff.0 - mouse_right_y,
-        //     rotation_total.1 + rotation_diff.1 - mouse_right_x,
+        // Apply updated rotation on positional change.
+        // self.rotation.value.0 = (self.rotation.value.0 + rot_diff.0)
+        //     .min(std::f64::consts::FRAC_PI_2)
+        //     .max(-std::f64::consts::FRAC_PI_2);
+        // self.rotation.value.1 += rot_diff.1;
+        // let rotation = (self.rotation.value.0 / 2.0, self.rotation.value.1 / 2.0);
+        // let pitch = Quaternion::new(
+        //     rotation.0.cos(),
+        //     // rotation.0.sin() * (rotation.1 * 2.0).cos(),
+        //     0.0,
+        //     rotation.0.sin(),// * (rotation.1 * 2.0).sin(),
+        //     0.0,
         // );
-        // let rotation = (rotation_total.0 / 2.0, rotation_total.1 / 2.0);
-        // let pitch = Quaternion {
-        //     q0: rotation.0.cos(),
-        //     q1: rotation.0.sin() * (rotation.1 * 2.0).cos(),
-        //     q2: rotation.0.sin() * (rotation.1 * 2.0).sin(),
-        //     q3: 0.0,
-        // };
-        // let yaw = Quaternion {
-        //     q0: rotation.1.cos(),
-        //     q1: 0.0,
-        //     q2: 0.0,
-        //     q3: rotation.1.sin(),
-        // };
-        // let rotation = &pitch * &yaw;
-        // let rotation_inverse = Quaternion {
-        //     q0: rotation.q0,
-        //     q1: -rotation.q1,
-        //     q2: -rotation.q2,
-        //     q3: -rotation.q3,
-        // };
+        // let yaw = Quaternion::new(
+        //     rotation.1.cos(),
+        //     0.0,
+        //     0.0,
+        //     rotation.1.sin(),
+        // );
+        // let rotation = yaw;
+        // let rotation_prim = rotation.inverse();
+        // let pos_diff_rotated = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
 
-        // let position_new = quaternion::rotate(&position_diff, &rotation, &rotation_inverse);
-
-        // camera.rotation = rotation_total;
-        // camera.position = (&camera.position.0 + &position_new.0).into();
+        // Update camera
+        camera.rotation = self.rotation.value;
+        camera.position = (&self.position.value.0 + &pos_diff.0).into();
+        camera
 
         // // Statistics
         // if update_timer.elapsed() >= Duration::from_secs(1) {
