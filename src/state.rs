@@ -169,12 +169,12 @@ impl State {
         let mut rot_diff = (0.0, 0.0);
         if let Some(event) = self.input.mouse.left.as_ref() {
             if let input::mouse::Event::Hold { from, to } = event {
-                rot_diff.0 = (to.0 - from.0) * 0.01;
-                rot_diff.1 = (to.1 - from.1) * 0.01;
+                rot_diff.0 = (to.0 - from.0) * 0.1;
+                rot_diff.1 = (to.1 - from.1) * 0.1;
             }
         }
         if self.input.mouse.left.as_ref().is_some() {
-            self.input.mouse.right = None;
+            self.input.mouse.left = None;
         }
         self.rotation.value.0 += rot_diff.0;
         self.rotation.value.1 += rot_diff.1;
@@ -189,13 +189,9 @@ impl State {
         }
         if let Some(val) = self.input.mouse.scroll.as_mut() {
             pos_diff[1] += *val as f64;
-            // *val -= 1;
-
-            // if *val <= 0 {
-            //     self.input.mouse.scroll = None;
-            // }
         }
         self.input.mouse.scroll = None;
+        self.position.value = (&self.position.value.0 + &pos_diff.0).into();
 
         // Apply updated rotation on positional change.
         // self.rotation.value.0 = (self.rotation.value.0 + rot_diff.0)
@@ -222,7 +218,7 @@ impl State {
 
         // Update camera
         camera.rotation = self.rotation.value;
-        camera.position = (&self.position.value.0 + &pos_diff.0).into();
+        camera.position = self.position.value.clone();
         camera
 
         // // Statistics
