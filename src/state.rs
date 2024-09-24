@@ -16,6 +16,7 @@ mod input {
         pub struct State {
             pub left: Option<Event>,
             pub right: Option<Event>,
+            pub scroll: Option<i32>,
         }
     }
 
@@ -146,8 +147,14 @@ impl State {
                     io::mouse::Motion::Up => self.input.mouse.right = None,
                 },
                 (io::Modifier::None, io::mouse::Event::Scroll(direction)) => match direction {
-                    io::mouse::Direction::Down => todo!(),
-                    io::mouse::Direction::Up => (),
+                    io::mouse::Direction::Down => match self.input.mouse.scroll.as_mut() {
+                        Some(val) => *val -= 10,
+                        None => self.input.mouse.scroll = Some(-10),
+                    }
+                    io::mouse::Direction::Up => match self.input.mouse.scroll.as_mut() {
+                        Some(val) => *val += 10,
+                        None => self.input.mouse.scroll = Some(10),
+                    }
                 },
                 _ => (),
             },
@@ -174,12 +181,21 @@ impl State {
 
         // Calculate positional change based on input.
         let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
-        // if let Some(event) = self.input.mouse.left.as_ref() {
-        //     if let input::mouse::Event::Hold { from, to } = event {
-        //         pos_diff[0] = to.0 - from.0;
-        //         pos_diff[2] = to.1 - from.1;
-        //     }
-        // }
+        if let Some(event) = self.input.mouse.right.as_ref() {
+            if let input::mouse::Event::Hold { from, to } = event {
+                pos_diff[0] = to.0 - from.0;
+                pos_diff[2] = to.1 - from.1;
+            }
+        }
+        if let Some(val) = self.input.mouse.scroll.as_mut() {
+            pos_diff[1] += *val as f64;
+            // *val -= 1;
+
+            // if *val <= 0 {
+            //     self.input.mouse.scroll = None;
+            // }
+        }
+        self.input.mouse.scroll = None;
 
         // Apply updated rotation on positional change.
         // self.rotation.value.0 = (self.rotation.value.0 + rot_diff.0)
