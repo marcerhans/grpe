@@ -2,7 +2,7 @@ use io::{platform::unix::*, EventHandlerTrait};
 
 fn main() {
     let blocking = false;
-    let event_handler = EventHandler::init();
+    let event_handler = EventHandler::init().expect("Failed to initialize event handler.");
 
     while event_handler.running() {
         let character = event_handler.latest_character(blocking);

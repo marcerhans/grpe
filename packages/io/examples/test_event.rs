@@ -1,7 +1,7 @@
 use io::{platform::unix::*, EventHandlerTrait, Event};
 
 fn main() {
-    let event_handler = EventHandler::init();
+    let event_handler = EventHandler::init().expect("Failed to initialize event handler.");
 
     while event_handler.running() {
         let event = event_handler.latest_event();
