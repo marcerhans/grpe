@@ -3,22 +3,36 @@
 #![allow(non_snake_case)]
 include!(concat!(env!("OUT_DIR"), "/io_bindings.rs"));
 
+use std::sync::atomic::AtomicBool;
 /// Documentation regarding escape codes and control sequences
 /// can be found in the Xterm Control Sequence Documentation.
+use std::{ffi::c_char, sync::atomic::Ordering};
 
-use std::ffi::c_char;
+use crate::{ansi_interpretor, Event, EventHandlerTrait};
 
-use crate::{ansi_interpretor, EventHandlerTrait, Event};
+static INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 pub struct EventHandler;
 
 impl EventHandlerTrait for EventHandler {
-    fn init() -> Self {
+    fn init() -> Result<Self, &'static str> {
+        if INITIALIZED.load(Ordering::Relaxed) {
+            return Err("Already initialized.");
+        }
+
+        std::panic::set_hook(Box::new(|info| {
+            unsafe {
+                terminate();
+            }
+            std::panic::take_hook()(info);
+        }));
+
         unsafe {
             initialize();
         }
 
-        Self
+        INITIALIZED.store(true, Ordering::Relaxed);
+        Ok(Self)
     }
 
     fn latest_event(&self) -> Result<Event, &'static str> {
@@ -35,13 +49,13 @@ impl EventHandlerTrait for EventHandler {
             if result == 1 {
                 return Err("Failed to read.");
             } else if result == 2 {
-                return Err("Nothing to read.")
+                return Err("Nothing to read.");
             }
         }
-        
+
         Ok(buf.to_char())
     }
-    
+
     fn running(&self) -> bool {
         unsafe { running() }
     }
@@ -52,6 +66,8 @@ impl Drop for EventHandler {
         unsafe {
             terminate();
         }
+        let _ = std::panic::take_hook(); // Remove custom panic hook.
+        INITIALIZED.store(false, Ordering::Relaxed);
     }
 }
 

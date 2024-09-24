@@ -11,14 +11,10 @@ mod input {
             Up(f64, f64),
         }
 
+        #[derive(Default)]
         pub struct State {
-            pub event: Option<Event>,
-        }
-
-        impl Default for State {
-            fn default() -> Self {
-                Self { event: None }
-            }
+            pub left: Option<Event>,
+            pub right: Option<Event>,
         }
     }
 
@@ -28,11 +24,34 @@ mod input {
     }
 }
 
+mod position {
+    use renderer::VectorRow;
+
+    pub struct State {
+        pub position: VectorRow<f64, 3>,
+    }
+
+    impl Default for State {
+        fn default() -> Self {
+            Self {
+                position: VectorRow::from([0.0, 0.0, 0.0]),
+            }
+        }
+    }
+}
+
+mod rotation {
+    #[derive(Default)]
+    pub struct State {}
+}
+
 pub struct State {
     pub event_handler: EventHandler,
     pub vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>,
     pub line_draw_order: Rc<RefCell<Vec<Vec<usize>>>>,
     input: input::State,
+    position: position::State,
+    rotation: rotation::State,
 }
 
 impl State {
@@ -46,11 +65,14 @@ impl State {
             vertices,
             line_draw_order,
             input: Default::default(),
+            position: Default::default(),
+            rotation: Default::default(),
         }
     }
 
     pub fn update(&mut self, mut config: RendererConfiguration) -> RendererConfiguration {
         while let Ok(event) = self.event_handler.latest_event() {
+            // Batch handling - Read all inputs up until this point.
             self.handle_event(event);
         }
         config.camera = self.update_camera(config.camera);
@@ -62,16 +84,16 @@ impl State {
             Event::Mouse(_modifier, event) => match (_modifier, event) {
                 (io::Modifier::None, io::mouse::Event::Left(motion, x, y)) => match motion {
                     io::mouse::Motion::Down => {
-                        if let Some(event) = self.input.mouse.event.as_ref() {
+                        if let Some(event) = self.input.mouse.left.as_ref() {
                             match event {
                                 input::mouse::Event::Down(x_, y_) => {
-                                    self.input.mouse.event = Some(input::mouse::Event::Hold {
+                                    self.input.mouse.left = Some(input::mouse::Event::Hold {
                                         from: (*x_, *y_),
                                         to: (x as f64, -(y as f64)),
                                     });
                                 }
                                 input::mouse::Event::Hold { from, to: _ } => {
-                                    self.input.mouse.event = Some(input::mouse::Event::Hold {
+                                    self.input.mouse.left = Some(input::mouse::Event::Hold {
                                         from: (from.0, from.1),
                                         to: (x as f64, -(y as f64)),
                                     });
@@ -79,19 +101,40 @@ impl State {
                                 input::mouse::Event::Up(_x, _y) => unreachable!(),
                             }
                         } else {
-                            self.input.mouse.event =
+                            self.input.mouse.left =
                                 Some(input::mouse::Event::Down(x as f64, -(y as f64)))
                         }
                     }
-                    io::mouse::Motion::Up => self.input.mouse.event = None,
+                    io::mouse::Motion::Up => self.input.mouse.left = None,
                 },
                 (io::Modifier::None, io::mouse::Event::Middle(motion, x, y)) => match motion {
                     io::mouse::Motion::Down => todo!(),
                     io::mouse::Motion::Up => (),
                 },
                 (io::Modifier::None, io::mouse::Event::Right(motion, x, y)) => match motion {
-                    io::mouse::Motion::Down => todo!(),
-                    io::mouse::Motion::Up => (),
+                    io::mouse::Motion::Down => {
+                        if let Some(event) = self.input.mouse.right.as_ref() {
+                            match event {
+                                input::mouse::Event::Down(x_, y_) => {
+                                    self.input.mouse.right = Some(input::mouse::Event::Hold {
+                                        from: (*x_, *y_),
+                                        to: (x as f64, -(y as f64)),
+                                    });
+                                }
+                                input::mouse::Event::Hold { from, to: _ } => {
+                                    self.input.mouse.right = Some(input::mouse::Event::Hold {
+                                        from: (from.0, from.1),
+                                        to: (x as f64, -(y as f64)),
+                                    });
+                                }
+                                input::mouse::Event::Up(_x, _y) => unreachable!(),
+                            }
+                        } else {
+                            self.input.mouse.right =
+                                Some(input::mouse::Event::Down(x as f64, -(y as f64)))
+                        }
+                    }
+                    io::mouse::Motion::Up => self.input.mouse.right = None,
                 },
                 (io::Modifier::None, io::mouse::Event::Scroll(direction)) => match direction {
                     io::mouse::Direction::Down => todo!(),
@@ -110,12 +153,19 @@ impl State {
         // Update position
         let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
 
-        if let Some(event) = self.input.mouse.event.as_ref() {
+        if let Some(event) = self.input.mouse.left.as_ref() {
             if let input::mouse::Event::Hold { from, to } = event {
                 pos_diff[0] = to.0 - from.0;
                 pos_diff[2] = to.1 - from.1;
             }
         }
+
+        // Apply rotation
+        // let rotation_total = camera.rotation;
+
+        // In truth, position is stored in in camera, but for the sake of keeping state in [State]
+        // Copy the data into [position::State].
+        self.position.position = camera.position.clone();
 
         camera.position = (&camera.position.0 + &pos_diff.0).into();
         camera

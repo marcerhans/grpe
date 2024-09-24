@@ -12,10 +12,11 @@ use renderer::{
 };
 
 fn main() {
+
     let args = arg::parse_args();
 
     // 1. Instantiate IO handler.
-    let event_handler = EventHandler::init();
+    let event_handler = EventHandler::init().expect("Failed to initialize event handler.");
 
     // 2. Instantiate renderer.
     let camera_default = Camera {
