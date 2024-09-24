@@ -143,7 +143,6 @@ impl State {
                 _ => (),
             },
             Event::Character(c) => match c {
-                'q' => std::process::exit(0),
                 _ => (),
             },
         }
