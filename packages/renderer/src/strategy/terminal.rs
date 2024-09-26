@@ -270,16 +270,23 @@ impl Terminal {
 
         // ViewMode
         if let ViewMode::Orbital = camera.view_mode {
-            // Undo any current rotation.
-            let mut pos = rotate(&camera.position, &camera.rotation.1, &camera.rotation.0);
+            if let ProjectionMode::Perspective { fov } = camera.projection_mode {
+                // Undo any current rotation.
+                let mut pos = rotate(&camera.position, &camera.rotation.1, &camera.rotation.0);
 
-            // Remove any movement in x,z axis. This allows zoom to still work. Though, limit it to be <= 0.
-            pos[0] = 0.0;
-            pos[1] = f64::min(pos[1], 0.0);
-            pos[2] = 0.0;
+                // Remove any movement in x,z axis. This allows zoom to still work. Though, limit it to be <= 0.
+                pos[0] = 0.0;
+                pos[1] = f64::min(
+                    pos[1],
+                    // Ther reason this being an equation rather than a limiting 0.0 is a bit of a hack.
+                    (camera.resolution.0 as f64 / 2.0)
+                        / f64::tan((fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
+                );
+                pos[2] = 0.0;
 
-            // Re-apply rotation.
-            camera.position = rotate(&pos, &camera.rotation.0, &camera.rotation.1);
+                // Re-apply rotation.
+                camera.position = rotate(&pos, &camera.rotation.0, &camera.rotation.1);
+            }
         }
 
         // ProjectionMode
