@@ -181,20 +181,20 @@ impl State {
     fn update_camera(&mut self, mut camera: Camera) -> Camera {
         // Calculate rotational change based on input.
         let mut rot_diff = (0.0, 0.0);
-        if let Some(event) = self.input.mouse.right.as_ref() {
+        if let Some(event) = self.input.mouse.right.as_mut() {
             if let input::mouse::Event::Hold { from, to } = event {
                 rot_diff.0 = to.0 - from.0;
                 rot_diff.1 = to.1 - from.1;
-                self.input.mouse.right = Some(input::mouse::Event::Down(to.0, to.1));
+                *event = input::mouse::Event::Down(to.0, to.1);
             }
         }
 
         let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
-        if let Some(event) = self.input.mouse.left.as_ref() {
+        if let Some(event) = self.input.mouse.left.as_mut() {
             if let input::mouse::Event::Hold { from, to } = event {
                 pos_diff[0] = to.0 - from.0;
                 pos_diff[1] = to.1 - from.1;
-                self.input.mouse.left = Some(input::mouse::Event::Down(to.0, to.1));
+                *event = input::mouse::Event::Down(to.0, to.1);
             }
         }
 
