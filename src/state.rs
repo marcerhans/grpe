@@ -238,6 +238,14 @@ impl State {
             self.input.mouse.scroll = None;
         }
 
+        if let Some(_) = self.input.keyboard.minus.take() {
+            pos_diff[1] -= 10 as f64;
+        }
+
+        if let Some(_) = self.input.keyboard.plus.take() {
+            pos_diff[1] += 10 as f64;
+        }
+
         if let Some(_) = self.input.keyboard.v.take() {
             // Toggle view mode and adjust position
             if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
