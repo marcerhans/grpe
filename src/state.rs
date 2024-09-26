@@ -161,11 +161,11 @@ impl State {
                 },
                 (io::Modifier::None, io::mouse::Event::Scroll(direction)) => match direction {
                     io::mouse::Direction::Down => match self.input.mouse.scroll.as_mut() {
-                        Some(val) => *val -= 10,
+                        Some(val) => *val -= 1,
                         None => self.input.mouse.scroll = Some(-10),
                     }
                     io::mouse::Direction::Up => match self.input.mouse.scroll.as_mut() {
-                        Some(val) => *val += 10,
+                        Some(val) => *val += 1,
                         None => self.input.mouse.scroll = Some(10),
                     }
                 },
@@ -198,14 +198,14 @@ impl State {
         let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
         if let Some(event) = self.input.mouse.left.as_mut() {
             if let input::mouse::Event::Hold { from, to } = event {
-                pos_diff[0] = to.0 - from.0;
-                pos_diff[2] = (to.1 - from.1) * 2.0;
+                pos_diff[0] = (to.0 - from.0) * 2.0;
+                pos_diff[2] = (to.1 - from.1) * 4.0;
                 *event = input::mouse::Event::Down(to.0, to.1);
             }
         }
 
         if let Some(val) = self.input.mouse.scroll.as_ref() {
-            pos_diff[1] += *val as f64;
+            pos_diff[1] += (*val * 10) as f64;
             self.input.mouse.scroll = None;
         }
 
