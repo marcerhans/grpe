@@ -183,8 +183,8 @@ impl State {
         let mut rot_diff = (0.0, 0.0);
         if let Some(event) = self.input.mouse.right.as_mut() {
             if let input::mouse::Event::Hold { from, to } = event {
-                rot_diff.0 = to.0 - from.0;
-                rot_diff.1 = to.1 - from.1;
+                rot_diff.0 = (to.1 - from.1) * 0.02;
+                rot_diff.1 = (to.0 - from.0) * -0.01;
                 *event = input::mouse::Event::Down(to.0, to.1);
             }
         }
@@ -194,7 +194,7 @@ impl State {
         if let Some(event) = self.input.mouse.left.as_mut() {
             if let input::mouse::Event::Hold { from, to } = event {
                 pos_diff[0] = to.0 - from.0;
-                pos_diff[2] = to.1 - from.1;
+                pos_diff[2] = (to.1 - from.1) * 2.0;
                 *event = input::mouse::Event::Down(to.0, to.1);
             }
         }
@@ -205,33 +205,35 @@ impl State {
         }
 
         // // Apply updated rotation on positional change.
-        // self.rotation.value.0 = (self.rotation.value.0)
-        //     .min(std::f64::consts::FRAC_PI_2)
-        //     .max(-std::f64::consts::FRAC_PI_2);
-        // // self.rotation.value.1 += rot_diff.1;
-        // // let rotation = (self.rotation.value.0 / 2.0, self.rotation.value.1 / 2.0);
-        // // let pitch = Quaternion::new(
-        // //     rotation.0.cos(),
-        // //     // rotation.0.sin() * (rotation.1 * 2.0).cos(),
-        // //     0.0,
-        // //     rotation.0.sin(),// * (rotation.1 * 2.0).sin(),
-        // //     0.0,
-        // // );
-        // // let yaw = Quaternion::new(
-        // //     rotation.1.cos(),
-        // //     0.0,
-        // //     0.0,
-        // //     rotation.1.sin(),
-        // // );
-        // // let rotation = yaw;
-        // // let rotation_prim = rotation.inverse();
-        // // let pos_diff_rotated = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
+        self.rotation.value.0 = (self.rotation.value.0)
+            .min(std::f64::consts::FRAC_PI_2)
+            .max(-std::f64::consts::FRAC_PI_2);
+        self.rotation.value.1 += rot_diff.1;
 
-        // // Update camera
-        // println!("{:?}", self.rotation.value);
+        let rotation = (self.rotation.value.0 / 2.0, self.rotation.value.1 / 2.0); // Half angles for quaternions.
+
+        let pitch = Quaternion::new(
+            rotation.0.cos(),
+            rotation.0.sin() * (rotation.1 * 2.0).cos(),
+            rotation.0.sin() * (rotation.1 * 2.0).sin(),
+            0.0,
+        );
+        let yaw = Quaternion::new(
+            rotation.1.cos(),
+            0.0,
+            0.0,
+            rotation.1.sin(),
+        );
+        let rotation = &pitch * &yaw;
+        let rotation_prim = rotation.inverse();
+        pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
+
+        // Update the actual state
         self.rotation.value.0 += rot_diff.0;
         self.rotation.value.1 += rot_diff.1;
         self.position.value = (&self.position.value.0 + &pos_diff.0).into();
+
+        // Update camera
         camera.rotation = self.rotation.value;
         camera.position = self.position.value.clone();
         camera
