@@ -42,6 +42,7 @@ mod input {
 
     #[derive(Default)]
     pub struct State {
+        pub event_count: u64,
         pub mouse: mouse::State,
         pub keyboard: keyboard::State,
     }
@@ -110,6 +111,8 @@ impl State {
     }
 
     fn handle_event(&mut self, event: Event) {
+        self.input.event_count += 1;
+
         match event {
             Event::Mouse(_modifier, event) => match (_modifier, event) {
                 (io::Modifier::None, io::mouse::Event::Left(motion, x, y)) => match motion {
@@ -292,9 +295,7 @@ impl State {
         let rotation_prim = rotation.inverse();
         pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
 
-        // Update the actual state
         self.position.value = (&self.position.value.0 + &pos_diff.0).into();
-        println!("POS {:?}", self.position.value);
 
         // Handle keyboard input
         if let Some(_) = self.input.keyboard.r.take() {
@@ -330,33 +331,13 @@ impl State {
         config.camera.rotation = (rotation, rotation_prim);
         config.camera.position = self.position.value.clone();
         config
+    }
 
-        // // Statistics
-        // if update_timer.elapsed() >= Duration::from_secs(1) {
-        //     fps = frame_tmp;
-        //     frame_tmp = 0;
-        //     update_timer = time::Instant::now();
-        // } else {
-        //     frame_tmp += 1;
-        // }
+    pub fn rotation(&self) -> (f64, f64) {
+        self.rotation.value
+    }
 
-        // if let Some(time) = time_target.checked_sub(std::time::Instant::now() - start) {
-        //     time_wait = time;
-        // } else {
-        //     time_wait = Duration::from_micros(0);
-        //     frame_missed += 1;
-        // }
-
-        // frame += 1;
-
-        // if let ProjectionMode::Perspective { fov } = camera.projection_mode {
-        //     if show_info {
-        //         print!("\x1B[2KFrame: {frame} | Missed Frames: {frame_missed} | FPS: {fps} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
-        //             camera.resolution.0, camera.resolution.1, fov,
-        //             camera.position[0], camera.position[1], camera.position[2],
-        //             camera.rotation.0, camera.rotation.1
-        //         );
-        //     }
-        // }
+    pub fn event_count(&self) -> u64 {
+        self.input.event_count
     }
 }
