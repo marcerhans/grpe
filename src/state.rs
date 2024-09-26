@@ -27,6 +27,7 @@ mod input {
             pub r: Option<()>,
             pub o: Option<()>,
             pub w: Option<()>,
+            pub v: Option<()>,
             pub plus: Option<()>,
             pub minus: Option<()>,
         }
@@ -174,6 +175,7 @@ impl State {
                 'r' => self.input.keyboard.r = Some(()),
                 'o' => self.input.keyboard.o = Some(()),
                 'w' => self.input.keyboard.w = Some(()),
+                'v' => self.input.keyboard.v = Some(()),
                 '+' => self.input.keyboard.plus = Some(()),
                 '-' => self.input.keyboard.minus = Some(()),
                 _ => (),
@@ -207,6 +209,29 @@ impl State {
             self.input.mouse.scroll = None;
         }
 
+        if let Some(_) = self.input.keyboard.v.take() {
+            // Toggle view mode and adjust position
+            if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
+                // Undo any current rotation.
+                let mut pos = quaternion::rotate(&self.position.value, &config.camera.rotation.1, &config.camera.rotation.0);
+
+                config.camera.view_mode = match config.camera.view_mode {
+                    renderer::ViewMode::FirstPerson => {
+                        pos[1] += (config.camera.resolution.0 as f64 / 2.0) / f64::tan((fov as f64 / 2.0) * (std::f64::consts::PI / 180.0));
+                        renderer::ViewMode::Orbital
+                    }
+                    renderer::ViewMode::Orbital => {
+                        pos[1] -= (config.camera.resolution.0 as f64 / 2.0) / f64::tan((fov as f64 / 2.0) * (std::f64::consts::PI / 180.0));
+                        renderer::ViewMode::FirstPerson
+                    }
+                };
+
+                // Re-apply rotation.
+                self.position.value = quaternion::rotate(&pos, &config.camera.rotation.0, &config.camera.rotation.1);
+            }
+        }
+
+
         // Apply updated rotation on positional change.
         self.rotation.value.0 = (self.rotation.value.0)
             .min(std::f64::consts::FRAC_PI_2)
@@ -237,37 +262,33 @@ impl State {
         self.position.value = (&self.position.value.0 + &pos_diff.0).into();
 
         // Handle keyboard input
-        if let Some(_) = self.input.keyboard.r {
+        if let Some(_) = self.input.keyboard.r.take() {
             // Reset
             self.rotation = Default::default();
             self.position = Default::default();
-            self.input.keyboard.r = None;
         }
 
-        if let Some(_) = self.input.keyboard.o {
-            // Set render option
+        if let Some(_) = self.input.keyboard.o.take() {
+            // Toggle render option
             config.option = match config.option {
                 renderer::RenderOption::All => renderer::RenderOption::Line,
                 renderer::RenderOption::Line => renderer::RenderOption::Vertices,
                 renderer::RenderOption::Vertices => renderer::RenderOption::All,
             };
-            self.input.keyboard.o = None;
         }
 
-        if let Some(_) = self.input.keyboard.plus {
+        if let Some(_) = self.input.keyboard.plus.take() {
             if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
                 // Increase fov
                 config.camera.projection_mode = ProjectionMode::Perspective { fov: fov + 5 };
             }
-            self.input.keyboard.plus = None;
         }
 
-        if let Some(_) = self.input.keyboard.minus {
+        if let Some(_) = self.input.keyboard.minus.take() {
             if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
                 // Decrease fov
                 config.camera.projection_mode = ProjectionMode::Perspective { fov: fov - 5 };
             }
-            self.input.keyboard.minus = None;
         }
 
         // Update camera
