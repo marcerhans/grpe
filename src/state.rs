@@ -21,14 +21,12 @@ mod input {
     }
 
     pub mod keyboard {
-        pub enum Event {
-            Down,
-            Up,
-        }
-
+        /// This is ugly :)
         #[derive(Default)]
         pub struct State {
-            pub w: Option<Event>,
+            pub r: Option<()>,
+            pub o: Option<()>,
+            pub w: Option<()>,
         }
     }
 
@@ -98,8 +96,7 @@ impl State {
             self.handle_event(event);
         }
         self.position.value = config.camera.position.clone(); // Not needed, but want to keep "real" state in [State] (semantics).
-        config.camera = self.update_camera(config.camera);
-        config
+        self.update_config(config)
     }
 
     fn handle_event(&mut self, event: Event) {
@@ -172,13 +169,15 @@ impl State {
                 _ => (),
             },
             Event::Character(c) => match c {
-                'w' => self.input.keyboard.w = Some(input::keyboard::Event::Down),
+                'r' => self.input.keyboard.r = Some(()),
+                'o' => self.input.keyboard.o = Some(()),
+                'w' => self.input.keyboard.w = Some(()),
                 _ => (),
             },
         }
     }
 
-    fn update_camera(&mut self, mut camera: Camera) -> Camera {
+    fn update_config(&mut self, mut config: RendererConfiguration) -> RendererConfiguration {
         // Calculate rotational change based on input.
         let mut rot_diff = (0.0, 0.0);
         if let Some(event) = self.input.mouse.right.as_mut() {
@@ -233,10 +232,28 @@ impl State {
         self.rotation.value.1 += rot_diff.1;
         self.position.value = (&self.position.value.0 + &pos_diff.0).into();
 
+        // Handle keyboard input
+        if let Some(_) = self.input.keyboard.r {
+            // Reset
+            self.rotation = Default::default();
+            self.position = Default::default();
+            self.input.keyboard.r = None;
+        }
+
+        if let Some(_) = self.input.keyboard.o {
+            // Set render option
+            config.option = match config.option {
+                renderer::RenderOption::All => renderer::RenderOption::Line,
+                renderer::RenderOption::Line => renderer::RenderOption::Vertices,
+                renderer::RenderOption::Vertices => renderer::RenderOption::All,
+            };
+            self.input.keyboard.o = None;
+        }
+
         // Update camera
-        camera.rotation = (rotation, rotation_prim);
-        camera.position = self.position.value.clone();
-        camera
+        config.camera.rotation = (rotation, rotation_prim);
+        config.camera.position = self.position.value.clone();
+        config
 
         // // Statistics
         // if update_timer.elapsed() >= Duration::from_secs(1) {
