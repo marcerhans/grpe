@@ -21,6 +21,7 @@ mod input {
     }
 
     pub mod keyboard {
+        #![allow(non_snake_case)]
         /// This is ugly :)
         #[derive(Default)]
         pub struct State {
@@ -28,6 +29,12 @@ mod input {
             pub o: Option<()>,
             pub w: Option<()>,
             pub v: Option<()>,
+            pub i: Option<()>,
+            pub j: Option<()>,
+            pub k: Option<()>,
+            pub l: Option<()>,
+            pub f: Option<()>,
+            pub F: Option<()>,
             pub plus: Option<()>,
             pub minus: Option<()>,
         }
@@ -176,6 +183,12 @@ impl State {
                 'o' => self.input.keyboard.o = Some(()),
                 'w' => self.input.keyboard.w = Some(()),
                 'v' => self.input.keyboard.v = Some(()),
+                'i' => self.input.keyboard.i = Some(()),
+                'j' => self.input.keyboard.j = Some(()),
+                'k' => self.input.keyboard.k = Some(()),
+                'l' => self.input.keyboard.l = Some(()),
+                'f' => self.input.keyboard.f = Some(()),
+                'F' => self.input.keyboard.F = Some(()),
                 '+' => self.input.keyboard.plus = Some(()),
                 '-' => self.input.keyboard.minus = Some(()),
                 _ => (),
@@ -188,10 +201,26 @@ impl State {
         let mut rot_diff = (0.0, 0.0);
         if let Some(event) = self.input.mouse.right.as_mut() {
             if let input::mouse::Event::Hold { from, to } = event {
-                rot_diff.0 = (to.1 - from.1) * 0.02;
-                rot_diff.1 = (to.0 - from.0) * -0.01;
+                rot_diff.0 += (to.1 - from.1) * 0.02;
+                rot_diff.1 += (to.0 - from.0) * -0.01;
                 *event = input::mouse::Event::Down(to.0, to.1);
             }
+        }
+
+        if let Some(_) = self.input.keyboard.i.take() {
+            rot_diff.0 -= std::f64::consts::FRAC_PI_4;
+        }
+
+        if let Some(_) = self.input.keyboard.k.take() {
+            rot_diff.0 += std::f64::consts::FRAC_PI_4;
+        }
+
+        if let Some(_) = self.input.keyboard.j.take() {
+            rot_diff.1 -= std::f64::consts::FRAC_PI_4;
+        }
+
+        if let Some(_) = self.input.keyboard.l.take() {
+            rot_diff.1 += std::f64::consts::FRAC_PI_4;
         }
 
         // Calculate positional change based on input.
@@ -232,7 +261,7 @@ impl State {
         }
 
         // Apply updated rotation on positional change.
-        self.rotation.value.0 = (self.rotation.value.0)
+        self.rotation.value.0 = (self.rotation.value.0 + rot_diff.0)
             .min(std::f64::consts::FRAC_PI_2)
             .max(-std::f64::consts::FRAC_PI_2);
         self.rotation.value.1 += rot_diff.1;
@@ -256,9 +285,8 @@ impl State {
         pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
 
         // Update the actual state
-        self.rotation.value.0 += rot_diff.0;
-        self.rotation.value.1 += rot_diff.1;
         self.position.value = (&self.position.value.0 + &pos_diff.0).into();
+        println!("POS {:?}", self.position.value);
 
         // Handle keyboard input
         if let Some(_) = self.input.keyboard.r.take() {
@@ -276,14 +304,14 @@ impl State {
             };
         }
 
-        if let Some(_) = self.input.keyboard.plus.take() {
+        if let Some(_) = self.input.keyboard.F.take() {
             if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
                 // Increase fov
                 config.camera.projection_mode = ProjectionMode::Perspective { fov: fov + 5 };
             }
         }
 
-        if let Some(_) = self.input.keyboard.minus.take() {
+        if let Some(_) = self.input.keyboard.f.take() {
             if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
                 // Decrease fov
                 config.camera.projection_mode = ProjectionMode::Perspective { fov: fov - 5 };
