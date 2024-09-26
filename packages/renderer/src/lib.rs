@@ -32,10 +32,8 @@ pub enum ViewMode {
 
 #[derive(Clone)]
 pub struct Camera {
-    /// Width, Height
     pub resolution: (u64, u64),
     pub position: VectorRow<f64, 3>,
-    /// Pitch, Yaw
     pub rotation: (Quaternion<f64>, Quaternion<f64>),
     pub view_mode: ViewMode,
     pub projection_mode: ProjectionMode,
