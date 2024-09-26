@@ -231,7 +231,6 @@ impl State {
             }
         }
 
-
         // Apply updated rotation on positional change.
         self.rotation.value.0 = (self.rotation.value.0)
             .min(std::f64::consts::FRAC_PI_2)

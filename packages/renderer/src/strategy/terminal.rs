@@ -99,7 +99,7 @@ impl Canvas {
                 &fov,
                 &config.camera.view_mode,
                 &config.camera.rotation.0,
-                &config.camera.rotation.1
+                &config.camera.rotation.1,
             ),
         }
     }
@@ -200,7 +200,7 @@ impl Canvas {
             &fov,
             &config.camera.view_mode,
             &config.camera.rotation.0,
-            &config.camera.rotation.1
+            &config.camera.rotation.1,
         );
         Ok(())
     }
@@ -267,7 +267,20 @@ impl Terminal {
 
         // Position
         // Rotation
+
         // ViewMode
+        if let ViewMode::Orbital = camera.view_mode {
+            // Undo any current rotation.
+            let mut pos = rotate(&camera.position, &camera.rotation.1, &camera.rotation.0);
+
+            // Remove any movement in x,z axis. This allows zoom to still work. Though, limit it to be <= 0.
+            pos[0] = 0.0;
+            pos[1] = f64::min(pos[1], 0.0);
+            pos[2] = 0.0;
+
+            // Re-apply rotation.
+            camera.position = rotate(&pos, &camera.rotation.0, &camera.rotation.1);
+        }
 
         // ProjectionMode
         if let ProjectionMode::Perspective { fov } = camera.projection_mode {
