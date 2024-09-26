@@ -183,62 +183,65 @@ impl State {
         let mut rot_diff = (0.0, 0.0);
         if let Some(event) = self.input.mouse.left.as_ref() {
             if let input::mouse::Event::Hold { from, to } = event {
-                rot_diff.0 = (to.0 - from.0);
-                rot_diff.1 = (to.1 - from.1);
+                rot_diff.0 = to.0 - from.0;
+                rot_diff.1 = to.1 - from.1;
+                self.input.mouse.left = Some(input::mouse::Event::Down(to.0, to.1));
             }
         }
-        if self.input.mouse.left.as_ref().is_some() {
-            self.input.mouse.left = None;
-        }
-        if let Some(key) =self.input.keyboard.w.as_ref() {
-            rot_diff.0 += 0.1;
-            rot_diff.1 += 0.1;
-        }
-        if self.input.keyboard.w.as_ref().is_some() {
-            self.input.keyboard.w = None;
-        }
+        // if self.input.mouse.left.as_ref().is_some() {
+        //     self.input.mouse.left = None;
+        // }
+        // if let Some(key) =self.input.keyboard.w.as_ref() {
+        //     rot_diff.0 += 0.1;
+        //     rot_diff.1 += 0.1;
+        // }
+        // if self.input.keyboard.w.as_ref().is_some() {
+        //     self.input.keyboard.w = None;
+        // }
+        // self.rotation.value.0 += rot_diff.0;
+        // self.rotation.value.1 += rot_diff.1;
+
+        // // Calculate positional change based on input.
+        // let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
+        // if let Some(event) = self.input.mouse.right.as_ref() {
+        //     if let input::mouse::Event::Hold { from, to } = event {
+        //         pos_diff[0] = to.0 - from.0;
+        //         pos_diff[2] = to.1 - from.1;
+        //     }
+        // }
+        // if let Some(val) = self.input.mouse.scroll.as_mut() {
+        //     pos_diff[1] += *val as f64;
+        // }
+        // self.input.mouse.scroll = None;
+        // self.position.value = (&self.position.value.0 + &pos_diff.0).into();
+
+        // // Apply updated rotation on positional change.
+        // self.rotation.value.0 = (self.rotation.value.0)
+        //     .min(std::f64::consts::FRAC_PI_2)
+        //     .max(-std::f64::consts::FRAC_PI_2);
+        // // self.rotation.value.1 += rot_diff.1;
+        // // let rotation = (self.rotation.value.0 / 2.0, self.rotation.value.1 / 2.0);
+        // // let pitch = Quaternion::new(
+        // //     rotation.0.cos(),
+        // //     // rotation.0.sin() * (rotation.1 * 2.0).cos(),
+        // //     0.0,
+        // //     rotation.0.sin(),// * (rotation.1 * 2.0).sin(),
+        // //     0.0,
+        // // );
+        // // let yaw = Quaternion::new(
+        // //     rotation.1.cos(),
+        // //     0.0,
+        // //     0.0,
+        // //     rotation.1.sin(),
+        // // );
+        // // let rotation = yaw;
+        // // let rotation_prim = rotation.inverse();
+        // // let pos_diff_rotated = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
+
+        // // Update camera
+        // println!("{:?}", self.rotation.value);
         self.rotation.value.0 += rot_diff.0;
         self.rotation.value.1 += rot_diff.1;
-
-        // Calculate positional change based on input.
-        let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
-        if let Some(event) = self.input.mouse.right.as_ref() {
-            if let input::mouse::Event::Hold { from, to } = event {
-                pos_diff[0] = to.0 - from.0;
-                pos_diff[2] = to.1 - from.1;
-            }
-        }
-        if let Some(val) = self.input.mouse.scroll.as_mut() {
-            pos_diff[1] += *val as f64;
-        }
-        self.input.mouse.scroll = None;
-        self.position.value = (&self.position.value.0 + &pos_diff.0).into();
-
-        // Apply updated rotation on positional change.
-        self.rotation.value.0 = (self.rotation.value.0)
-            .min(std::f64::consts::FRAC_PI_2)
-            .max(-std::f64::consts::FRAC_PI_2);
-        // self.rotation.value.1 += rot_diff.1;
-        // let rotation = (self.rotation.value.0 / 2.0, self.rotation.value.1 / 2.0);
-        // let pitch = Quaternion::new(
-        //     rotation.0.cos(),
-        //     // rotation.0.sin() * (rotation.1 * 2.0).cos(),
-        //     0.0,
-        //     rotation.0.sin(),// * (rotation.1 * 2.0).sin(),
-        //     0.0,
-        // );
-        // let yaw = Quaternion::new(
-        //     rotation.1.cos(),
-        //     0.0,
-        //     0.0,
-        //     rotation.1.sin(),
-        // );
-        // let rotation = yaw;
-        // let rotation_prim = rotation.inverse();
-        // let pos_diff_rotated = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
-
-        // Update camera
-        println!("{:?}", self.rotation.value);
         camera.rotation = self.rotation.value;
         camera.position = self.position.value.clone();
         camera
