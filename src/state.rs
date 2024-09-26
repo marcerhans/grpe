@@ -189,41 +189,20 @@ impl State {
             }
         }
 
+        // Calculate positional change based on input.
         let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
         if let Some(event) = self.input.mouse.left.as_mut() {
             if let input::mouse::Event::Hold { from, to } = event {
                 pos_diff[0] = to.0 - from.0;
-                pos_diff[1] = to.1 - from.1;
+                pos_diff[2] = to.1 - from.1;
                 *event = input::mouse::Event::Down(to.0, to.1);
             }
         }
 
-        // if self.input.mouse.left.as_ref().is_some() {
-        //     self.input.mouse.left = None;
-        // }
-        // if let Some(key) =self.input.keyboard.w.as_ref() {
-        //     rot_diff.0 += 0.1;
-        //     rot_diff.1 += 0.1;
-        // }
-        // if self.input.keyboard.w.as_ref().is_some() {
-        //     self.input.keyboard.w = None;
-        // }
-        // self.rotation.value.0 += rot_diff.0;
-        // self.rotation.value.1 += rot_diff.1;
-
-        // // Calculate positional change based on input.
-        // let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
-        // if let Some(event) = self.input.mouse.right.as_ref() {
-        //     if let input::mouse::Event::Hold { from, to } = event {
-        //         pos_diff[0] = to.0 - from.0;
-        //         pos_diff[2] = to.1 - from.1;
-        //     }
-        // }
-        // if let Some(val) = self.input.mouse.scroll.as_mut() {
-        //     pos_diff[1] += *val as f64;
-        // }
-        // self.input.mouse.scroll = None;
-        // self.position.value = (&self.position.value.0 + &pos_diff.0).into();
+        if let Some(val) = self.input.mouse.scroll.as_ref() {
+            pos_diff[1] += *val as f64;
+            self.input.mouse.scroll = None;
+        }
 
         // // Apply updated rotation on positional change.
         // self.rotation.value.0 = (self.rotation.value.0)
