@@ -212,13 +212,13 @@ impl State {
 
         let rotation = (self.rotation.value.0 / 2.0, self.rotation.value.1 / 2.0); // Half angles for quaternions.
 
-        let pitch = Quaternion::new(
+        let pitch = Quaternion(
             rotation.0.cos(),
             rotation.0.sin() * (rotation.1 * 2.0).cos(),
             rotation.0.sin() * (rotation.1 * 2.0).sin(),
             0.0,
         );
-        let yaw = Quaternion::new(
+        let yaw = Quaternion(
             rotation.1.cos(),
             0.0,
             0.0,
@@ -234,7 +234,7 @@ impl State {
         self.position.value = (&self.position.value.0 + &pos_diff.0).into();
 
         // Update camera
-        camera.rotation = self.rotation.value;
+        camera.rotation = (rotation, rotation_prim);
         camera.position = self.position.value.clone();
         camera
 

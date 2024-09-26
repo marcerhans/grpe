@@ -75,14 +75,11 @@ struct Canvas {
     buffer: Vec<Vec<char>>,
     /// Return: None if no intersection found. Otherwise point at which line between vertex and viewpoint intersects the viewport.
     line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>,
-    rotation: Quaternion<f64>,
-    rotation_inverse: Quaternion<f64>,
 }
 
 impl Canvas {
     fn new(config: &RendererConfiguration) -> Self {
         let resolution = &config.camera.resolution;
-        let (rotation, rotation_inverse) = Self::calc_rotation(&config.camera.rotation);
 
         // TODO: Fix orthographic option
         let fov = if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
@@ -101,11 +98,9 @@ impl Canvas {
                 &config.camera.position,
                 &fov,
                 &config.camera.view_mode,
-                &rotation,
-                &rotation_inverse,
+                &config.camera.rotation.0,
+                &config.camera.rotation.1
             ),
-            rotation,
-            rotation_inverse,
         }
     }
 
@@ -192,51 +187,22 @@ impl Canvas {
     }
 
     fn update(&mut self, config: &RendererConfiguration) -> Result<(), &'static str> {
-        let (rotation, rotation_inverse) = Self::calc_rotation(&config.camera.rotation);
-        self.rotation = rotation;
-        self.rotation_inverse = rotation_inverse;
-
         // TODO: Fix orthographic option
         let fov = if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
             fov
         } else {
             90
         };
+
         self.line_intersection_checker = Self::create_intersection_checker(
             &config.camera.resolution,
             &config.camera.position,
             &fov,
             &config.camera.view_mode,
-            &self.rotation,
-            &self.rotation_inverse,
+            &config.camera.rotation.0,
+            &config.camera.rotation.1
         );
         Ok(())
-    }
-
-    fn calc_rotation(rotation: &(f64, f64)) -> (Quaternion<f64>, Quaternion<f64>) {
-        let rotation = (rotation.0 / 2.0, rotation.1 / 2.0);
-
-        let pitch = Quaternion {
-            q0: rotation.0.cos(),
-            q1: rotation.0.sin() * (rotation.1 * 2.0).cos(),
-            q2: rotation.0.sin() * (rotation.1 * 2.0).sin(),
-            q3: 0.0,
-        };
-        let yaw = Quaternion {
-            q0: rotation.1.cos(),
-            q1: 0.0,
-            q2: 0.0,
-            q3: rotation.1.sin(),
-        };
-        let rotation = &pitch * &yaw;
-        let rotation_inverse = Quaternion {
-            q0: rotation.q0,
-            q1: -rotation.q1,
-            q2: -rotation.q2,
-            q3: -rotation.q3,
-        };
-
-        (rotation, rotation_inverse)
     }
 }
 
@@ -393,8 +359,8 @@ impl Terminal {
                     VectorRow::<f64, 3>::from(&intersection.0 - &self.config.camera.position.0);
                 let intersection: VectorRow<f64, 3> = rotate(
                     &intersection,
-                    &self.canvas.rotation_inverse,
-                    &self.canvas.rotation,
+                    &self.config.camera.rotation.1,
+                    &self.config.camera.rotation.0,
                 );
                 let mut intersection =
                     VectorRow::<f64, 3>::from(&intersection.0 + &self.config.camera.position.0);

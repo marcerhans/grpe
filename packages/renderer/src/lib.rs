@@ -5,6 +5,7 @@ pub mod strategy;
 
 use std::{cell::RefCell, rc::Rc, str::FromStr};
 
+use linear_algebra::quaternion::Quaternion;
 pub use strategy::renderer;
 pub use linear_algebra::{matrix::{Matrix, MatrixDataTrait}, vector::VectorRow};
 
@@ -35,7 +36,7 @@ pub struct Camera {
     pub resolution: (u64, u64),
     pub position: VectorRow<f64, 3>,
     /// Pitch, Yaw
-    pub rotation: (f64, f64),
+    pub rotation: (Quaternion<f64>, Quaternion<f64>),
     pub view_mode: ViewMode,
     pub projection_mode: ProjectionMode,
 }
