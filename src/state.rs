@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
 use linear_algebra::quaternion::{self, Quaternion};
-use renderer::{Camera, RendererConfiguration, VectorRow};
+use renderer::{Camera, ProjectionMode, RendererConfiguration, VectorRow};
 
 mod input {
     pub mod mouse {
@@ -27,6 +27,8 @@ mod input {
             pub r: Option<()>,
             pub o: Option<()>,
             pub w: Option<()>,
+            pub plus: Option<()>,
+            pub minus: Option<()>,
         }
     }
 
@@ -172,6 +174,8 @@ impl State {
                 'r' => self.input.keyboard.r = Some(()),
                 'o' => self.input.keyboard.o = Some(()),
                 'w' => self.input.keyboard.w = Some(()),
+                '+' => self.input.keyboard.plus = Some(()),
+                '-' => self.input.keyboard.minus = Some(()),
                 _ => (),
             },
         }
@@ -248,6 +252,22 @@ impl State {
                 renderer::RenderOption::Vertices => renderer::RenderOption::All,
             };
             self.input.keyboard.o = None;
+        }
+
+        if let Some(_) = self.input.keyboard.plus {
+            if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
+                // Increase fov
+                config.camera.projection_mode = ProjectionMode::Perspective { fov: fov + 5 };
+            }
+            self.input.keyboard.plus = None;
+        }
+
+        if let Some(_) = self.input.keyboard.minus {
+            if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
+                // Decrease fov
+                config.camera.projection_mode = ProjectionMode::Perspective { fov: fov - 5 };
+            }
+            self.input.keyboard.minus = None;
         }
 
         // Update camera
