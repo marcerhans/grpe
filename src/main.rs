@@ -2,7 +2,11 @@ mod arg;
 mod model;
 mod state;
 
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::RefCell,
+    io::{stdout, BufWriter, Write},
+    rc::Rc,
+};
 
 use io::{platform::unix::EventHandler, EventHandlerTrait};
 use renderer::{
@@ -57,34 +61,44 @@ fn main() {
     let mut state = StateHandler::new(event_handler, vertices, line_draw_order);
 
     // 6. Engine loop
-    renderer.clear_screen();
-
     while state.event_handler.running() {
         let updated_config = state.update(renderer.config().clone());
-
-        if let ProjectionMode::Perspective { fov } = updated_config.camera.projection_mode {
-            if args.info.is_some() {
-                print!("\x1B[2KEvents handled: {} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
-                    state.event_count(),
-                    updated_config.camera.resolution.0, updated_config.camera.resolution.1, fov,
-                    updated_config.camera.position[0],  updated_config.camera.position[1], updated_config.camera.position[2],
-                    state.rotation().0, state.rotation().1,
-                );
-            }
-        }
+        let mut writer = BufWriter::new(stdout().lock());
 
         let banner_text = "GRPE";
         let banner_fill_width =
             (updated_config.camera.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
         let banner_char = "=";
         let banner = banner_char.repeat(banner_fill_width);
-        print!("\x1B[H");
-        print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m");
+        write!(writer, "\x1B[H").unwrap();
+        write!(
+            writer,
+            "\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m"
+        )
+        .unwrap();
         if updated_config.camera.resolution.0 % 2 != 0 {
             // Just make it nice even if odd.
-            print!("\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner_char}\x1B[0m");
+            write!(
+                writer,
+                "\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner_char}\x1B[0m"
+            )
+            .unwrap();
         }
-        println!();
+
+        if let ProjectionMode::Perspective { fov } = updated_config.camera.projection_mode {
+            if args.info.is_some() {
+                write!(writer, "\x1B[{};H", (updated_config.camera.resolution.1 + 4) / 2).unwrap();
+                write!(writer, "Events handled: {} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
+                    state.event_count(),
+                    updated_config.camera.resolution.0, updated_config.camera.resolution.1, fov,
+                    updated_config.camera.position[0],  updated_config.camera.position[1], updated_config.camera.position[2],
+                    state.rotation().0, state.rotation().1,
+                ).unwrap();
+            }
+        }
+
+        writer.flush().unwrap();
+        drop(writer);
 
         renderer = renderer
             .set_config(updated_config)
@@ -92,5 +106,5 @@ fn main() {
         renderer.render();
     }
 
-    renderer.clear_screen();
+    // renderer.clear_screen();
 }
