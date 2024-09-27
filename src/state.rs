@@ -2,7 +2,7 @@ use std::{cell::RefCell, io::Read, rc::Rc};
 
 use io::{misc::CurrentSize, platform::unix::EventHandler, Event, EventHandlerTrait};
 use linear_algebra::quaternion::{self, Quaternion};
-use renderer::{Camera, ProjectionMode, RendererConfiguration, VectorRow};
+use renderer::{Camera, ProjectionMode, RenderOption, RendererConfiguration, VectorRow};
 
 mod input {
     pub mod mouse {
@@ -357,6 +357,8 @@ impl State {
             // Reset
             self.rotation = Default::default();
             self.position = Default::default();
+            config.camera = Camera::default();
+            config.option = RenderOption::default();
         }
 
         if let Some(_) = self.input.keyboard.o.take() {
