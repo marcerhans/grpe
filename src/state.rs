@@ -246,8 +246,8 @@ impl State {
         let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
         if let Some(event) = self.input.mouse.left.as_mut() {
             if let input::mouse::Event::Hold { from, to } = event {
-                pos_diff[0] = (to.0 - from.0) * 2.0;
-                pos_diff[2] = (to.1 - from.1) * 4.0;
+                pos_diff[0] = (from.0 - to.0) * 4.0;
+                pos_diff[2] = (from.1 - to.1) * 8.0;
                 *event = input::mouse::Event::Down(to.0, to.1);
             }
         }
