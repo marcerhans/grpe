@@ -41,9 +41,49 @@ mod input {
     }
 
     pub mod misc {
-        #[derive(Default)]
+        use std::{
+            sync::{
+                atomic::{self, AtomicBool, Ordering},
+                Arc,
+            },
+            thread::{sleep, JoinHandle},
+            time::Duration,
+        };
+
         pub struct State {
             pub resize: Option<(u64, u64)>,
+            pub resize_running: Arc<AtomicBool>,
+            pub resize_querier: Option<JoinHandle<()>>,
+        }
+
+        impl Default for State {
+            fn default() -> Self {
+                let resize_running = Arc::new(AtomicBool::new(true));
+                Self {
+                    resize: Default::default(),
+                    resize_querier: {
+                        let running = Arc::clone(&resize_running);
+                        Some(std::thread::spawn(move || {
+                            while running.load(Ordering::Relaxed) {
+                                // Query the terminal to give current dimensions.
+                                // Response is handled by the event handler.
+                                println!("\x1B[18t");
+                                sleep(Duration::from_millis(500));
+                            }
+                        }))
+                    },
+                    resize_running,
+                }
+            }
+        }
+
+        impl Drop for State {
+            fn drop(&mut self) {
+                self.resize_running.store(false, Ordering::Relaxed);
+                if let Some(handle) = self.resize_querier.take() {
+                    handle.join().expect("Couldn't join on the associated thread.");
+                }
+            }
         }
     }
 
@@ -110,9 +150,6 @@ impl State {
     }
 
     pub fn update(&mut self, config: RendererConfiguration) -> RendererConfiguration {
-        // Query the terminal for current size. This will be handled by the event handler.
-        println!("\x1B[18t");
-
         while let Ok(event) = self.event_handler.latest_event() {
             // Batch handling - Read all inputs up until this point.
             self.handle_event(event);
