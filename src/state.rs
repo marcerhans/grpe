@@ -124,7 +124,7 @@ mod rotation {
     }
 }
 
-pub struct State {
+pub struct StateHandler {
     pub event_handler: EventHandler,
     pub vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>,
     pub line_draw_order: Rc<RefCell<Vec<Vec<usize>>>>,
@@ -133,7 +133,7 @@ pub struct State {
     rotation: rotation::State,
 }
 
-impl State {
+impl StateHandler {
     pub fn new(
         event_handler: EventHandler,
         vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>,

@@ -9,7 +9,7 @@ use renderer::{
     renderer::TerminalBuilder, Camera, ProjectionMode, RendererBuilderTrait, RendererTrait,
     VectorRow,
 };
-use state::State;
+use state::StateHandler;
 
 fn main() {
     let args = arg::parse_args();
@@ -53,8 +53,8 @@ fn main() {
     ));
     renderer.set_vertices_line_draw_order(Rc::clone(&line_draw_order));
 
-    // 5. Create a state tracker.
-    let mut state = State::new(event_handler, vertices, line_draw_order);
+    // 5. Create a state handler.
+    let mut state = StateHandler::new(event_handler, vertices, line_draw_order);
 
     // 6. Engine loop
     renderer.clear_screen();
