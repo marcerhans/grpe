@@ -187,6 +187,15 @@ impl Canvas {
     }
 
     fn update(&mut self, config: &RendererConfiguration) -> Result<(), &'static str> {
+        let resolution = config.camera.resolution;
+
+        if self.buffer.len() != (resolution.1 as usize) || self.buffer[0].len() != (resolution.0 as usize) {
+            self.buffer = vec![
+                vec![character::EMPTY; resolution.0 as usize];
+                (resolution.1 / 2) as usize
+            ];
+        }
+
         // TODO: Fix orthographic option
         let fov = if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
             fov
@@ -269,25 +278,25 @@ impl Terminal {
         // Rotation
 
         // ViewMode
-        if let ViewMode::Orbital = camera.view_mode {
-            if let ProjectionMode::Perspective { fov } = camera.projection_mode {
-                // Undo any current rotation.
-                let mut pos = rotate(&camera.position, &camera.rotation.1, &camera.rotation.0);
+        // if let ViewMode::Orbital = camera.view_mode {
+        //     if let ProjectionMode::Perspective { fov } = camera.projection_mode {
+        //         // Undo any current rotation.
+        //         let mut pos = rotate(&camera.position, &camera.rotation.1, &camera.rotation.0);
 
-                // Remove any movement in x,z axis. This allows zoom to still work. Though, limit it to be <= 0.
-                pos[0] = 0.0;
-                pos[1] = f64::min(
-                    pos[1],
-                    // Ther reason this being an equation rather than a limiting 0.0 is a bit of a hack.
-                    (camera.resolution.0 as f64 / 2.0)
-                        / f64::tan((fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
-                );
-                pos[2] = 0.0;
+        //         // Remove any movement in x,z axis. This allows zoom to still work. Though, limit it to be <= 0.
+        //         pos[0] = 0.0;
+        //         pos[1] = f64::min(
+        //             pos[1],
+        //             // Ther reason this being an equation rather than a limiting 0.0 is a bit of a hack.
+        //             (camera.resolution.0 as f64 / 2.0)
+        //                 / f64::tan((fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
+        //         );
+        //         pos[2] = 0.0;
 
-                // Re-apply rotation.
-                camera.position = rotate(&pos, &camera.rotation.0, &camera.rotation.1);
-            }
-        }
+        //         // Re-apply rotation.
+        //         camera.position = rotate(&pos, &camera.rotation.0, &camera.rotation.1);
+        //     }
+        // }
 
         // ProjectionMode
         if let ProjectionMode::Perspective { fov } = camera.projection_mode {

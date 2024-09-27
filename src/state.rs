@@ -1,6 +1,6 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, io::Read, rc::Rc};
 
-use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
+use io::{misc::CurrentSize, platform::unix::EventHandler, Event, EventHandlerTrait};
 use linear_algebra::quaternion::{self, Quaternion};
 use renderer::{Camera, ProjectionMode, RendererConfiguration, VectorRow};
 
@@ -40,11 +40,19 @@ mod input {
         }
     }
 
+    pub mod misc {
+        #[derive(Default)]
+        pub struct State {
+            pub resize: Option<(u64, u64)>,
+        }
+    }
+
     #[derive(Default)]
     pub struct State {
         pub event_count: u64,
         pub mouse: mouse::State,
         pub keyboard: keyboard::State,
+        pub misc: misc::State,
     }
 }
 
@@ -101,7 +109,10 @@ impl State {
         }
     }
 
-    pub fn update(&mut self, mut config: RendererConfiguration) -> RendererConfiguration {
+    pub fn update(&mut self, config: RendererConfiguration) -> RendererConfiguration {
+        // Query the terminal for current size. This will be handled by the event handler.
+        println!("\x1B[18t");
+
         while let Ok(event) = self.event_handler.latest_event() {
             // Batch handling - Read all inputs up until this point.
             self.handle_event(event);
@@ -173,11 +184,11 @@ impl State {
                     io::mouse::Direction::Down => match self.input.mouse.scroll.as_mut() {
                         Some(val) => *val -= 1,
                         None => self.input.mouse.scroll = Some(-10),
-                    }
+                    },
                     io::mouse::Direction::Up => match self.input.mouse.scroll.as_mut() {
                         Some(val) => *val += 1,
                         None => self.input.mouse.scroll = Some(10),
-                    }
+                    },
                 },
                 _ => (),
             },
@@ -195,6 +206,11 @@ impl State {
                 '+' => self.input.keyboard.plus = Some(()),
                 '-' => self.input.keyboard.minus = Some(()),
                 _ => (),
+            },
+            Event::Misc(event) => match event {
+                io::misc::Event::CurrentSize(current_size) => {
+                    self.input.misc.resize = Some((current_size.0, current_size.1))
+                }
             },
         }
     }
@@ -253,21 +269,28 @@ impl State {
             // Toggle view mode and adjust position
             if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
                 // Undo any current rotation.
-                let mut pos = quaternion::rotate(&self.position.value, &config.camera.rotation.1, &config.camera.rotation.0);
+                let mut pos = quaternion::rotate(
+                    &self.position.value,
+                    &config.camera.rotation.1,
+                    &config.camera.rotation.0,
+                );
 
                 config.camera.view_mode = match config.camera.view_mode {
                     renderer::ViewMode::FirstPerson => {
-                        pos[1] += (config.camera.resolution.0 as f64 / 2.0) / f64::tan((fov as f64 / 2.0) * (std::f64::consts::PI / 180.0));
+                        pos[1] += (config.camera.resolution.0 as f64 / 2.0)
+                            / f64::tan((fov as f64 / 2.0) * (std::f64::consts::PI / 180.0));
                         renderer::ViewMode::Orbital
                     }
                     renderer::ViewMode::Orbital => {
-                        pos[1] -= (config.camera.resolution.0 as f64 / 2.0) / f64::tan((fov as f64 / 2.0) * (std::f64::consts::PI / 180.0));
+                        pos[1] -= (config.camera.resolution.0 as f64 / 2.0)
+                            / f64::tan((fov as f64 / 2.0) * (std::f64::consts::PI / 180.0));
                         renderer::ViewMode::FirstPerson
                     }
                 };
 
                 // Re-apply rotation.
-                self.position.value = quaternion::rotate(&pos, &config.camera.rotation.0, &config.camera.rotation.1);
+                self.position.value =
+                    quaternion::rotate(&pos, &config.camera.rotation.0, &config.camera.rotation.1);
             }
         }
 
@@ -285,12 +308,7 @@ impl State {
             rotation.0.sin() * (rotation.1 * 2.0).sin(),
             0.0,
         );
-        let yaw = Quaternion(
-            rotation.1.cos(),
-            0.0,
-            0.0,
-            rotation.1.sin(),
-        );
+        let yaw = Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
         let rotation = &pitch * &yaw;
         let rotation_prim = rotation.inverse();
         pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
@@ -325,6 +343,12 @@ impl State {
                 // Decrease fov
                 config.camera.projection_mode = ProjectionMode::Perspective { fov: fov - 5 };
             }
+        }
+
+        // Resize
+        if let Some(new_size) = self.input.misc.resize {
+            config.camera.resolution.0 = new_size.0;
+            config.camera.resolution.1 = new_size.1 * 2 - 5;
         }
 
         // Update camera

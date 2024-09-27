@@ -70,9 +70,18 @@ pub mod mouse {
     }
 }
 
+pub mod misc {
+    pub struct CurrentSize(pub u64, pub u64);
+
+    pub enum Event {
+        CurrentSize(CurrentSize),
+    }
+}
+
 pub enum Event {
     Mouse(Modifier, mouse::Event),
     Character(char),
+    Misc(misc::Event),
 }
 
 pub trait EventHandlerTrait: Sized {

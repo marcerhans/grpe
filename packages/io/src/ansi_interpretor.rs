@@ -1,8 +1,8 @@
-use crate::Event;
+use crate::{misc, Event};
 use util::{Ansi, CharArray};
 
 mod util {
-    use crate::{mouse, platform::unix::ToU8, Modifier};
+    use crate::{mouse, platform::unix::ToU8, Modifier, misc};
 
     pub struct CharArray<const SIZE: usize, F: Fn(bool) -> Result<char, &'static str>> {
         array: [char; SIZE],
@@ -42,7 +42,8 @@ mod util {
         }
     }
 
-    impl<const SIZE: usize, Idx, F: Fn(bool) -> Result<char, &'static str>> std::ops::Index<Idx> for CharArray<SIZE, F>
+    impl<const SIZE: usize, Idx, F: Fn(bool) -> Result<char, &'static str>> std::ops::Index<Idx>
+        for CharArray<SIZE, F>
     where
         Idx: std::slice::SliceIndex<[char]>,
     {
@@ -57,39 +58,40 @@ mod util {
         fn is_escape(&mut self) -> Result<bool, &'static str>;
         fn is_sequence(&mut self) -> Result<bool, &'static str>;
         fn is_mouse_tracking(&mut self) -> Result<(Modifier, mouse::Event), &'static str>;
+        fn is_resize(&mut self) -> Result<misc::CurrentSize, &'static str>;
     }
 
     impl<const SIZE: usize, F: Fn(bool) -> Result<char, &'static str>> Ansi for CharArray<SIZE, F> {
         fn is_escape(&mut self) -> Result<bool, &'static str> {
-            if self.pos != 0 {
+            if self.pos != 1 {
                 return Err("Not in correct state to check for escape sequence.");
             }
 
-            if let Ok(c) = self.read(false) {
+            if let Ok(c) = self.last() {
                 return Ok(c == '\x1b');
             }
 
-            Err("Failed to read.")
+            Err("Failed to parse.")
         }
 
         fn is_sequence(&mut self) -> Result<bool, &'static str> {
-            if self.pos != 1 {
+            if self.pos != 2 {
                 return Err("Not in correct state to check for sequence start symbol ('[').");
             }
 
-            if let Ok(c) = self.read(true) {
+            if let Ok(c) = self.last() {
                 return Ok(c == '[');
             }
 
-            Err("Failed to read.")
+            Err("Failed to parse.")
         }
 
         fn is_mouse_tracking(&mut self) -> Result<(Modifier, mouse::Event), &'static str> {
-            if self.pos != 2 {
+            if self.pos != 3 {
                 return Err("Not in correct state to check for mouse tracking sequence.");
             }
 
-            if let Ok(c) = self.read(true) {
+            if let Ok(c) = self.last() {
                 if c != '<' {
                     return Err("Not a mouse tracking sequence.");
                 }
@@ -192,11 +194,75 @@ mod util {
 
             Ok((Modifier::None, meb.build())) // (modifiers not supported yet)
         }
+
+        fn is_resize(&mut self) -> Result<misc::CurrentSize, &'static str> {
+            if self.pos != 3 {
+                return Err("Not in correct state to check for sequence start symbol ('[').");
+            }
+
+            if let Ok(c) = self.last() {
+                if c != '8' {
+                    return Err("Not a resize sequence.")
+                }
+            }
+
+            let mut semicolons_left: usize = 2;
+            let mut semicolon_positions: [usize; 2] = [0; 2];
+            let mut t_position: usize = 0;
+            while match self.read(true) {
+                Ok(c) => {
+                    if c == ';' {
+                        if semicolons_left > 0 {
+                            semicolon_positions[2 - semicolons_left] = self.pos - 1;
+                        }
+
+                        if let Some(new) = semicolons_left.checked_sub(1) {
+                            semicolons_left = new;
+                        } else {
+                            return Err("Badly formatted sequence.");
+                        }
+
+                        true
+                    } else {
+                        if c == 't' {
+                            t_position = self.pos - 1;
+                            false
+                        } else {
+                            true
+                        }
+                    }
+                }
+                Err(_) => false,
+            } {}
+
+            let mut width = 0;
+            let mut height = 0;
+
+            // Parse height.
+            let x = &self[(semicolon_positions[0] + 1)..semicolon_positions[1]];
+            if let Ok(val) = x.iter().collect::<String>().parse() {
+                height = val;
+            }
+
+            // Parse width.
+            let y = &self[(semicolon_positions[1] + 1)..t_position];
+            if let Ok(val) = y.iter().collect::<String>().parse() {
+                width = val;
+            }
+
+            Ok(misc::CurrentSize(width, height))
+        }
     }
 }
 
-pub fn interpret<F: Fn(bool) -> Result<char, &'static str>>(reader: F) -> Result<Event, &'static str> {
+pub fn interpret<F: Fn(bool) -> Result<char, &'static str>>(
+    reader: F,
+) -> Result<Event, &'static str> {
     let mut chars = CharArray::<64, F>::new(reader);
+
+    if let Err(msg) = chars.read(false) {
+        return Err(msg);
+    }
 
     match chars.is_escape() {
         Ok(is_escape) => {
@@ -205,16 +271,27 @@ pub fn interpret<F: Fn(bool) -> Result<char, &'static str>>(reader: F) -> Result
                 return Ok(Event::Character(chars.last().unwrap()));
             }
 
+            if let Err(msg) = chars.read(true) {
+                return Err(msg);
+            }
+
             match chars.is_sequence() {
                 Ok(is_sequence) => {
                     if is_sequence {
-                        match chars.is_mouse_tracking() {
-                            Ok((modifier, event)) => return Ok(Event::Mouse(modifier, event)),
-                            Err(msg) => return Err(msg),
+                        if let Err(msg) = chars.read(true) {
+                            return Err(msg);
                         }
-                    } else {
-                        return Err("Unsupported escape format.");
+
+                        if let Ok((modifier, event)) = chars.is_mouse_tracking() {
+                            return Ok(Event::Mouse(modifier, event));
+                        }
+
+                        if let Ok(current_size) = chars.is_resize() {
+                            return Ok(Event::Misc(misc::Event::CurrentSize(current_size)));
+                        }
                     }
+
+                    return Err("Unsupported escape format.");
                 }
                 Err(msg) => return Err(msg),
             }

@@ -58,8 +58,8 @@ fn main() {
 
     // 6. Engine loop
     renderer.clear_screen();
+
     while state.event_handler.running() {
-        renderer.render();
         let updated_config = state.update(renderer.config().clone());
 
         if let ProjectionMode::Perspective { fov } = updated_config.camera.projection_mode {
@@ -89,5 +89,8 @@ fn main() {
         renderer = renderer
             .set_config(updated_config)
             .expect("Bad configuration.");
+        renderer.render();
     }
+
+    renderer.clear_screen();
 }
