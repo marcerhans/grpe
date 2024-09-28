@@ -81,7 +81,9 @@ mod input {
             fn drop(&mut self) {
                 self.resize_running.store(false, Ordering::Relaxed);
                 if let Some(handle) = self.resize_querier.take() {
-                    handle.join().expect("Couldn't join on the associated thread.");
+                    handle
+                        .join()
+                        .expect("Couldn't join on the associated thread.");
                 }
             }
         }
@@ -89,10 +91,29 @@ mod input {
 
     #[derive(Default)]
     pub struct State {
-        pub event_count: u64,
         pub mouse: mouse::State,
         pub keyboard: keyboard::State,
         pub misc: misc::State,
+    }
+}
+
+mod info {
+    use renderer::VectorRow;
+
+    pub struct State {
+        pub event_count: u64,
+        pub position: VectorRow<f64, 3>,
+        pub rotation: (f64, f64),
+    }
+
+    impl Default for State {
+        fn default() -> Self {
+            Self {
+                event_count: 0,
+                position: VectorRow::from([0.0, 0.0, 0.0]),
+                rotation: Default::default(),
+            }
+        }
     }
 }
 
@@ -129,8 +150,7 @@ pub struct StateHandler {
     pub vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>,
     pub line_draw_order: Rc<RefCell<Vec<Vec<usize>>>>,
     input: input::State,
-    position: position::State,
-    rotation: rotation::State,
+    info: info::State,
 }
 
 impl StateHandler {
@@ -144,8 +164,7 @@ impl StateHandler {
             vertices,
             line_draw_order,
             input: Default::default(),
-            position: Default::default(),
-            rotation: Default::default(),
+            info: Default::default(),
         }
     }
 
@@ -154,12 +173,11 @@ impl StateHandler {
             // Batch handling - Read all inputs up until this point.
             self.handle_event(event);
         }
-        self.position.value = config.camera.position.clone(); // Not needed, but want to keep "real" state in [State] (semantics).
         self.update_config(config)
     }
 
     fn handle_event(&mut self, event: Event) {
-        self.input.event_count += 1;
+        self.info.event_count += 1;
 
         match event {
             Event::Mouse(_modifier, event) => match (_modifier, event) {
@@ -253,6 +271,42 @@ impl StateHandler {
     }
 
     fn update_config(&mut self, mut config: RendererConfiguration) -> RendererConfiguration {
+        if let Some(_) = self.input.keyboard.r.take() {
+            // Reset
+            self.info.rotation = Default::default();
+            config.camera = Camera::default();
+            config.option = RenderOption::default();
+        }
+
+        if let Some(_) = self.input.keyboard.o.take() {
+            // Toggle render option
+            config.option = match config.option {
+                renderer::RenderOption::All => renderer::RenderOption::Line,
+                renderer::RenderOption::Line => renderer::RenderOption::Vertices,
+                renderer::RenderOption::Vertices => renderer::RenderOption::All,
+            };
+        }
+
+        if let Some(_) = self.input.keyboard.F.take() {
+            if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
+                // Increase fov
+                config.camera.projection_mode = ProjectionMode::Perspective { fov: fov + 5 };
+            }
+        }
+
+        if let Some(_) = self.input.keyboard.f.take() {
+            if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
+                // Decrease fov
+                config.camera.projection_mode = ProjectionMode::Perspective { fov: fov - 5 };
+            }
+        }
+
+        // Resize
+        if let Some(new_size) = self.input.misc.resize {
+            config.camera.resolution.0 = new_size.0;
+            config.camera.resolution.1 = new_size.1 * 2 - 5; // "* 2 - 5" because we want to make space for title and info.
+        }
+
         // Calculate rotational change based on input.
         let mut rot_diff = (0.0, 0.0);
         if let Some(event) = self.input.mouse.right.as_mut() {
@@ -307,7 +361,7 @@ impl StateHandler {
             if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
                 // Undo any current rotation.
                 let mut pos = quaternion::rotate(
-                    &self.position.value,
+                    &config.camera.position,
                     &config.camera.rotation.1,
                     &config.camera.rotation.0,
                 );
@@ -326,18 +380,18 @@ impl StateHandler {
                 };
 
                 // Re-apply rotation.
-                self.position.value =
+                config.camera.position =
                     quaternion::rotate(&pos, &config.camera.rotation.0, &config.camera.rotation.1);
             }
         }
 
         // Apply updated rotation on positional change.
-        self.rotation.value.0 = (self.rotation.value.0 + rot_diff.0)
+        self.info.rotation.0 = (self.info.rotation.0 + rot_diff.0)
             .min(std::f64::consts::FRAC_PI_2)
             .max(-std::f64::consts::FRAC_PI_2);
-        self.rotation.value.1 += rot_diff.1;
+        self.info.rotation.1 += rot_diff.1;
 
-        let rotation = (self.rotation.value.0 / 2.0, self.rotation.value.1 / 2.0); // Half angles for quaternions.
+        let rotation = (self.info.rotation.0 / 2.0, self.info.rotation.1 / 2.0); // Half angles for quaternions.
 
         let pitch = Quaternion(
             rotation.0.cos(),
@@ -350,57 +404,22 @@ impl StateHandler {
         let rotation_prim = rotation.inverse();
         pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
 
-        self.position.value = (&self.position.value.0 + &pos_diff.0).into();
-
-        // Handle keyboard input
-        if let Some(_) = self.input.keyboard.r.take() {
-            // Reset
-            self.rotation = Default::default();
-            self.position = Default::default();
-            config.camera = Camera::default();
-            config.option = RenderOption::default();
-        }
-
-        if let Some(_) = self.input.keyboard.o.take() {
-            // Toggle render option
-            config.option = match config.option {
-                renderer::RenderOption::All => renderer::RenderOption::Line,
-                renderer::RenderOption::Line => renderer::RenderOption::Vertices,
-                renderer::RenderOption::Vertices => renderer::RenderOption::All,
-            };
-        }
-
-        if let Some(_) = self.input.keyboard.F.take() {
-            if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
-                // Increase fov
-                config.camera.projection_mode = ProjectionMode::Perspective { fov: fov + 5 };
-            }
-        }
-
-        if let Some(_) = self.input.keyboard.f.take() {
-            if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
-                // Decrease fov
-                config.camera.projection_mode = ProjectionMode::Perspective { fov: fov - 5 };
-            }
-        }
-
-        // Resize
-        if let Some(new_size) = self.input.misc.resize {
-            config.camera.resolution.0 = new_size.0;
-            config.camera.resolution.1 = new_size.1 * 2 - 5; // "* 2 - 5" because we want to make space for title and info.
-        }
-
         // Update camera
+        config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
         config.camera.rotation = (rotation, rotation_prim);
-        config.camera.position = self.position.value.clone();
+
+        // Store as info
+        self.info.position = config.camera.position.clone();
+        // self.info.rotation =
+
         config
     }
 
     pub fn rotation(&self) -> (f64, f64) {
-        self.rotation.value
+        self.info.rotation
     }
 
     pub fn event_count(&self) -> u64 {
-        self.input.event_count
+        self.info.event_count
     }
 }
