@@ -4,11 +4,13 @@ use renderer::VectorRow;
 
 mod plane;
 mod spiral;
+mod cube;
 mod test;
 
 pub enum Model {
     Plane,
     Spiral,
+    Cube,
     Test,
 }
 
@@ -19,6 +21,7 @@ impl FromStr for Model {
         match s.to_lowercase().as_str() {
             "plane" => Ok(Model::Plane),
             "spiral" => Ok(Model::Spiral),
+            "cube" => Ok(Model::Cube),
             "test" => Ok(Model::Test),
             _ => Err("Could not convert to string."),
         }
@@ -35,6 +38,9 @@ impl Model {
             }
             Model::Spiral => {
                 vertices.append(&mut spiral::get_vertices());
+            }
+            Model::Cube => {
+                vertices.append(&mut cube::get_vertices());
             }
             Model::Test => {
                 vertices.append(&mut test::get_vertices());
@@ -53,6 +59,9 @@ impl Model {
             }
             Model::Spiral => {
                 lines.append(&mut spiral::get_line_draw_order());
+            }
+            Model::Cube => {
+                lines.append(&mut cube::get_line_draw_order());
             }
             Model::Test => {
                 lines.append(&mut test::get_line_draw_order());

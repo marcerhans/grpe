@@ -25,7 +25,7 @@ fn main() {
     let camera_default = Camera {
         resolution: args.resolution.unwrap_or((64, 64)),
         position: VectorRow::from([0.0, 0.0, 0.0]),
-        projection_mode: ProjectionMode::Perspective { fov: 90 },
+        projection_mode: ProjectionMode::Perspective { fov: 1 },
         ..Default::default()
     };
     let mut renderer = TerminalBuilder::default()
