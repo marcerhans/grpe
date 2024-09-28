@@ -71,7 +71,7 @@ fn main() {
             (updated_config.camera.resolution.0 as usize - banner_text.len()) / 2 - 1; // Note: "-1" for extra space(s).
         let banner_char = "=";
         let banner = banner_char.repeat(banner_fill_width);
-        write!(writer, "\x1B[2K\x1B[H").unwrap();
+        write!(writer, "\x1B[H\x1B[2K").unwrap();
         write!(
             writer,
             "\x1B[1;38;2;0;0;0;48;2;255;255;0m{banner} {banner_text} {banner}\x1B[0m"
@@ -90,15 +90,16 @@ fn main() {
             if args.info.is_some() {
                 write!(
                     writer,
-                    "\x1B2K\x1B[{};H",
+                    "\x1B[{};H\x1B[2K",
                     (updated_config.camera.resolution.1 + 4) / 2
                 )
                 .unwrap();
-                write!(writer, "Events handled: {} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
-                    state.event_count(),
+                write!(writer, "FPS: {:0>3} | Events handled: {} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
+                    state.info().fps,
+                    state.info().event_count,
                     updated_config.camera.resolution.0, updated_config.camera.resolution.1, fov,
                     updated_config.camera.position[0],  updated_config.camera.position[1], updated_config.camera.position[2],
-                    state.rotation().0, state.rotation().1,
+                    state.info().rotation.0, state.info().rotation.1,
                 ).unwrap();
             }
         }

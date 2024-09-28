@@ -1,4 +1,4 @@
-use std::{cell::RefCell, io::Read, rc::Rc};
+use std::{cell::RefCell, io::Read, rc::Rc, time::Instant};
 
 use io::{misc::CurrentSize, platform::unix::EventHandler, Event, EventHandlerTrait};
 use linear_algebra::quaternion::{self, Quaternion};
@@ -98,12 +98,16 @@ mod input {
 }
 
 mod info {
+    use std::time::Instant;
+
     use renderer::VectorRow;
 
     pub struct State {
         pub event_count: u64,
         pub position: VectorRow<f64, 3>,
         pub rotation: (f64, f64),
+        pub time_prev: Instant,
+        pub fps: u64,
     }
 
     impl Default for State {
@@ -112,6 +116,8 @@ mod info {
                 event_count: 0,
                 position: VectorRow::from([0.0, 0.0, 0.0]),
                 rotation: Default::default(),
+                time_prev: Instant::now(),
+                fps: 0,
             }
         }
     }
@@ -169,11 +175,19 @@ impl StateHandler {
     }
 
     pub fn update(&mut self, config: RendererConfiguration) -> RendererConfiguration {
+        let now = Instant::now();
+        self.info.fps = (1000_000_u128
+            .checked_div(now.duration_since(self.info.time_prev).as_micros()))
+        .unwrap_or(99999) as u64;
+        self.info.time_prev = now;
+
         while let Ok(event) = self.event_handler.latest_event() {
             // Batch handling - Read all inputs up until this point.
             self.handle_event(event);
         }
-        self.update_config(config)
+        let config = self.update_config(config);
+
+        config
     }
 
     fn handle_event(&mut self, event: Event) {
@@ -415,11 +429,7 @@ impl StateHandler {
         config
     }
 
-    pub fn rotation(&self) -> (f64, f64) {
-        self.info.rotation
-    }
-
-    pub fn event_count(&self) -> u64 {
-        self.info.event_count
+    pub fn info(&self) -> &info::State {
+        &self.info
     }
 }
