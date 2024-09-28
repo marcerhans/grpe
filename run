@@ -1,2 +1,2 @@
 #!/bin/bash
-xterm -fullscreen +sb -e cargo run --release -- ${@}
+xterm -fullscreen -fg white -bg black +sb -e cargo run --release -- ${@}

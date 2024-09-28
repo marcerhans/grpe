@@ -55,8 +55,6 @@ mod input {
     }
 
     pub mod auto {
-        use renderer::VectorRow;
-
         pub struct State {
             pub rot_diff: (f64, f64),
         }
@@ -402,6 +400,7 @@ impl StateHandler {
 
         // Apply updated rotation on positional change.
         if let Some(auto) = self.input.auto.as_ref() {
+            self.info.rotation.0 = -std::f64::consts::FRAC_PI_6;
             rot_diff = auto.rot_diff;
         }
 
@@ -409,6 +408,7 @@ impl StateHandler {
             .min(std::f64::consts::FRAC_PI_2)
             .max(-std::f64::consts::FRAC_PI_2);
         self.info.rotation.1 += rot_diff.1;
+        self.info.rotation.1 %= std::f64::consts::PI * 2.0;
 
         let rotation = (self.info.rotation.0 / 2.0, self.info.rotation.1 / 2.0); // Half angles for quaternions.
 
