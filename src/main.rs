@@ -88,7 +88,12 @@ fn main() {
 
         if let ProjectionMode::Perspective { fov } = updated_config.camera.projection_mode {
             if args.info.is_some() {
-                write!(writer, "\x1B2K\x1B[{};H", (updated_config.camera.resolution.1 + 4) / 2).unwrap();
+                write!(
+                    writer,
+                    "\x1B2K\x1B[{};H",
+                    (updated_config.camera.resolution.1 + 4) / 2
+                )
+                .unwrap();
                 write!(writer, "Events handled: {} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
                     state.event_count(),
                     updated_config.camera.resolution.0, updated_config.camera.resolution.1, fov,

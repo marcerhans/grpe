@@ -304,7 +304,7 @@ impl StateHandler {
         // Resize
         if let Some(new_size) = self.input.misc.resize {
             config.camera.resolution.0 = new_size.0;
-            config.camera.resolution.1 = new_size.1 * 2 - 4; // "* 2 - 5" because we want to make space for title and info.
+            config.camera.resolution.1 = new_size.1 * 2 - 4; // "* 2 - 4" because we want to make space for title and info.
         }
 
         // Calculate rotational change based on input.
