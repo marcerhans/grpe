@@ -94,13 +94,21 @@ fn main() {
                     (updated_config.camera.resolution.1 + 4) / 2
                 )
                 .unwrap();
-                write!(writer, "FPS: {:0>3} | Events handled: {} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
+                let info  = format!("FPS: {:0>3} | Events handled: {} | Resolution: ({},{}) | FOV: {:0>3} | Camera Position: ({:.2},{:.2},{:.2}) | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2})",
                     state.info().fps,
                     state.info().event_count,
                     updated_config.camera.resolution.0, updated_config.camera.resolution.1, fov,
                     updated_config.camera.position[0],  updated_config.camera.position[1], updated_config.camera.position[2],
                     state.info().rotation.0, state.info().rotation.1,
-                ).unwrap();
+                );
+                write!(
+                    writer,
+                    "{}",
+                    info.chars()
+                        .take(updated_config.camera.resolution.0 as usize)
+                        .collect::<String>()
+                )
+                .unwrap();
             }
         }
 
