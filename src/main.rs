@@ -58,7 +58,7 @@ fn main() {
     renderer.set_vertices_line_draw_order(Rc::clone(&line_draw_order));
 
     // 5. Create a state handler.
-    let mut state = StateHandler::new(event_handler, vertices, line_draw_order);
+    let mut state = StateHandler::new(args, event_handler, vertices, line_draw_order);
 
     // 6. Engine loop
     while state.event_handler.running() {
@@ -86,7 +86,7 @@ fn main() {
         }
 
         if let ProjectionMode::Perspective { fov } = updated_config.camera.projection_mode {
-            if args.info.is_some() {
+            if state.args.info.is_some() {
                 write!(
                     writer,
                     "\x1B[{};H\x1B[2K",
@@ -114,9 +114,15 @@ fn main() {
         writer.flush().unwrap();
         drop(writer);
 
+        if state.info().invert_colors {
+            println!("\x1B[H\x1B[7m"); // Invert colors. (Move to first row before printing/receiving, because it will be cleared anyway.)
+        }
+
         renderer = renderer
             .set_config(updated_config)
             .expect("Bad configuration.");
         renderer.render();
+
+        println!("\x1B[H\x1B[0m"); // Restore style . (Move to first row before printing/receiving, because it will be cleared anyway.)
     }
 }

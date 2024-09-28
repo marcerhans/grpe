@@ -1,8 +1,10 @@
-use std::{cell::RefCell, io::Read, rc::Rc, time::Instant};
+use std::{cell::RefCell, rc::Rc, time::Instant};
 
-use io::{misc::CurrentSize, platform::unix::EventHandler, Event, EventHandlerTrait};
+use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
 use linear_algebra::quaternion::{self, Quaternion};
 use renderer::{Camera, ProjectionMode, RenderOption, RendererConfiguration, VectorRow};
+
+use crate::arg::Args;
 
 mod input {
     pub mod mouse {
@@ -35,6 +37,7 @@ mod input {
             pub l: Option<()>,
             pub f: Option<()>,
             pub F: Option<()>,
+            pub c: Option<()>,
             pub plus: Option<()>,
             pub minus: Option<()>,
         }
@@ -96,6 +99,7 @@ mod info {
         pub event_count: u64,
         pub position: VectorRow<f64, 3>,
         pub rotation: (f64, f64),
+        pub invert_colors: bool,
         pub time_prev: Instant,
         pub fps: u64,
     }
@@ -106,6 +110,7 @@ mod info {
                 event_count: 0,
                 position: VectorRow::from([0.0, 0.0, 0.0]),
                 rotation: Default::default(),
+                invert_colors: false,
                 time_prev: Instant::now(),
                 fps: 0,
             }
@@ -141,7 +146,9 @@ mod rotation {
     }
 }
 
+/// The one thing that truly does a little bit too much.
 pub struct StateHandler {
+    pub args: Args,
     pub event_handler: EventHandler,
     pub vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>,
     pub line_draw_order: Rc<RefCell<Vec<Vec<usize>>>>,
@@ -151,11 +158,13 @@ pub struct StateHandler {
 
 impl StateHandler {
     pub fn new(
+        args: Args,
         event_handler: EventHandler,
         vertices: Rc<RefCell<Vec<VectorRow<f64, 3>>>>,
         line_draw_order: Rc<RefCell<Vec<Vec<usize>>>>,
     ) -> Self {
         Self {
+            args,
             event_handler,
             vertices,
             line_draw_order,
@@ -165,13 +174,24 @@ impl StateHandler {
     }
 
     pub fn update(&mut self, config: RendererConfiguration) -> RendererConfiguration {
-        let now = Instant::now();
-        self.info.fps = (1000_000_u128
-            .checked_div(now.duration_since(self.info.time_prev).as_micros()))
-        .unwrap_or(99999) as u64;
-        self.info.time_prev = now;
+        loop {
+            let now = Instant::now();
+            self.info.fps = (1000_000_u128
+                .checked_div(now.duration_since(self.info.time_prev).as_micros()))
+            .unwrap_or(99999) as u64;
 
-        println!("\x1B[H\x1B[18t"); // Query terminal for size.
+            let target_fps = match self.args.fps {
+                Some(fps) => fps,
+                None => self.info.fps,
+            };
+
+            if self.info.fps <= target_fps {
+                self.info.time_prev = now;
+                break;
+            }
+        }
+
+        println!("\x1B[H\x1B[18t"); // Query terminal for size. (Move to first row before printing/receiving, because it will be cleared anyway.)
 
         while let Ok(event) = self.event_handler.latest_event() {
             // Batch handling - Read all inputs up until this point.
@@ -271,6 +291,7 @@ impl StateHandler {
                 'l' => self.input.keyboard.l = Some(()),
                 'f' => self.input.keyboard.f = Some(()),
                 'F' => self.input.keyboard.F = Some(()),
+                'c' => self.input.keyboard.c = Some(()),
                 '+' => self.input.keyboard.plus = Some(()),
                 '-' => self.input.keyboard.minus = Some(()),
                 _ => (),
@@ -312,6 +333,10 @@ impl StateHandler {
                 // Decrease fov
                 config.camera.projection_mode = ProjectionMode::Perspective { fov: fov - 5 };
             }
+        }
+
+        if let Some(_) = self.input.keyboard.c.take() {
+            self.info.invert_colors = !self.info.invert_colors;
         }
 
         // Resize
