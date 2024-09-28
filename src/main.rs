@@ -24,7 +24,8 @@ fn main() {
     // 2. Instantiate renderer.
     let camera_default = Camera {
         resolution: args.resolution.unwrap_or((64, 64)),
-        position: VectorRow::from([0.0, -0.04, 0.0]),
+        // position: VectorRow::from([0.0, 0.0, 0.0]),
+        position: VectorRow::from([0.0, -0.04, 0.0]), // MODEL
         projection_mode: ProjectionMode::Perspective { fov: 1 },
         ..Default::default()
     };
@@ -35,9 +36,9 @@ fn main() {
         .unwrap();
 
     let mut extras = renderer.extras().clone();
-    let scale = 66.0;
-    extras.pixel_width_scaling = scale * (47.5 / 32.0); // Just for drafting model from image. Shoule be 1.0.
-    extras.pixel_height_scaling = scale; // Just for drafting model from image. Shoule be 1.0.
+    let scale = 66.0; // MODEL
+    extras.pixel_width_scaling = scale * (47.5 / 32.0); // MODEL: Just for drafting model from image. Shoule be 1.0.
+    extras.pixel_height_scaling = scale; // MODEL: Just for drafting model from image. Shoule be 1.0.
     renderer.set_extras(extras);
 
     // 3. Create vertices.
