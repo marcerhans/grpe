@@ -84,7 +84,8 @@ mod input {
                 mouse: Default::default(),
                 keyboard: Default::default(),
                 misc: Default::default(),
-                auto: Some(auto::State::default()),
+                // auto: Some(auto::State::default()),
+                auto: None,
             }
         }
     }
@@ -109,7 +110,7 @@ mod info {
             Self {
                 event_count: 0,
                 position: VectorRow::from([0.0, 0.0, 0.0]),
-                rotation: Default::default(),
+                rotation: (std::f64::consts::FRAC_PI_2, 0.0),
                 invert_colors: false,
                 time_prev: Instant::now(),
                 fps: 0,
