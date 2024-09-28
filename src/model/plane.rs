@@ -209,17 +209,24 @@ mod wings {
 
         // Outline
         vertices.append(&mut vec![
-            VectorRow::from([2.68, 1.0, 0.0]),
+            VectorRow::from([2.68, 1.0, 0.0]), // --
             VectorRow::from([3.07, 1.45, 0.0]),
             VectorRow::from([3.15, 2.2, 0.0]), // --
             VectorRow::from([3.19, 3.17, 0.0]), // --
             VectorRow::from([3.24, 4.3, 0.0]),
-            VectorRow::from([4.3, 4.3, 0.0]),
-            VectorRow::from([5.95, 3.17, 0.0]), // --
-            VectorRow::from([5.65, 3.17, 0.0]), // --
+            VectorRow::from([4.3, 4.3, 0.0]), // |
+            VectorRow::from([5.95, 3.17, 0.0]),
+            VectorRow::from([5.65, 3.17, 0.0]), // |
             VectorRow::from([6.85, 2.2, 0.0]), // --
             VectorRow::from([8.15, 1.26, 0.0]),
             VectorRow::from([8.8, 0.98, 0.0]),
+
+            VectorRow::from([4.3, 3.17, 0.0]), // +
+            VectorRow::from([4.3, 2.2, 0.0]), // +
+            VectorRow::from([4.3, 1.0, 0.0]), // +
+            VectorRow::from([5.65, 2.2, 0.0]), // +
+            VectorRow::from([5.65, 1.0, 0.0]), // +
+            VectorRow::from([6.85, 1.0, 0.0]), // +
         ]);
 
         // Duplicate and mirror.
@@ -238,53 +245,108 @@ mod wings {
         };
 
         // Outline
-        // line_draw_order.append(&mut vec![vec![
-        //     start + 0,
-        //     start + 1,
-        //     start + 2,
-        //     start + 3,
-        //     start + 4,
-        //     start + 5,
-        //     start + 6,
-        //     start + 7,
-        // ]]);
-
-        // Extra points to draw details
-        // Inner-most rudder.
-        // let mut count = 0;
-        // line_draw_order.append(&mut vec![
-        //     vec![
-        //         start + next(&mut count),
-        //         start + next(&mut count),
-        //         start + next(&mut count),
-        //         start + next(&mut count),
-        //         start + next(&mut count),
-        //         start + next(&mut count),
-        //         start + next(&mut count),
-        //         start + next(&mut count),
-        //         start + 0,
-        //     ],
-        // ]);
+        let mut count = 0;
+        line_draw_order.append(&mut vec![
+            vec![
+                start + next(&mut count),
+                start + next(&mut count),
+                start + next(&mut count),
+                start + next(&mut count),
+                start + next(&mut count),
+                start + next(&mut count),
+                start + next(&mut count),
+                start + next(&mut count),
+                start + next(&mut count),
+                start + next(&mut count),
+                start + next(&mut count),
+            ],
+            vec![
+                start + 0,
+                start + 13,
+                start + 15,
+                start + 16,
+                start + 10,
+            ],
+            vec![
+                start + 2,
+                start + 12,
+                start + 14,
+                start + 8,
+            ],
+            vec![
+                start + 3,
+                start + 11,
+                start + 7,
+            ],
+            vec![
+                start + 5,
+                start + 11,
+                start + 12,
+                start + 13,
+            ],
+            vec![
+                start + 7,
+                start + 14,
+                start + 15,
+            ],
+            vec![
+                start + 8,
+                start + 16,
+            ],
+        ]);
 
         // Mirror
-        // let start = start + 8;
-        // line_draw_order.append(&mut vec![vec![
-        //     start + 0,
-        //     start + 1,
-        //     start + 2,
-        //     start + 3,
-        //     start + 4,
-        //     start + 5,
-        //     start + 6,
-        //     start + 7,
-        // ]]);
+        let start_mirror = start + 17;
+        count = 0;
+        line_draw_order.append(&mut vec![
+            vec![
+                start_mirror + next(&mut count),
+                start_mirror + next(&mut count),
+                start_mirror + next(&mut count),
+                start_mirror + next(&mut count),
+                start_mirror + next(&mut count),
+                start_mirror + next(&mut count),
+                start_mirror + next(&mut count),
+                start_mirror + next(&mut count),
+                start_mirror + next(&mut count),
+                start_mirror + next(&mut count),
+                start_mirror + next(&mut count),
+            ],
+            vec![
+                start_mirror + 0,
+                start_mirror + 13,
+                start_mirror + 15,
+                start_mirror + 16,
+                start_mirror + 10,
+            ],
+            vec![
+                start_mirror + 2,
+                start_mirror + 12,
+                start_mirror + 14,
+                start_mirror + 8,
+            ],
+            vec![
+                start_mirror + 3,
+                start_mirror + 11,
+                start_mirror + 7,
+            ],
+            vec![
+                start_mirror + 5,
+                start_mirror + 11,
+                start_mirror + 12,
+                start_mirror + 13,
+            ],
+            vec![
+                start_mirror + 7,
+                start_mirror + 14,
+                start_mirror + 15,
+            ],
+            vec![
+                start_mirror + 8,
+                start_mirror + 16,
+            ],
+        ]);
 
-        // Extra points to draw details
-        // line_draw_order.append(&mut vec![
-        //     vec![start + 0, start + 10, start + 11, start + 2],
-        //     vec![start + 12, start + 4],
-        //     vec![start + 13, start + 7],
-        // ]);
 
         line_draw_order
     }
