@@ -215,8 +215,8 @@ mod wings {
             VectorRow::from([4.3, 4.3, 0.0]),
             VectorRow::from([5.9, 3.15, 0.0]),
             VectorRow::from([5.65, 3.15, 0.0]),
-            VectorRow::from([8.1, 1.23, 0.0]),
-            VectorRow::from([8.8, 0.94, 0.0]),
+            VectorRow::from([8.1, 1.26, 0.0]),
+            VectorRow::from([8.8, 0.96, 0.0]),
         ]);
 
         // Extra points to draw details
@@ -290,8 +290,8 @@ mod canards {
             VectorRow::from([8.68, 0.98, 0.0]),
             VectorRow::from([8.52, 1.05, 0.0]),
             VectorRow::from([8.51, 1.3, 0.0]),
-            VectorRow::from([7.93, 2.28, 0.0]),
-            VectorRow::from([8.42, 2.28, 0.0]),
+            VectorRow::from([7.93, 2.32, 0.0]),
+            VectorRow::from([8.42, 2.32, 0.0]),
             VectorRow::from([10.45, 1.07, 0.0]),
             VectorRow::from([10.2, 1.0, 0.0]),
             VectorRow::from([9.5, 0.97, 0.0]),
