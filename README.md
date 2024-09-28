@@ -10,3 +10,5 @@ Grpe is a 3d renderer for the terminal. It is completely CPU-based (unless your 
 
 ## Note
 mate-terminal --full-screen --hide-menubar -e "target/release/grpe -m spiral -i"
+
+47.5 * x = 31.5

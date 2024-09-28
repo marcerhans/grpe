@@ -35,8 +35,8 @@ fn main() {
         .unwrap();
 
     let mut extras = renderer.extras().clone();
-    // extras.pixel_width_scaling = 97.8; // Just for drafting model from image. Shoule be 1.0.
-    // extras.pixel_height_scaling = 67.0; // Just for drafting model from image. Shoule be 1.0.
+    extras.pixel_width_scaling = 47.5 / 31.5; // Just for drafting model from image. Shoule be 1.0.
+    extras.pixel_height_scaling = 1.0; // Just for drafting model from image. Shoule be 1.0.
     renderer.set_extras(extras);
 
     // 3. Create vertices.
