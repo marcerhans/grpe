@@ -111,7 +111,7 @@ mod info {
                 event_count: 0,
                 position: VectorRow::from([0.0, 0.0, 0.0]),
                 // rotation: Default::default(),
-                rotation: (std::f64::consts::FRAC_PI_2, 0.0), // MODEL
+                rotation: (-std::f64::consts::FRAC_PI_2, 0.0), // MODEL
                 invert_colors: false,
                 time_prev: Instant::now(),
                 fps: 0,

@@ -25,7 +25,7 @@ fn main() {
     let camera_default = Camera {
         resolution: args.resolution.unwrap_or((64, 64)),
         // position: VectorRow::from([0.0, 0.0, 0.0]),
-        position: VectorRow::from([0.0, -0.04, 0.0]), // MODEL
+        position: VectorRow::from([0.0, 0.04, 0.0]), // MODEL
         projection_mode: ProjectionMode::Perspective { fov: 1 },
         ..Default::default()
     };
