@@ -181,6 +181,8 @@ impl StateHandler {
         .unwrap_or(99999) as u64;
         self.info.time_prev = now;
 
+        println!("\x1B[H\x1B[18t"); // Query terminal for size.
+
         while let Ok(event) = self.event_handler.latest_event() {
             // Batch handling - Read all inputs up until this point.
             self.handle_event(event);
