@@ -41,59 +41,51 @@ mod input {
     }
 
     pub mod misc {
-        use std::{
-            sync::{
-                atomic::{self, AtomicBool, Ordering},
-                Arc,
-            },
-            thread::{sleep, JoinHandle},
-            time::Duration,
-        };
-
         pub struct State {
             pub resize: Option<(u64, u64)>,
-            // pub resize_running: Arc<AtomicBool>,
-            // pub resize_querier: Option<JoinHandle<()>>,
         }
 
         impl Default for State {
             fn default() -> Self {
-                // let resize_running = Arc::new(AtomicBool::new(true));
                 Self {
                     resize: Default::default(),
-                    // resize_querier: {
-                    //     let running = Arc::clone(&resize_running);
-                    //     Some(std::thread::spawn(move || {
-                    //         while running.load(Ordering::Relaxed) {
-                    //             // Query the terminal to give current dimensions.
-                    //             // Response is handled by the event handler.
-                    //             println!("\x1B[18t");
-                    //             sleep(Duration::from_millis(500));
-                    //         }
-                    //     }))
-                    // },
-                    // resize_running,
                 }
-            }
-        }
-
-        impl Drop for State {
-            fn drop(&mut self) {
-                // self.resize_running.store(false, Ordering::Relaxed);
-                // if let Some(handle) = self.resize_querier.take() {
-                //     handle
-                //         .join()
-                //         .expect("Couldn't join on the associated thread.");
-                // }
             }
         }
     }
 
-    #[derive(Default)]
+    pub mod auto {
+        use renderer::VectorRow;
+
+        pub struct State {
+            pub rot_diff: (f64, f64),
+        }
+
+        impl Default for State {
+            fn default() -> Self {
+                Self {
+                    rot_diff: (0.0, 0.001),
+                }
+            }
+        }
+    }
+
     pub struct State {
         pub mouse: mouse::State,
         pub keyboard: keyboard::State,
         pub misc: misc::State,
+        pub auto: Option<auto::State>,
+    }
+
+    impl Default for State {
+        fn default() -> Self {
+            Self {
+                mouse: Default::default(),
+                keyboard: Default::default(),
+                misc: Default::default(),
+                auto: Some(auto::State::default()),
+            }
+        }
     }
 }
 
@@ -194,6 +186,13 @@ impl StateHandler {
 
     fn handle_event(&mut self, event: Event) {
         self.info.event_count += 1;
+
+        if let Some(_) = self.input.auto.as_ref() {
+            match event {
+                Event::Misc(_) => (),
+                _ => self.input.auto = None,
+            }
+        }
 
         match event {
             Event::Mouse(_modifier, event) => match (_modifier, event) {
@@ -402,6 +401,10 @@ impl StateHandler {
         }
 
         // Apply updated rotation on positional change.
+        if let Some(auto) = self.input.auto.as_ref() {
+            rot_diff = auto.rot_diff;
+        }
+
         self.info.rotation.0 = (self.info.rotation.0 + rot_diff.0)
             .min(std::f64::consts::FRAC_PI_2)
             .max(-std::f64::consts::FRAC_PI_2);
