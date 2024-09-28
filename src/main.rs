@@ -61,6 +61,7 @@ fn main() {
     let mut state = StateHandler::new(event_handler, vertices, line_draw_order);
 
     // 6. Engine loop
+    println!("\x1B[18t"); // Query terminal for size.
     while state.event_handler.running() {
         let updated_config = state.update(renderer.config().clone());
         let mut writer = BufWriter::new(stdout().lock());

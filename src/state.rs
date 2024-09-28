@@ -52,39 +52,39 @@ mod input {
 
         pub struct State {
             pub resize: Option<(u64, u64)>,
-            pub resize_running: Arc<AtomicBool>,
-            pub resize_querier: Option<JoinHandle<()>>,
+            // pub resize_running: Arc<AtomicBool>,
+            // pub resize_querier: Option<JoinHandle<()>>,
         }
 
         impl Default for State {
             fn default() -> Self {
-                let resize_running = Arc::new(AtomicBool::new(true));
+                // let resize_running = Arc::new(AtomicBool::new(true));
                 Self {
                     resize: Default::default(),
-                    resize_querier: {
-                        let running = Arc::clone(&resize_running);
-                        Some(std::thread::spawn(move || {
-                            while running.load(Ordering::Relaxed) {
-                                // Query the terminal to give current dimensions.
-                                // Response is handled by the event handler.
-                                println!("\x1B[18t");
-                                sleep(Duration::from_millis(500));
-                            }
-                        }))
-                    },
-                    resize_running,
+                    // resize_querier: {
+                    //     let running = Arc::clone(&resize_running);
+                    //     Some(std::thread::spawn(move || {
+                    //         while running.load(Ordering::Relaxed) {
+                    //             // Query the terminal to give current dimensions.
+                    //             // Response is handled by the event handler.
+                    //             println!("\x1B[18t");
+                    //             sleep(Duration::from_millis(500));
+                    //         }
+                    //     }))
+                    // },
+                    // resize_running,
                 }
             }
         }
 
         impl Drop for State {
             fn drop(&mut self) {
-                self.resize_running.store(false, Ordering::Relaxed);
-                if let Some(handle) = self.resize_querier.take() {
-                    handle
-                        .join()
-                        .expect("Couldn't join on the associated thread.");
-                }
+                // self.resize_running.store(false, Ordering::Relaxed);
+                // if let Some(handle) = self.resize_querier.take() {
+                //     handle
+                //         .join()
+                //         .expect("Couldn't join on the associated thread.");
+                // }
             }
         }
     }
