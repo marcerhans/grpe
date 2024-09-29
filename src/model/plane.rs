@@ -233,19 +233,19 @@ mod wings {
             VectorRow::from([8.15, 1.26, 0.0]),
             VectorRow::from([8.8, 0.98, 0.0]),
 
-            VectorRow::from([4.3, 3.17, 1.0]), // +
-            VectorRow::from([4.3, 2.2, 1.0]), // +
-            VectorRow::from([4.3, 1.0, 1.0]), // +
-            VectorRow::from([5.65, 2.2, 1.0]), // +
-            VectorRow::from([5.65, 1.0, 1.0]), // +
-            VectorRow::from([6.85, 1.0, 1.0]), // +
+            VectorRow::from([4.3, 3.17, 0.1]), // +
+            VectorRow::from([4.3, 2.2, 0.1]), // +
+            VectorRow::from([4.3, 1.0, 0.125]), // +
+            VectorRow::from([5.65, 2.2, 0.1]), // +
+            VectorRow::from([5.65, 1.0, 0.1]), // +
+            VectorRow::from([6.85, 1.0, 0.09]), // +
 
-            VectorRow::from([4.3, 3.17, -1.0]), // +
-            VectorRow::from([4.3, 2.2, -1.0]), // +
-            VectorRow::from([4.3, 1.0, -1.0]), // +
-            VectorRow::from([5.65, 2.2, -1.0]), // +
-            VectorRow::from([5.65, 1.0, -1.0]), // +
-            VectorRow::from([6.85, 1.0, -1.0]), // +
+            VectorRow::from([4.3, 3.17, -0.1]), // +
+            VectorRow::from([4.3, 2.2, -0.1]), // +
+            VectorRow::from([4.3, 1.0, -0.125]), // +
+            VectorRow::from([5.65, 2.2, -0.1]), // +
+            VectorRow::from([5.65, 1.0, -0.1]), // +
+            VectorRow::from([6.85, 1.0, -0.09]), // +
         ]);
 
         // Duplicate and mirror.
