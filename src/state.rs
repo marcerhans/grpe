@@ -192,7 +192,12 @@ impl StateHandler {
                 break;
             }
 
-            std::thread::sleep(std::time::Duration::from_millis(4)); // Use a mix of spin lock and actual sleep. This, 4 ms, is enough for sub 240 fps.
+            if let Some(fps) = self.args.fps {
+                if fps < 200 {
+                    // Use a mix of spin lock and actual sleep. This, 4 ms, is enough for sub 240 fps.
+                    std::thread::sleep(std::time::Duration::from_millis(4));
+                }
+            }
         }
 
         println!("\x1B[H\x1B[18t"); // Query terminal for size. (Move to first row before printing/receiving, because it will be cleared anyway.)

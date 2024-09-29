@@ -14,7 +14,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     vertices.push(VectorRow::from([1.0, 1.0, 1.0]));
 
     for vertex in vertices.iter_mut() {
-        vertex.0.scale(1.0);
+        vertex.0.scale(32.0);
     }
 
     vertices
