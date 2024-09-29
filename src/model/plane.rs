@@ -328,15 +328,15 @@ mod canards {
             VectorRow::from([10.12, 1.28, 0.0]), // +
             VectorRow::from([10.43, 1.09, 0.0]),
             // +Z
-            VectorRow::from([8.54, 1.76, 0.1]), // +
-            VectorRow::from([9.33, 1.28, 0.1]), // +
-            VectorRow::from([9.33, 1.0, 0.1]),  // +
-            VectorRow::from([10.12, 1.02, 0.1]), // +
+            VectorRow::from([8.54, 1.76, 0.01]), // +
+            VectorRow::from([9.33, 1.28, 0.02]), // +
+            VectorRow::from([9.33, 1.0, 0.04]),  // +
+            VectorRow::from([10.12, 1.02, 0.01]), // +
             // -Z
-            VectorRow::from([8.54, 1.76, -0.1]), // +
-            VectorRow::from([9.33, 1.28, -0.1]), // +
-            VectorRow::from([9.33, 1.0, -0.1]),  // +
-            VectorRow::from([10.12, 1.02, -0.1]), // +
+            VectorRow::from([8.54, 1.76, -0.01]), // +
+            VectorRow::from([9.33, 1.28, -0.02]), // +
+            VectorRow::from([9.33, 1.0, -0.04]),  // +
+            VectorRow::from([10.12, 1.02, -0.01]), // +
         ]);
 
         // Duplicate and mirror.
