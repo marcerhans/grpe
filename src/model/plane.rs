@@ -342,6 +342,10 @@ mod canards {
         // Duplicate and mirror.
         vertices.append(&mut mirror_y(&vertices));
 
+        for vertex in &mut vertices {
+            vertex[2] = 0.2;
+        }
+
         vertices
     }
 
@@ -441,10 +445,23 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
 
     // vertices.append(&mut cockpit::get_vertices());
 
+    // Backdrop
+    // const GRID_SIZE: i32 = 200;
+    // const GRID_SPACING: i32 = 10;
+    // for i in 0..GRID_SIZE {
+    //     for j in 0..GRID_SIZE {
+    //         vertices.push(VectorRow::from([
+    //             (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
+    //             (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
+    //             -10 as f64,
+    //         ]));
+    //     }
+    // }
+
     // Scale and center
     for vertex in vertices.iter_mut() {
         vertex[0] = vertex[0] - 15.7 / 2.0; // Center plane
-        vertex.0.scale(150.0);
+        // vertex.0.scale(150.0);
     }
 
     vertices
