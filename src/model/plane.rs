@@ -233,19 +233,19 @@ mod wings {
             VectorRow::from([8.15, 1.26, 0.0]),
             VectorRow::from([8.8, 0.98, 0.0]),
             // +Z
-            VectorRow::from([4.3, 3.17, 0.1]),  // +
-            VectorRow::from([4.3, 2.2, 0.1]),   // +
-            VectorRow::from([4.3, 1.0, 0.125]), // +
-            VectorRow::from([5.65, 2.2, 0.1]),  // +
+            VectorRow::from([4.3, 3.17, 0.02]),  // +
+            VectorRow::from([4.3, 2.2, 0.04]),   // +
+            VectorRow::from([4.3, 1.0, 0.1]), // +
+            VectorRow::from([5.65, 2.2, 0.04]),  // +
             VectorRow::from([5.65, 1.0, 0.1]),  // +
-            VectorRow::from([6.85, 1.0, 0.09]), // +
+            VectorRow::from([6.85, 1.0, 0.07]), // +
             // -Z
-            VectorRow::from([4.3, 3.17, -0.1]),  // +
-            VectorRow::from([4.3, 2.2, -0.1]),   // +
-            VectorRow::from([4.3, 1.0, -0.125]), // +
-            VectorRow::from([5.65, 2.2, -0.1]),  // +
+            VectorRow::from([4.3, 3.17, -0.02]),  // +
+            VectorRow::from([4.3, 2.2, -0.04]),   // +
+            VectorRow::from([4.3, 1.0, -0.1]), // +
+            VectorRow::from([5.65, 2.2, -0.04]),  // +
             VectorRow::from([5.65, 1.0, -0.1]),  // +
-            VectorRow::from([6.85, 1.0, -0.09]), // +
+            VectorRow::from([6.85, 1.0, -0.07]), // +
         ]);
 
         // Duplicate and mirror.
@@ -329,12 +329,12 @@ mod canards {
             VectorRow::from([10.43, 1.09, 0.0]),
             // +Z
             VectorRow::from([8.54, 1.76, 0.01]), // +
-            VectorRow::from([9.33, 1.28, 0.02]), // +
+            VectorRow::from([9.33, 1.28, 0.01]), // +
             VectorRow::from([9.33, 1.0, 0.04]),  // +
             VectorRow::from([10.12, 1.02, 0.01]), // +
             // -Z
             VectorRow::from([8.54, 1.76, -0.01]), // +
-            VectorRow::from([9.33, 1.28, -0.02]), // +
+            VectorRow::from([9.33, 1.28, -0.01]), // +
             VectorRow::from([9.33, 1.0, -0.04]),  // +
             VectorRow::from([10.12, 1.02, -0.01]), // +
         ]);
@@ -444,7 +444,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // Scale and center
     for vertex in vertices.iter_mut() {
         vertex[0] = vertex[0] - 15.7 / 2.0; // Center plane
-                                            // vertex.0.scale(20.0);
+        vertex.0.scale(150.0);
     }
 
     vertices
