@@ -619,6 +619,8 @@ impl RendererTrait for Terminal {
 
 impl __RendererTrait for Terminal {
     fn new(mut config: RendererConfiguration) -> Result<Self, &'static str> {
+        println!("\x1B[?1049h"); // Enter alternative buffer mode. I.e., do not affect previous terminal history.
+
         let _ = PANIC_HOOK_FLAG.set({
             let old_hook = panic::take_hook();
 
@@ -641,5 +643,11 @@ impl __RendererTrait for Terminal {
             config,
             extras: TerminalExtras::default(),
         })
+    }
+}
+
+impl Drop for Terminal {
+    fn drop(&mut self) {
+        println!("\x1B[?1049l");
     }
 }
