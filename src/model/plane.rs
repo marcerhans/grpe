@@ -8,12 +8,24 @@ const WING_SPAN: f64 = 8.6;
 const HEIGHT: f64 = 4.5;
 
 // const LENGTH_PX: f64 = 650.0; // Length i pixels based on an image (without pitot tube).
+
 fn mirror_y(vertices: &Vec<VectorRow<f64, 3>>) -> Vec<VectorRow<f64, 3>> {
     // Duplicate and mirror.
     let mut mirror = vertices.clone();
 
     for vertex in &mut mirror {
         vertex[1] = vertex[1] * -1.0;
+    }
+
+    mirror
+}
+
+fn mirror_z(vertices: &Vec<VectorRow<f64, 3>>) -> Vec<VectorRow<f64, 3>> {
+    // Duplicate and mirror.
+    let mut mirror = vertices.clone();
+
+    for vertex in &mut mirror {
+        vertex[2] = vertex[2] * -1.0;
     }
 
     mirror
@@ -221,12 +233,19 @@ mod wings {
             VectorRow::from([8.15, 1.26, 0.0]),
             VectorRow::from([8.8, 0.98, 0.0]),
 
-            VectorRow::from([4.3, 3.17, 0.0]), // +
-            VectorRow::from([4.3, 2.2, 0.0]), // +
-            VectorRow::from([4.3, 1.0, 0.0]), // +
-            VectorRow::from([5.65, 2.2, 0.0]), // +
-            VectorRow::from([5.65, 1.0, 0.0]), // +
-            VectorRow::from([6.85, 1.0, 0.0]), // +
+            VectorRow::from([4.3, 3.17, 1.0]), // +
+            VectorRow::from([4.3, 2.2, 1.0]), // +
+            VectorRow::from([4.3, 1.0, 1.0]), // +
+            VectorRow::from([5.65, 2.2, 1.0]), // +
+            VectorRow::from([5.65, 1.0, 1.0]), // +
+            VectorRow::from([6.85, 1.0, 1.0]), // +
+
+            VectorRow::from([4.3, 3.17, -1.0]), // +
+            VectorRow::from([4.3, 2.2, -1.0]), // +
+            VectorRow::from([4.3, 1.0, -1.0]), // +
+            VectorRow::from([5.65, 2.2, -1.0]), // +
+            VectorRow::from([5.65, 1.0, -1.0]), // +
+            VectorRow::from([6.85, 1.0, -1.0]), // +
         ]);
 
         // Duplicate and mirror.
@@ -244,109 +263,102 @@ mod wings {
             prev
         };
 
-        // Outline
-        let mut count = 0;
-        line_draw_order.append(&mut vec![
-            vec![
-                start + next(&mut count),
-                start + next(&mut count),
-                start + next(&mut count),
-                start + next(&mut count),
-                start + next(&mut count),
-                start + next(&mut count),
-                start + next(&mut count),
-                start + next(&mut count),
-                start + next(&mut count),
-                start + next(&mut count),
-                start + next(&mut count),
-            ],
-            vec![
-                start + 0,
-                start + 13,
-                start + 15,
-                start + 16,
-                start + 10,
-            ],
-            vec![
-                start + 2,
-                start + 12,
-                start + 14,
-                start + 8,
-            ],
-            vec![
-                start + 3,
-                start + 11,
-                start + 7,
-            ],
-            vec![
-                start + 5,
-                start + 11,
-                start + 12,
-                start + 13,
-            ],
-            vec![
-                start + 7,
-                start + 14,
-                start + 15,
-            ],
-            vec![
-                start + 8,
-                start + 16,
-            ],
-        ]);
+        let add_lines = |start: usize, mut ldo: Vec<Vec<usize>>| -> Vec<Vec<usize>> {
+            let mut count = 0;
 
-        // Mirror
-        let start_mirror = start + 17;
-        count = 0;
-        line_draw_order.append(&mut vec![
-            vec![
-                start_mirror + next(&mut count),
-                start_mirror + next(&mut count),
-                start_mirror + next(&mut count),
-                start_mirror + next(&mut count),
-                start_mirror + next(&mut count),
-                start_mirror + next(&mut count),
-                start_mirror + next(&mut count),
-                start_mirror + next(&mut count),
-                start_mirror + next(&mut count),
-                start_mirror + next(&mut count),
-                start_mirror + next(&mut count),
-            ],
-            vec![
-                start_mirror + 0,
-                start_mirror + 13,
-                start_mirror + 15,
-                start_mirror + 16,
-                start_mirror + 10,
-            ],
-            vec![
-                start_mirror + 2,
-                start_mirror + 12,
-                start_mirror + 14,
-                start_mirror + 8,
-            ],
-            vec![
-                start_mirror + 3,
-                start_mirror + 11,
-                start_mirror + 7,
-            ],
-            vec![
-                start_mirror + 5,
-                start_mirror + 11,
-                start_mirror + 12,
-                start_mirror + 13,
-            ],
-            vec![
-                start_mirror + 7,
-                start_mirror + 14,
-                start_mirror + 15,
-            ],
-            vec![
-                start_mirror + 8,
-                start_mirror + 16,
-            ],
-        ]);
+            ldo.append(&mut vec![
+                // Outline
+                vec![
+                    start + next(&mut count),
+                    start + next(&mut count),
+                    start + next(&mut count),
+                    start + next(&mut count),
+                    start + next(&mut count),
+                    start + next(&mut count),
+                    start + next(&mut count),
+                    start + next(&mut count),
+                    start + next(&mut count),
+                    start + next(&mut count),
+                    start + next(&mut count),
+                ],
+                // +Z
+                vec![
+                    start + 0,
+                    start + 13,
+                    start + 15,
+                    start + 16,
+                    start + 10,
+                ],
+                vec![
+                    start + 2,
+                    start + 12,
+                    start + 14,
+                    start + 8,
+                ],
+                vec![
+                    start + 3,
+                    start + 11,
+                    start + 7,
+                ],
+                vec![
+                    start + 5,
+                    start + 11,
+                    start + 12,
+                    start + 13,
+                ],
+                vec![
+                    start + 7,
+                    start + 14,
+                    start + 15,
+                ],
+                vec![
+                    start + 8,
+                    start + 16,
+                ],
+                // -Z
+                vec![
+                    start + 0,
+                    start + 19,
+                    start + 21,
+                    start + 22,
+                    start + 10,
+                ],
+                vec![
+                    start + 2,
+                    start + 18,
+                    start + 20,
+                    start + 8,
+                ],
+                vec![
+                    start + 3,
+                    start + 17,
+                    start + 7,
+                ],
+                vec![
+                    start + 5,
+                    start + 17,
+                    start + 18,
+                    start + 19,
+                ],
+                vec![
+                    start + 7,
+                    start + 20,
+                    start + 21,
+                ],
+                vec![
+                    start + 8,
+                    start + 22,
+                ],
+            ]);
 
+            ldo
+        };
+
+        // Left
+        line_draw_order = add_lines(start, line_draw_order);
+
+        // Right (Mirror)
+        line_draw_order = add_lines(start + 23, line_draw_order);
 
         line_draw_order
     }
@@ -361,13 +373,13 @@ mod canards {
         // Outline
         vertices.append(&mut vec![
             VectorRow::from([8.68, 0.98, 0.0]),
-            VectorRow::from([8.52, 1.05, 0.0]),
-            VectorRow::from([8.51, 1.3, 0.0]),
+            VectorRow::from([8.54, 1.08, 0.0]),
+            VectorRow::from([8.54, 1.28, 0.0]),
             VectorRow::from([7.93, 2.32, 0.0]),
             VectorRow::from([8.42, 2.32, 0.0]),
-            VectorRow::from([10.45, 1.07, 0.0]),
-            VectorRow::from([10.2, 1.0, 0.0]),
-            VectorRow::from([9.5, 0.97, 0.0]),
+            VectorRow::from([10.43, 1.09, 0.0]),
+            VectorRow::from([10.2, 1.04, 0.0]),
+            VectorRow::from([9.5, 1.0, 0.0]),
         ]);
 
         // Duplicate and mirror.
@@ -447,7 +459,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // vertices.append(&mut fuselage::get_vertices());
     // vertices.append(&mut rudder::get_vertices());
     vertices.append(&mut wings::get_vertices());
-    // vertices.append(&mut canards::get_vertices());
+    vertices.append(&mut canards::get_vertices());
     // vertices.append(&mut intake::get_vertices());
 
     // vertices.append(&mut cockpit::get_vertices());
