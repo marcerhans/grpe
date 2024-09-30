@@ -1,5 +1,3 @@
-// 200x454 (width x height)
-
 use std::cell::RefCell;
 use std::io::Write;
 use std::io::{BufWriter, Stdout};
@@ -126,33 +124,23 @@ impl Canvas {
             match camera_view_mode {
                 crate::ViewMode::FirstPerson => {
                     viewpoint = camera_position.clone();
-                    viewport_origin = (&VectorRow::<f64, 3>::from([
-                        viewpoint[0],
-                        viewpoint[1]
-                            + (camera_resolution.0 as f64 / 2.0)
-                                / f64::tan(
-                                    (*camera_fov as f64 / 2.0) * (std::f64::consts::PI / 180.0),
-                                ),
-                        viewpoint[2],
-                    ])
-                    .0 - &viewpoint.0)
-                        .into();
+                    viewport_origin = VectorRow::<f64, 3>::from([
+                        0.0,
+                        0.0 + (camera_resolution.0 as f64 / 2.0)
+                            / f64::tan((*camera_fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
+                        0.0,
+                    ]);
                     viewport_origin = rotate(&viewport_origin, rotation, rotation_inverse);
                     viewport_origin = (&viewport_origin.0 + &viewpoint.0).into();
                 }
                 crate::ViewMode::Orbital => {
                     viewport_origin = camera_position.clone();
-                    viewpoint = (&VectorRow::<f64, 3>::from([
-                        viewport_origin[0],
-                        viewport_origin[1]
-                            - (camera_resolution.0 as f64 / 2.0)
-                                / f64::tan(
-                                    (*camera_fov as f64 / 2.0) * (std::f64::consts::PI / 180.0),
-                                ),
-                        viewport_origin[2],
-                    ])
-                    .0 - &viewport_origin.0)
-                        .into();
+                    viewpoint = VectorRow::<f64, 3>::from([
+                        0.0,
+                        0.0 - (camera_resolution.0 as f64 / 2.0)
+                            / f64::tan((*camera_fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
+                        0.0,
+                    ]);
                     viewpoint = rotate(&viewpoint, rotation, rotation_inverse);
                     viewpoint = (&viewpoint.0 + &viewport_origin.0).into();
                 }
@@ -189,11 +177,11 @@ impl Canvas {
     fn update(&mut self, config: &RendererConfiguration) -> Result<(), &'static str> {
         let resolution = config.camera.resolution;
 
-        if self.buffer.len() != (resolution.1 as usize) || self.buffer[0].len() != (resolution.0 as usize) {
-            self.buffer = vec![
-                vec![character::EMPTY; resolution.0 as usize];
-                (resolution.1 / 2) as usize
-            ];
+        if self.buffer.len() != (resolution.1 as usize)
+            || self.buffer[0].len() != (resolution.0 as usize)
+        {
+            self.buffer =
+                vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize];
         }
 
         // TODO: Fix orthographic option
