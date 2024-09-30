@@ -233,17 +233,17 @@ mod wings {
             VectorRow::from([8.15, 1.26, 0.0]),
             VectorRow::from([8.8, 0.98, 0.0]),
             // +Z
-            VectorRow::from([4.3, 3.17, 0.02]),  // +
-            VectorRow::from([4.3, 2.2, 0.04]),   // +
-            VectorRow::from([4.3, 1.0, 0.1]), // +
-            VectorRow::from([5.65, 2.2, 0.04]),  // +
+            VectorRow::from([4.3, 3.17, 0.02]), // +
+            VectorRow::from([4.3, 2.2, 0.04]),  // +
+            VectorRow::from([4.3, 1.0, 0.1]),   // +
+            VectorRow::from([5.65, 2.2, 0.04]), // +
             VectorRow::from([5.65, 1.0, 0.1]),  // +
             VectorRow::from([6.85, 1.0, 0.07]), // +
             // -Z
-            VectorRow::from([4.3, 3.17, -0.02]),  // +
-            VectorRow::from([4.3, 2.2, -0.04]),   // +
-            VectorRow::from([4.3, 1.0, -0.1]), // +
-            VectorRow::from([5.65, 2.2, -0.04]),  // +
+            VectorRow::from([4.3, 3.17, -0.02]), // +
+            VectorRow::from([4.3, 2.2, -0.04]),  // +
+            VectorRow::from([4.3, 1.0, -0.1]),   // +
+            VectorRow::from([5.65, 2.2, -0.04]), // +
             VectorRow::from([5.65, 1.0, -0.1]),  // +
             VectorRow::from([6.85, 1.0, -0.07]), // +
         ]);
@@ -311,6 +311,8 @@ mod wings {
 }
 
 mod canards {
+    use linear_algebra::quaternion::{rotate, Quaternion};
+
     use super::*;
 
     pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
@@ -328,14 +330,14 @@ mod canards {
             VectorRow::from([10.12, 1.28, 0.0]), // +
             VectorRow::from([10.43, 1.09, 0.0]),
             // +Z
-            VectorRow::from([8.54, 1.76, 0.01]), // +
-            VectorRow::from([9.33, 1.28, 0.01]), // +
-            VectorRow::from([9.33, 1.0, 0.04]),  // +
+            VectorRow::from([8.54, 1.76, 0.01]),  // +
+            VectorRow::from([9.33, 1.28, 0.01]),  // +
+            VectorRow::from([9.33, 1.0, 0.04]),   // +
             VectorRow::from([10.12, 1.02, 0.01]), // +
             // -Z
-            VectorRow::from([8.54, 1.76, -0.01]), // +
-            VectorRow::from([9.33, 1.28, -0.01]), // +
-            VectorRow::from([9.33, 1.0, -0.04]),  // +
+            VectorRow::from([8.54, 1.76, -0.01]),  // +
+            VectorRow::from([9.33, 1.28, -0.01]),  // +
+            VectorRow::from([9.33, 1.0, -0.04]),   // +
             VectorRow::from([10.12, 1.02, -0.01]), // +
         ]);
 
@@ -343,7 +345,22 @@ mod canards {
         vertices.append(&mut mirror_y(&vertices));
 
         for vertex in &mut vertices {
-            vertex[2] = 0.2;
+            vertex[2] = 0.1;
+        }
+
+        let roll = std::f64::consts::PI / (2.0 * 28.0);
+        let rotation = Quaternion(
+            roll.cos(),
+            0.0,
+            roll.sin(),
+            0.0,
+        );
+        let rotation_prim = rotation.inverse();
+
+        for vertex in &mut vertices {
+            vertex[0] -= 9.33;
+            *vertex = rotate(&vertex, &rotation, &rotation_prim);
+            vertex[0] += 9.33;
         }
 
         vertices
@@ -446,22 +463,22 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // vertices.append(&mut cockpit::get_vertices());
 
     // Backdrop
-    // const GRID_SIZE: i32 = 200;
-    // const GRID_SPACING: i32 = 10;
-    // for i in 0..GRID_SIZE {
-    //     for j in 0..GRID_SIZE {
-    //         vertices.push(VectorRow::from([
-    //             (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
-    //             (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
-    //             -10 as f64,
-    //         ]));
-    //     }
-    // }
+    const GRID_SIZE: i32 = 200;
+    const GRID_SPACING: i32 = 10;
+    for i in 0..GRID_SIZE {
+        for j in 0..GRID_SIZE {
+            vertices.push(VectorRow::from([
+                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
+                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
+                -10 as f64,
+            ]));
+        }
+    }
 
     // Scale and center
     for vertex in vertices.iter_mut() {
         vertex[0] = vertex[0] - 15.7 / 2.0; // Center plane
-        vertex.0.scale(10.0);
+        vertex.0.scale(50.0);
     }
 
     vertices
