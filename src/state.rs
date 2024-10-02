@@ -318,6 +318,9 @@ impl StateHandler {
             // Reset
             self.info.rotation = Default::default();
             config.camera = Camera::default();
+            if let Some(res) = self.args.resolution {
+                config.camera.resolution = res;
+            }
             config.option = RenderOption::default();
         }
 
