@@ -459,17 +459,23 @@ impl StateHandler {
         let yaw = Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
         let rotation = &pitch * &yaw;
         let rotation_prim = rotation.inverse();
-        pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
+        // pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
+        // config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
 
+        let rotation = (self.info.rotation.0 / 2.0, self.info.rotation.1 / 2.0); // Half angles for quaternions.
+        let pitch = Quaternion(
+            rotation.0.cos(),
+            rotation.0.sin() * (rotation.1 * 2.0).cos(),
+            rotation.0.sin() * (rotation.1 * 2.0).sin(),
+            0.0,
+        );
+        let yaw = Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
+        let rotation = &pitch * &yaw;
+        let rotation_prim = rotation.inverse();
+        pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
         config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
-        config.camera.rotation.0 = &config.camera.rotation.0 * &rotation;
-        // config.camera.rotation.0 = Quaternion(
-        //     config.camera.rotation.0.0,
-        //     config.camera.rotation.0.1 * (self.info.rotation.1 * 2.0).cos(),
-        //     config.camera.rotation.0.2 * (self.info.rotation.1 * 2.0).sin(),
-        //     config.camera.rotation.0.3,
-        // );
-        config.camera.rotation.1 = config.camera.rotation.0.inverse();
+        config.camera.rotation = (rotation, rotation_prim);
+
         config
 
         // if let renderer::ViewMode::Orbital = config.camera.view_mode {
