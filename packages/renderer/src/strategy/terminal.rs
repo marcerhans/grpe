@@ -321,9 +321,9 @@ impl Terminal {
     }
 
     fn render_pixel(buffer: &mut Vec<Vec<char>>, camera: &Camera, x: isize, z: isize) {
-        // Extract and adjust position based on camera position and resolution (-1 for 0-indexing).
-        let x = x - camera.position[0] as isize + (camera.resolution.0 / 2) as isize;
-        let mut z = z - camera.position[2] as isize + (camera.resolution.1 / 2) as isize;
+        // Extract and adjust position based on camera resolution.
+        let x = x + (camera.resolution.0 / 2) as isize;
+        let mut z = z + (camera.resolution.1 / 2) as isize;
 
         #[cfg(debug_assertions)]
         {
