@@ -449,18 +449,18 @@ impl StateHandler {
         }
 
         self.info.rotation = (self.info.rotation.0 + rot_diff.0, self.info.rotation.1 + rot_diff.1);
-        let rotation = (rot_diff.0 / 2.0, rot_diff.1 / 2.0); // Half angles for quaternions.
-        let pitch = Quaternion(
-            rotation.0.cos(),
-            rotation.0.sin() * (rotation.1 * 2.0).cos(),
-            rotation.0.sin() * (rotation.1 * 2.0).sin(),
-            0.0,
-        );
-        let yaw = Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
-        let rotation = &pitch * &yaw;
-        let rotation_prim = rotation.inverse();
-        // pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
-        // config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
+        // let rotation = (rot_diff.0 / 2.0, rot_diff.1 / 2.0); // Half angles for quaternions.
+        // let pitch = Quaternion(
+        //     rotation.0.cos(),
+        //     rotation.0.sin() * (rotation.1 * 2.0).cos(),
+        //     rotation.0.sin() * (rotation.1 * 2.0).sin(),
+        //     0.0,
+        // );
+        // let yaw = Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
+        // let rotation = &pitch * &yaw;
+        // let rotation_prim = rotation.inverse();
+        // // pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
+        // // config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
 
         let rotation = (self.info.rotation.0 / 2.0, self.info.rotation.1 / 2.0); // Half angles for quaternions.
         let pitch = Quaternion(
