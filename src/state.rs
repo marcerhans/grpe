@@ -414,7 +414,7 @@ impl StateHandler {
         }
 
         if let Some(_) = self.input.keyboard.v.take() {
-            // Toggle view mode and adjust position
+            // Toggle view mode and adjust position.
             if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
                 // Undo any current rotation.
                 let mut pos = quaternion::rotate(
