@@ -448,12 +448,15 @@ impl StateHandler {
             rot_diff = auto.rot_diff;
         }
 
-        let mut pos = config.camera.position.clone();
-        pos = quaternion::rotate(&pos, &config.camera.rotation.1, &config.camera.rotation.0);
-        pos = (&pos.0 + &pos_diff.0).into();
+        let old_rotation = config.camera.rotation.clone();
 
         if !(rot_diff.0 == 0.0 && rot_diff.1 == 0.0) {
-            self.info.rotation = (self.info.rotation.0 + rot_diff.0, self.info.rotation.1 + rot_diff.1);
+            self.info.rotation = (
+                (self.info.rotation.0 + rot_diff.0)
+                    .min(std::f64::consts::FRAC_PI_2)
+                    .max(-std::f64::consts::FRAC_PI_2),
+                (self.info.rotation.1 + rot_diff.1) % (std::f64::consts::PI * 2.0),
+            );
 
             let rotation = (self.info.rotation.0 / 2.0, self.info.rotation.1 / 2.0); // Half angles for quaternions.
             let pitch = Quaternion(
@@ -468,48 +471,25 @@ impl StateHandler {
             config.camera.rotation = (rotation, rotation_prim);
         }
 
-        config.camera.position = quaternion::rotate(&pos, &config.camera.rotation.0, &config.camera.rotation.1);
+        match config.camera.view_mode {
+            ViewMode::FirstPerson => {
+                pos_diff = quaternion::rotate(
+                    &pos_diff,
+                    &config.camera.rotation.0,
+                    &config.camera.rotation.1,
+                );
+                config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
+            }
+            ViewMode::Orbital => {
+                let mut pos =
+                    quaternion::rotate(&config.camera.position, &old_rotation.1, &old_rotation.0);
+                pos = (&pos.0 + &pos_diff.0).into();
+                config.camera.position =
+                    quaternion::rotate(&pos, &config.camera.rotation.0, &config.camera.rotation.1)
+            }
+        }
 
         config
-
-        // if let renderer::ViewMode::Orbital = config.camera.view_mode {
-        //     // self.info.rotation.0 = rot_diff
-        //     //     .0
-        //     //     .min(std::f64::consts::FRAC_PI_2)
-        //     //     .max(-std::f64::consts::FRAC_PI_2);
-        //     // self.info.rotation.1 = rot_diff.1;
-        //     // self.info.rotation.1 %= std::f64::consts::PI * 2.0;
-        //     self.info.rotation = rot_diff;
-        // } else {
-        //     self.info.rotation.0 = (self.info.rotation.0 + rot_diff.0)
-        //         .min(std::f64::consts::FRAC_PI_2)
-        //         .max(-std::f64::consts::FRAC_PI_2);
-        //     self.info.rotation.1 += rot_diff.1;
-        //     self.info.rotation.1 %= std::f64::consts::PI * 2.0;
-        // }
-
-        // let rotation = (self.info.rotation.0, self.info.rotation.1); // Half angles for quaternions.
-
-        // let pitch = Quaternion(
-        //     rotation.0.cos(),
-        //     rotation.0.sin() * (rotation.1 * 2.0).cos(),
-        //     rotation.0.sin() * (rotation.1 * 2.0).sin(),
-        //     0.0,
-        // );
-        // let yaw = Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
-        // let rotation = &pitch * &yaw;
-        // let rotation_prim = rotation.inverse();
-        // pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
-
-        // // Update camera
-        // if let renderer::ViewMode::Orbital = config.camera.view_mode {
-        //     config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
-        //     // config.camera.position = quaternion::rotate(&config.camera.position, &rotation, &rotation_prim);
-        //     config.camera.rotation = (&config.camera.rotation.0 * &rotation_prim, &config.camera.rotation.1 * &rotation);
-        // } else {
-        //     config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
-        //     config.camera.rotation = (rotation, rotation_prim);
-        // }
 
         // Store as info
         // self.info.position = config.camera.position.clone();
