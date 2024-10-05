@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc, time::Instant};
 
 use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
 use linear_algebra::quaternion::{self, Quaternion};
-use renderer::{Camera, ProjectionMode, RenderOption, RendererConfiguration, VectorRow};
+use renderer::{Camera, ProjectionMode, RenderOption, RendererConfiguration, VectorRow, ViewMode};
 
 use crate::arg::Args;
 
@@ -392,10 +392,12 @@ impl StateHandler {
         // Calculate positional change(s) based on input.
         let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
         if let Some(event) = self.input.mouse.right.as_mut() {
-            if let input::mouse::Event::Hold { from, to } = event {
-                pos_diff[0] = (from.0 - to.0) * 4.0;
-                pos_diff[2] = (from.1 - to.1) * 8.0;
-                *event = input::mouse::Event::Down(to.0, to.1);
+            if let ViewMode::FirstPerson = config.camera.view_mode {
+                if let input::mouse::Event::Hold { from, to } = event {
+                    pos_diff[0] = (from.0 - to.0) * 4.0;
+                    pos_diff[2] = (from.1 - to.1) * 8.0;
+                    *event = input::mouse::Event::Down(to.0, to.1);
+                }
             }
         }
 
@@ -445,6 +447,18 @@ impl StateHandler {
             self.info.rotation.0 = -std::f64::consts::FRAC_PI_6;
             rot_diff = auto.rot_diff;
         }
+
+        let rotation = (rot_diff.0 / 2.0, rot_diff.1 / 2.0); // Half angles for quaternions.
+        let pitch = Quaternion(
+            rotation.0.cos(),
+            rotation.0.sin() * (rotation.1 * 2.0).cos(),
+            rotation.0.sin() * (rotation.1 * 2.0).sin(),
+            0.0,
+        );
+        let yaw = Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
+        let rotation = &pitch * &yaw;
+        let rotation_prim = rotation.inverse();
+        pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
 
         config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
         config
