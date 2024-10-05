@@ -336,14 +336,18 @@ impl StateHandler {
         if let Some(_) = self.input.keyboard.F.take() {
             if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
                 // Increase fov
-                config.camera.projection_mode = ProjectionMode::Perspective { fov: fov + 5 };
+                config.camera.projection_mode = ProjectionMode::Perspective {
+                    fov: (fov + 5).min(170),
+                };
             }
         }
 
         if let Some(_) = self.input.keyboard.f.take() {
             if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
                 // Decrease fov
-                config.camera.projection_mode = ProjectionMode::Perspective { fov: fov - 5 };
+                config.camera.projection_mode = ProjectionMode::Perspective {
+                    fov: fov.checked_sub(5).unwrap_or(1).max(5),
+                };
             }
         }
 
@@ -351,17 +355,17 @@ impl StateHandler {
             self.info.invert_colors = !self.info.invert_colors;
         }
 
-        // Resize
         if let None = self.args.resolution {
             if let Some(new_size) = self.input.misc.resize {
+                // Resize
                 config.camera.resolution.0 = new_size.0;
                 config.camera.resolution.1 = new_size.1 * 2 - 4; // "* 2 - 4" because we want to make space for title and info.
             }
         }
 
-        // Calculate rotational change based on input.
+        // Calculate rotational change(s) based on input.
         let mut rot_diff = (0.0, 0.0);
-        if let Some(event) = self.input.mouse.right.as_mut() {
+        if let Some(event) = self.input.mouse.left.as_mut() {
             if let input::mouse::Event::Hold { from, to } = event {
                 rot_diff.0 += (to.1 - from.1) * 0.02;
                 rot_diff.1 += (to.0 - from.0) * -0.01;
@@ -385,9 +389,9 @@ impl StateHandler {
             rot_diff.1 += std::f64::consts::FRAC_PI_4;
         }
 
-        // Calculate positional change based on input.
+        // Calculate positional change(s) based on input.
         let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
-        if let Some(event) = self.input.mouse.left.as_mut() {
+        if let Some(event) = self.input.mouse.right.as_mut() {
             if let input::mouse::Event::Hold { from, to } = event {
                 pos_diff[0] = (from.0 - to.0) * 4.0;
                 pos_diff[2] = (from.1 - to.1) * 8.0;
@@ -395,9 +399,8 @@ impl StateHandler {
             }
         }
 
-        if let Some(val) = self.input.mouse.scroll.as_ref() {
-            pos_diff[1] += (*val * 10) as f64;
-            self.input.mouse.scroll = None;
+        if let Some(val) = self.input.mouse.scroll.take() {
+            pos_diff[1] += (val * 10) as f64;
         }
 
         if let Some(_) = self.input.keyboard.minus.take() {
@@ -443,34 +446,51 @@ impl StateHandler {
             rot_diff = auto.rot_diff;
         }
 
-        self.info.rotation.0 = (self.info.rotation.0 + rot_diff.0)
-            .min(std::f64::consts::FRAC_PI_2)
-            .max(-std::f64::consts::FRAC_PI_2);
-        self.info.rotation.1 += rot_diff.1;
-        self.info.rotation.1 %= std::f64::consts::PI * 2.0;
-
-        let rotation = (self.info.rotation.0 / 2.0, self.info.rotation.1 / 2.0); // Half angles for quaternions.
-
-        let pitch = Quaternion(
-            rotation.0.cos(),
-            rotation.0.sin() * (rotation.1 * 2.0).cos(),
-            rotation.0.sin() * (rotation.1 * 2.0).sin(),
-            0.0,
-        );
-        let yaw = Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
-        let rotation = &pitch * &yaw;
-        let rotation_prim = rotation.inverse();
-        pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
-
-        // Update camera
         config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
-        config.camera.rotation = (rotation, rotation_prim);
+        config
+
+        // if let renderer::ViewMode::Orbital = config.camera.view_mode {
+        //     // self.info.rotation.0 = rot_diff
+        //     //     .0
+        //     //     .min(std::f64::consts::FRAC_PI_2)
+        //     //     .max(-std::f64::consts::FRAC_PI_2);
+        //     // self.info.rotation.1 = rot_diff.1;
+        //     // self.info.rotation.1 %= std::f64::consts::PI * 2.0;
+        //     self.info.rotation = rot_diff;
+        // } else {
+        //     self.info.rotation.0 = (self.info.rotation.0 + rot_diff.0)
+        //         .min(std::f64::consts::FRAC_PI_2)
+        //         .max(-std::f64::consts::FRAC_PI_2);
+        //     self.info.rotation.1 += rot_diff.1;
+        //     self.info.rotation.1 %= std::f64::consts::PI * 2.0;
+        // }
+
+        // let rotation = (self.info.rotation.0, self.info.rotation.1); // Half angles for quaternions.
+
+        // let pitch = Quaternion(
+        //     rotation.0.cos(),
+        //     rotation.0.sin() * (rotation.1 * 2.0).cos(),
+        //     rotation.0.sin() * (rotation.1 * 2.0).sin(),
+        //     0.0,
+        // );
+        // let yaw = Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
+        // let rotation = &pitch * &yaw;
+        // let rotation_prim = rotation.inverse();
+        // pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
+
+        // // Update camera
+        // if let renderer::ViewMode::Orbital = config.camera.view_mode {
+        //     config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
+        //     // config.camera.position = quaternion::rotate(&config.camera.position, &rotation, &rotation_prim);
+        //     config.camera.rotation = (&config.camera.rotation.0 * &rotation_prim, &config.camera.rotation.1 * &rotation);
+        // } else {
+        //     config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
+        //     config.camera.rotation = (rotation, rotation_prim);
+        // }
 
         // Store as info
-        self.info.position = config.camera.position.clone();
+        // self.info.position = config.camera.position.clone();
         // self.info.rotation =
-
-        config
     }
 
     pub fn info(&self) -> &info::State {
