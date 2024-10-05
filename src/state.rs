@@ -448,6 +448,7 @@ impl StateHandler {
             rot_diff = auto.rot_diff;
         }
 
+        self.info.rotation = (self.info.rotation.0 + rot_diff.0, self.info.rotation.1 + rot_diff.1);
         let rotation = (rot_diff.0 / 2.0, rot_diff.1 / 2.0); // Half angles for quaternions.
         let pitch = Quaternion(
             rotation.0.cos(),
@@ -461,6 +462,14 @@ impl StateHandler {
         pos_diff = quaternion::rotate(&pos_diff, &rotation, &rotation_prim);
 
         config.camera.position = (&config.camera.position.0 + &pos_diff.0).into();
+        config.camera.rotation.0 = &config.camera.rotation.0 * &rotation;
+        // config.camera.rotation.0 = Quaternion(
+        //     config.camera.rotation.0.0,
+        //     config.camera.rotation.0.1 * (self.info.rotation.1 * 2.0).cos(),
+        //     config.camera.rotation.0.2 * (self.info.rotation.1 * 2.0).sin(),
+        //     config.camera.rotation.0.3,
+        // );
+        config.camera.rotation.1 = config.camera.rotation.0.inverse();
         config
 
         // if let renderer::ViewMode::Orbital = config.camera.view_mode {

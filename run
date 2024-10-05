@@ -1,3 +1,3 @@
 #!/bin/bash
 # xterm -fullscreen -fg white -bg black +sb -e cargo run --release -- ${@}
-mate-terminal --full-screen --hide-menubar --zoom=0.279083 -x cargo run --release -- -f 240 -i -m spiral
+mate-terminal --full-screen --hide-menubar --zoom=0.279083 -x cargo run --release -- -f 240 -i
