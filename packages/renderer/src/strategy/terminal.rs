@@ -358,29 +358,21 @@ impl Terminal {
         let vertices = self.vertices.as_ref().unwrap().as_ref().borrow();
         self.vertices_projected.fill(None);
 
-        let x_min = self.config.camera.position[0] as isize
-            - ((self.config.camera.resolution.0 / 2) as isize);
-        let x_max = self.config.camera.position[0] as isize
-            + ((self.config.camera.resolution.0 / 2) as isize)
-            - 1; // 0 included as positive
-        let z_min = self.config.camera.position[2] as isize
-            - ((self.config.camera.resolution.1 / 2) as isize);
-        let z_max = self.config.camera.position[2] as isize
-            + ((self.config.camera.resolution.1 / 2) as isize)
-            - 1; // 0 included as positive
+        let x_min = -((self.config.camera.resolution.0 / 2) as isize);
+        let x_max = ((self.config.camera.resolution.0 / 2) as isize) - 1; // 0 included as positive
+        let z_min = -((self.config.camera.resolution.1 / 2) as isize);
+        let z_max = ((self.config.camera.resolution.1 / 2) as isize) - 1; // 0 included as positive
 
         for (index, vertex) in vertices.iter().enumerate() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
                 // Undo any previously applied rotation.
-                let intersection =
+                let mut intersection =
                     VectorRow::<f64, 3>::from(&intersection.0 - &self.config.camera.position.0);
-                let intersection: VectorRow<f64, 3> = rotate(
+                intersection = rotate(
                     &intersection,
                     &self.config.camera.rotation.1,
                     &self.config.camera.rotation.0,
                 );
-                let mut intersection =
-                    VectorRow::<f64, 3>::from(&intersection.0 + &self.config.camera.position.0);
 
                 // Adjust points according to width heigh pixel ratio.
                 intersection[0] = intersection[0] * self.extras.pixel_width_scaling;
@@ -418,16 +410,10 @@ impl Terminal {
 
         // TODO: These could be cached/combined with what is already done during projection of vertices.
         // This is just lazy.
-        let x_min = self.config.camera.position[0] as isize
-            - ((self.config.camera.resolution.0 / 2) as isize);
-        let x_max = self.config.camera.position[0] as isize
-            + ((self.config.camera.resolution.0 / 2) as isize)
-            - 1; // 0 included as positive
-        let z_min = self.config.camera.position[2] as isize
-            - ((self.config.camera.resolution.1 / 2) as isize);
-        let z_max = self.config.camera.position[2] as isize
-            + ((self.config.camera.resolution.1 / 2) as isize)
-            - 1; // 0 included as positive
+        let x_min = -((self.config.camera.resolution.0 / 2) as isize);
+        let x_max = ((self.config.camera.resolution.0 / 2) as isize) - 1; // 0 included as positive
+        let z_min = -((self.config.camera.resolution.1 / 2) as isize);
+        let z_max = ((self.config.camera.resolution.1 / 2) as isize) - 1; // 0 included as positive
 
         for order in line_draw_order.iter() {
             for ab in order.windows(2) {
