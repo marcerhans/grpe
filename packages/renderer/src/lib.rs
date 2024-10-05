@@ -1,20 +1,20 @@
 /// Current implementation only supports a terminal (/text) output for rendering,
 /// and for simplicity only [f64] is used.
-
 pub mod strategy;
 
 use std::{cell::RefCell, rc::Rc, str::FromStr};
 
 use linear_algebra::quaternion::Quaternion;
+pub use linear_algebra::{
+    matrix::{Matrix, MatrixDataTrait},
+    vector::VectorRow,
+};
 pub use strategy::renderer;
-pub use linear_algebra::{matrix::{Matrix, MatrixDataTrait}, vector::VectorRow};
 
 #[derive(Clone)]
 pub enum ProjectionMode {
     Orthographic,
-    Perspective {
-        fov: u64,
-    },
+    Perspective { fov: u64 },
 }
 
 impl Default for ProjectionMode {
@@ -44,7 +44,10 @@ impl Default for Camera {
         Self {
             resolution: (64, 64),
             position: VectorRow::from([0.0, 0.0, 0.0]),
-            rotation: Default::default(),
+            rotation: (
+                Quaternion(1.0, 0.0, 0.0, 0.0),
+                Quaternion(1.0, 0.0, 0.0, 0.0),
+            ),
             view_mode: Default::default(),
             projection_mode: Default::default(),
         }
@@ -99,7 +102,10 @@ pub trait RendererBuilderTrait: Default {
     fn build(self) -> Result<Self::Renderer, &'static str>;
 
     /// Build an instance of [RendererTrait] using an existing [RendererConfiguration].
-    fn build_with_config(self, config: RendererConfiguration) -> Result<Self::Renderer, &'static str>;
+    fn build_with_config(
+        self,
+        config: RendererConfiguration,
+    ) -> Result<Self::Renderer, &'static str>;
 }
 
 /// [RendererTrait] for rendering to display.
