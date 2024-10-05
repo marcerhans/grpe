@@ -27,6 +27,7 @@ mod input {
         /// This is ugly :)
         #[derive(Default)]
         pub struct State {
+            pub a: Option<()>,
             pub r: Option<()>,
             pub o: Option<()>,
             pub w: Option<()>,
@@ -290,6 +291,7 @@ impl StateHandler {
                 _ => (),
             },
             Event::Character(c) => match c {
+                'a' => self.input.keyboard.a = Some(()),
                 'r' => self.input.keyboard.r = Some(()),
                 'o' => self.input.keyboard.o = Some(()),
                 'w' => self.input.keyboard.w = Some(()),
@@ -442,12 +444,21 @@ impl StateHandler {
             }
         }
 
-        // Apply updated rotation on positional change.
+        // Automatic mode?
+        if let Some(()) = self.input.keyboard.a.take() {
+            if let None = self.input.auto {
+                self.input.auto = Some(input::auto::State::default());
+            } else {
+                self.input.auto = None;
+            }
+        }
+
         if let Some(auto) = self.input.auto.as_ref() {
             self.info.rotation.0 = -std::f64::consts::FRAC_PI_6;
             rot_diff = auto.rot_diff;
         }
 
+        // Apply updated rotation on positional change.
         let old_rotation = config.camera.rotation.clone();
 
         if !(rot_diff.0 == 0.0 && rot_diff.1 == 0.0) {
