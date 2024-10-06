@@ -385,44 +385,17 @@ impl Terminal {
     }
 
     /// Maps lines between vertices to a [Canvas::buffer].
-    /// Note: Does a bit too much currently.
+    /// Note: This method is a bit all over the place.
     fn render_lines_and_particles(&mut self, culling: bool) {
-        let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
-        let camera_normal = rotate(
-            &VectorRow::from([0.0, 1.0, 0.0]),
-            &self.config.camera.rotation.0,
-            &self.config.camera.rotation.1,
-        );
-
-        for order in line_draw_order.iter() {
-            if let RenderOption::WireFrameAndParticles | RenderOption::CullingAndParticles =
-                self.config.option
-            {
-                if order.len() == 1 {
-                    // Render as single point particle.
-                    if let Some(particle) = &self.vertices_projected[order[0]] {
-                        Self::render_pixel(
-                            &mut self.canvas.buffer,
-                            &self.config.camera,
-                            particle[0] as isize,
-                            particle[2] as isize,
-                        );
-                    }
-                    continue;
-                }
-                // Note: Two point particles (line particles) are handled by regular line drawing (fall through).
-            } else if let RenderOption::WireFrame | RenderOption::Culling = self.config.option {
-                // Ignore all kinds of particles.
-                if order.len() < 3 {
-                    continue;
-                }
-            }
-
+        fn render_line(
+            order: &Vec<usize>,
+            vertices_projected: &Vec<Option<VectorRow<f64, 3>>>,
+            buffer: &mut Vec<Vec<char>>,
+            camera: &Camera,
+        ) {
             for ab in order.windows(2) {
-                if let (Some(a), Some(b)) = (
-                    &self.vertices_projected[ab[0]],
-                    &self.vertices_projected[ab[1]],
-                ) {
+                if let (Some(a), Some(b)) = (&vertices_projected[ab[0]], &vertices_projected[ab[1]])
+                {
                     let dx = (a[0] - b[0]) as isize;
                     let dz = (a[2] - b[2]) as isize;
                     let dx_sign = dx.signum();
@@ -466,21 +439,11 @@ impl Terminal {
                             if !swap {
                                 let x = small_base;
                                 let z = large_base + large_direction * large_step;
-                                Self::render_pixel(
-                                    &mut self.canvas.buffer,
-                                    &self.config.camera,
-                                    x,
-                                    z,
-                                );
+                                Terminal::render_pixel(buffer, camera, x, z);
                             } else {
                                 let x = large_base + large_direction * large_step;
                                 let z = small_base;
-                                Self::render_pixel(
-                                    &mut self.canvas.buffer,
-                                    &self.config.camera,
-                                    x,
-                                    z,
-                                );
+                                Terminal::render_pixel(buffer, camera, x, z);
                             }
                         }
                         continue;
@@ -495,15 +458,71 @@ impl Terminal {
                         if !swap {
                             let x = small_base + small_direction * small_step;
                             let z = large_base + large_direction * large_step;
-                            Self::render_pixel(&mut self.canvas.buffer, &self.config.camera, x, z);
+                            Terminal::render_pixel(buffer, camera, x, z);
                         } else {
                             let x = large_base + large_direction * large_step;
                             let z = small_base + small_direction * small_step;
-                            Self::render_pixel(&mut self.canvas.buffer, &self.config.camera, x, z);
+                            Terminal::render_pixel(buffer, camera, x, z);
                         }
                     }
                 }
             }
+        }
+
+        let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
+        let camera_normal = rotate(
+            &VectorRow::from([0.0, 1.0, 0.0]),
+            &self.config.camera.rotation.0,
+            &self.config.camera.rotation.1,
+        );
+
+        for order in line_draw_order.iter() {
+            if let RenderOption::WireFrameAndParticles | RenderOption::CullingAndParticles =
+                self.config.option
+            {
+                if order.len() == 1 {
+                    // Render as single point particle.
+                    if let Some(particle) = &self.vertices_projected[order[0]] {
+                        Self::render_pixel(
+                            &mut self.canvas.buffer,
+                            &self.config.camera,
+                            particle[0] as isize,
+                            particle[2] as isize,
+                        );
+                    }
+                    continue;
+                } else if order.len() == 2 {
+                    render_line(
+                        order,
+                        &self.vertices_projected,
+                        &mut self.canvas.buffer,
+                        &self.config.camera,
+                    );
+                    continue;
+                }
+            }
+
+            if order.len() < 3 {
+                continue;
+            }
+
+            if culling {
+                // Determine if the face should be culled.
+                // Span two vectors stemming from the same point.
+
+                // Calculate the cross product.
+
+                // Calculate angle between cross prodcut and the [Camera] normal to decide if it should be culled.
+
+                // Repeat for each vector pair (/vertex triplet).
+            }
+
+            render_line(
+                order,
+                &self.vertices_projected,
+                &mut self.canvas.buffer,
+                &self.config.camera,
+            );
         }
     }
 
