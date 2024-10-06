@@ -2,7 +2,7 @@
 /// and for simplicity only [f64] is used.
 pub mod strategy;
 
-use std::{cell::RefCell, rc::Rc, str::FromStr};
+use std::{cell::RefCell, fmt::Display, rc::Rc, str::FromStr};
 
 use linear_algebra::quaternion::Quaternion;
 pub use linear_algebra::{
@@ -28,6 +28,15 @@ pub enum ViewMode {
     FirstPerson,
     #[default]
     Orbital,
+}
+
+impl Display for ViewMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ViewMode::FirstPerson => write!(f, "FirstPerson"),
+            ViewMode::Orbital => write!(f, "Orbital"),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -64,6 +73,18 @@ pub enum RenderOption {
     CullingAndVertices,
 }
 
+impl Display for RenderOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RenderOption::Vertices => write!(f, "vertices"),
+            RenderOption::WireFrame => write!(f, "wireframe"),
+            RenderOption::WireFrameAndVertices => write!(f, "wireframeandvertices"),
+            RenderOption::Culling => write!(f, "culling"),
+            RenderOption::CullingAndVertices => write!(f, "cullingandvertices"),
+        }
+    }
+}
+
 impl FromStr for RenderOption {
     type Err = &'static str;
 
@@ -75,18 +96,6 @@ impl FromStr for RenderOption {
             "culling" => Ok(RenderOption::Culling),
             "cullingandvertices" => Ok(RenderOption::CullingAndVertices),
             _ => Err("Could not convert from string"),
-        }
-    }
-}
-
-impl ToString for RenderOption {
-    fn to_string(&self) -> String {
-        match self {
-            RenderOption::Vertices => "vertices".to_owned(),
-            RenderOption::WireFrame => "wireframe".to_owned(),
-            RenderOption::WireFrameAndVertices => "wireframeandvertices".to_owned(),
-            RenderOption::Culling => "culling".to_owned(),
-            RenderOption::CullingAndVertices => "cullingandvertices".to_owned(),
         }
     }
 }

@@ -95,7 +95,7 @@ mod input {
 mod info {
     use std::time::Instant;
 
-    use renderer::VectorRow;
+    use renderer::{RenderOption, VectorRow, ViewMode};
 
     pub struct State {
         pub event_count: u64,
@@ -104,6 +104,8 @@ mod info {
         pub invert_colors: bool,
         pub time_prev: Instant,
         pub fps: u64,
+        pub view_mode: ViewMode,
+        pub render_option: RenderOption,
     }
 
     impl Default for State {
@@ -116,6 +118,8 @@ mod info {
                 invert_colors: false,
                 time_prev: Instant::now(),
                 fps: 0,
+                view_mode: Default::default(),
+                render_option: Default::default(),
             }
         }
     }
@@ -355,10 +359,6 @@ impl StateHandler {
             }
         }
 
-        if let Some(_) = self.input.keyboard.c.take() {
-            self.info.invert_colors = !self.info.invert_colors;
-        }
-
         if let None = self.args.resolution {
             if let Some(new_size) = self.input.misc.resize {
                 // Resize
@@ -502,11 +502,17 @@ impl StateHandler {
             }
         }
 
-        config
+        // Store info
+        self.info.position = config.camera.position.clone();
+        // self.info.rotation = Already done.
+        self.info.render_option = config.option.clone();
+        self.info.view_mode = config.camera.view_mode.clone();
 
-        // Store as info
-        // self.info.position = config.camera.position.clone();
-        // self.info.rotation =
+        if let Some(_) = self.input.keyboard.c.take() {
+            self.info.invert_colors = !self.info.invert_colors;
+        }
+
+        config
     }
 
     pub fn info(&self) -> &info::State {

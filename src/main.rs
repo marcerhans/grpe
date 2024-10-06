@@ -39,6 +39,7 @@ fn main() {
     // let scale = 66.0; // MODEL
     // extras.pixel_width_scaling = scale * (47.5 / 32.0); // MODEL: Just for drafting model from image. Shoule be 1.0.
     // extras.pixel_height_scaling = scale; // MODEL: Just for drafting model from image. Shoule be 1.0.
+    extras.pixel_width_scaling = 65.5 / 43.5;
     renderer.set_extras(extras);
 
     // 3. Create vertices.
@@ -95,12 +96,13 @@ fn main() {
                     (updated_config.camera.resolution.1 + 4) / 2
                 )
                 .unwrap();
-                let info  = format!("FPS: {:0>4} | Events handled: {:0>10} | Resolution: ({:0>4},{:0>4}) | FOV: {:0>3} | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2}) | Camera Position: ({:.2},{:.2},{:.2})",
+                let info  = format!("FPS: {:0>4} | Events handled: {:0>10} | Resolution: ({},{}) | FOV: {:0>3} | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2}) | Camera Position: ({:.2},{:.2},{:.2}) | ViewMode: {} | RenderOption: {}",
                     state.info().fps,
                     state.info().event_count,
                     updated_config.camera.resolution.0, updated_config.camera.resolution.1, fov,
                     state.info().rotation.0, state.info().rotation.1,
                     updated_config.camera.position[0],  updated_config.camera.position[1], updated_config.camera.position[2],
+                    state.info().view_mode, state.info().render_option,
                 );
                 write!(
                     writer,
