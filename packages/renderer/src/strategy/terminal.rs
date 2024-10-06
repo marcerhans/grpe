@@ -507,7 +507,7 @@ impl Terminal {
             }
 
             if culling {
-                let mut order_culled = vec![];
+                let mut order_culled: Vec<usize> = vec![];
 
                 // Determine if the face should be culled.
                 for abc in order.windows(3) {
@@ -532,7 +532,8 @@ impl Terminal {
                             / (camera_normal_magnitude * normal_magnitude);
 
                         if cos_angle > 0.0 {
-                            order_culled.push(0); // HMMMM
+                            // order_culled.push(order); // HMMMM
+                            order_culled.append(&mut order.clone());
                         }
 
                         // Repeat for each vector pair (/vertex triplet).
