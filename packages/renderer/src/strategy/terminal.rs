@@ -388,13 +388,6 @@ impl Terminal {
     fn render_lines_between_projected_vertices(&mut self) {
         let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
 
-        // TODO: These could be cached/combined with what is already done during projection of vertices.
-        // This is just lazy.
-        let x_min = -((self.config.camera.resolution.0 / 2) as isize);
-        let x_max = ((self.config.camera.resolution.0 / 2) as isize) - 1; // 0 included as positive
-        let z_min = -((self.config.camera.resolution.1 / 2) as isize);
-        let z_max = ((self.config.camera.resolution.1 / 2) as isize) - 1; // 0 included as positive
-
         for order in line_draw_order.iter() {
             for ab in order.windows(2) {
                 if let (Some(a), Some(b)) = (
@@ -444,11 +437,6 @@ impl Terminal {
                             if !swap {
                                 let x = small_base;
                                 let z = large_base + large_direction * large_step;
-
-                                if x < x_min || x > x_max || z < z_min || z > z_max {
-                                    continue;
-                                }
-
                                 Self::render_pixel(
                                     &mut self.canvas.buffer,
                                     &self.config.camera,
@@ -458,11 +446,6 @@ impl Terminal {
                             } else {
                                 let x = large_base + large_direction * large_step;
                                 let z = small_base;
-
-                                if x < x_min || x > x_max || z < z_min || z > z_max {
-                                    continue;
-                                }
-
                                 Self::render_pixel(
                                     &mut self.canvas.buffer,
                                     &self.config.camera,
@@ -483,20 +466,10 @@ impl Terminal {
                         if !swap {
                             let x = small_base + small_direction * small_step;
                             let z = large_base + large_direction * large_step;
-
-                            if x < x_min || x > x_max || z < z_min || z > z_max {
-                                continue;
-                            }
-
                             Self::render_pixel(&mut self.canvas.buffer, &self.config.camera, x, z);
                         } else {
                             let x = large_base + large_direction * large_step;
                             let z = small_base + small_direction * small_step;
-
-                            if x < x_min || x > x_max || z < z_min || z > z_max {
-                                continue;
-                            }
-
                             Self::render_pixel(&mut self.canvas.buffer, &self.config.camera, x, z);
                         }
                     }
