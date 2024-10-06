@@ -385,15 +385,21 @@ impl Terminal {
     }
 
     /// Maps lines between vertices to a [Canvas::buffer].
+    /// Note: Does a bit too much currently.
     fn render_lines_and_particles(&mut self, culling: bool) {
         let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
+        let camera_normal = rotate(
+            &VectorRow::from([0.0, 1.0, 0.0]),
+            &self.config.camera.rotation.0,
+            &self.config.camera.rotation.1,
+        );
 
         for order in line_draw_order.iter() {
             if let RenderOption::WireFrameAndParticles | RenderOption::CullingAndParticles =
                 self.config.option
             {
                 if order.len() == 1 {
-                    // Render as particle.
+                    // Render as single point particle.
                     if let Some(particle) = &self.vertices_projected[order[0]] {
                         Self::render_pixel(
                             &mut self.canvas.buffer,
@@ -403,6 +409,14 @@ impl Terminal {
                         );
                     }
                     continue;
+                }
+            }
+
+            if let RenderOption::WireFrame | RenderOption::Culling = self.config.option {
+                if order.len() < 3 {
+                    continue;
+                } else {
+                    // Render as two point particle (line).
                 }
             }
 
