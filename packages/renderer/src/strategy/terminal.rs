@@ -410,13 +410,11 @@ impl Terminal {
                     }
                     continue;
                 }
-            }
-
-            if let RenderOption::WireFrame | RenderOption::Culling = self.config.option {
+                // Note: Two point particles (line particles) are handled by regular line drawing (fall through).
+            } else if let RenderOption::WireFrame | RenderOption::Culling = self.config.option {
+                // Ignore all kinds of particles.
                 if order.len() < 3 {
                     continue;
-                } else {
-                    // Render as two point particle (line).
                 }
             }
 
