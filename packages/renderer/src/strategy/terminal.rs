@@ -385,7 +385,7 @@ impl Terminal {
     }
 
     /// Maps lines between vertices to a [Canvas::buffer].
-    fn render_lines_between_projected_vertices(&mut self) {
+    fn render_lines_between_projected_vertices(&mut self, culling: bool) {
         let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
 
         for order in line_draw_order.iter() {
@@ -528,17 +528,13 @@ impl RendererTrait for Terminal {
         self.project_vertices_on_viewport();
 
         match self.config.option {
-            RenderOption::Vertices
-            | RenderOption::WireFrameAndParticles
-            | RenderOption::CullingAndParticles => self.render_projected_vertices(),
-            _ => (),
-        }
-
-        match self.config.option {
+            RenderOption::Vertices => self.render_projected_vertices(),
             RenderOption::WireFrame | RenderOption::WireFrameAndParticles => {
-                self.render_lines_between_projected_vertices()
+                self.render_lines_between_projected_vertices(false)
             }
-            _ => (),
+            RenderOption::Culling | RenderOption::CullingAndParticles => {
+                self.render_lines_between_projected_vertices(true)
+            }
         }
 
         self.write_rendered_scene_to_stdout_buffer();
