@@ -387,7 +387,7 @@ impl Terminal {
     /// Maps lines between vertices to a [Canvas::buffer].
     /// Note: This method is a bit all over the place.
     fn render_lines_and_particles(&mut self, culling: bool) {
-        fn render_line(
+        fn render_lines(
             order: &Vec<usize>,
             vertices_projected: &Vec<Option<VectorRow<f64, 3>>>,
             buffer: &mut Vec<Vec<char>>,
@@ -492,7 +492,7 @@ impl Terminal {
                     }
                     continue;
                 } else if order.len() == 2 {
-                    render_line(
+                    render_lines(
                         order,
                         &self.vertices_projected,
                         &mut self.canvas.buffer,
@@ -507,22 +507,51 @@ impl Terminal {
             }
 
             if culling {
+                let mut order_culled = vec![];
+
                 // Determine if the face should be culled.
-                // Span two vectors stemming from the same point.
+                for abc in order.windows(3) {
+                    if let (Some(a), Some(b), Some(c)) = (
+                        &self.vertices_projected[abc[0]],
+                        &self.vertices_projected[abc[1]],
+                        &self.vertices_projected[abc[2]],
+                    ) {
+                        // Span two vectors stemming from the same point. This implies CCW rotation.
+                        let v_a: VectorRow<f64, 3> = (&b.0 - &a.0).into();
+                        let v_b: VectorRow<f64, 3> = (&c.0 - &a.0).into();
 
-                // Calculate the cross product.
+                        // Calculate the cross product.
+                        let normal = v_a.cross(&v_b);
 
-                // Calculate angle between cross prodcut and the [Camera] normal to decide if it should be culled.
+                        // Calculate angle between cross product and the [Camera] normal in order to decide if it should be culled.
+                        let camera_normal_magnitude = 1.0; // We already know this due to just rotating existing length of 1.0.
+                        let normal_magnitude =
+                            (normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2])
+                                .sqrt();
+                        let cos_angle = camera_normal.dot(&normal)
+                            / (camera_normal_magnitude * normal_magnitude);
 
-                // Repeat for each vector pair (/vertex triplet).
+                        if cos_angle > 0.0 {
+                            order_culled.push(0); // HMMMM
+                        }
+
+                        // Repeat for each vector pair (/vertex triplet).
+                    }
+                }
+                render_lines(
+                    &order_culled,
+                    &self.vertices_projected,
+                    &mut self.canvas.buffer,
+                    &self.config.camera,
+                );
+            } else {
+                render_lines(
+                    order,
+                    &self.vertices_projected,
+                    &mut self.canvas.buffer,
+                    &self.config.camera,
+                );
             }
-
-            render_line(
-                order,
-                &self.vertices_projected,
-                &mut self.canvas.buffer,
-                &self.config.camera,
-            );
         }
     }
 
