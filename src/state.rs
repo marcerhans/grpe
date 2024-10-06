@@ -334,10 +334,10 @@ impl StateHandler {
             // Toggle render option
             config.option = match config.option {
                 renderer::RenderOption::Vertices => renderer::RenderOption::WireFrame,
-                renderer::RenderOption::WireFrame => renderer::RenderOption::WireFrameAndVertices,
-                renderer::RenderOption::WireFrameAndVertices => renderer::RenderOption::Culling,
-                renderer::RenderOption::Culling => renderer::RenderOption::CullingAndVertices,
-                renderer::RenderOption::CullingAndVertices => renderer::RenderOption::Vertices,
+                renderer::RenderOption::WireFrame => renderer::RenderOption::WireFrameAndParticles,
+                renderer::RenderOption::WireFrameAndParticles => renderer::RenderOption::Culling,
+                renderer::RenderOption::Culling => renderer::RenderOption::CullingAndParticles,
+                renderer::RenderOption::CullingAndParticles => renderer::RenderOption::Vertices,
             };
         }
 

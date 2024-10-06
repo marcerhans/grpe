@@ -67,10 +67,10 @@ impl Default for Camera {
 pub enum RenderOption {
     Vertices,
     WireFrame,
-    WireFrameAndVertices,
+    WireFrameAndParticles,
     Culling,
     #[default]
-    CullingAndVertices,
+    CullingAndParticles,
 }
 
 impl Display for RenderOption {
@@ -78,9 +78,9 @@ impl Display for RenderOption {
         match self {
             RenderOption::Vertices => write!(f, "vertices"),
             RenderOption::WireFrame => write!(f, "wireframe"),
-            RenderOption::WireFrameAndVertices => write!(f, "wireframeandvertices"),
+            RenderOption::WireFrameAndParticles => write!(f, "wireframeandparticles"),
             RenderOption::Culling => write!(f, "culling"),
-            RenderOption::CullingAndVertices => write!(f, "cullingandvertices"),
+            RenderOption::CullingAndParticles => write!(f, "cullingandparticles"),
         }
     }
 }
@@ -92,9 +92,9 @@ impl FromStr for RenderOption {
         match s.to_lowercase().as_str() {
             "vertices" => Ok(RenderOption::Vertices),
             "wireframe" => Ok(RenderOption::WireFrame),
-            "wireframeandvertices" => Ok(RenderOption::WireFrameAndVertices),
+            "wireframeandparticles" => Ok(RenderOption::WireFrameAndParticles),
             "culling" => Ok(RenderOption::Culling),
-            "cullingandvertices" => Ok(RenderOption::CullingAndVertices),
+            "cullingandparticles" => Ok(RenderOption::CullingAndParticles),
             _ => Err("Could not convert from string"),
         }
     }

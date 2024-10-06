@@ -61,9 +61,9 @@ Default: vertices
 Available options:
 vertices - Renders only vertices.
 wireframe - Renders only wireframe (lines between vertices).
-wireframeandvertices - wireframe + vertices.
+wireframeandparticles - wireframe + particles (single point vertices).
 culling - Renders wireframe, but with backface culling.
-cullingandvertices - culling + vertices.
+cullingandparticles - culling + particles (single point vertices).
 
 -i, --info
 Default: true
