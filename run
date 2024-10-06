@@ -1,4 +1,4 @@
 #!/bin/bash
 # xterm -fullscreen -fg white -bg black +sb -e cargo run --release -- ${@}
 # @Resolution: (950,354) in mate terminal, the ratio is [43.5 (Width) x 65.5 (Height)].
-mate-terminal --full-screen --hide-menubar --zoom=0.279083 -x cargo run --release -- -i -f 240 ${@}
+mate-terminal --full-screen --hide-menubar --zoom=0.279083 -x cargo run --release -- -i -f 100 ${@}

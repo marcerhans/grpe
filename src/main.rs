@@ -97,7 +97,7 @@ fn main() {
                 )
                 .unwrap();
                 let info  = format!("FPS: {:0>4} | Events handled: {:0>10} | Resolution: ({},{}) | FOV: {:0>3} | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2}) | Camera Position: ({:.2},{:.2},{:.2}) | ViewMode: {} | RenderOption: {}",
-                    state.info().fps,
+                    state.info().fps_smoothened,
                     state.info().event_count,
                     updated_config.camera.resolution.0, updated_config.camera.resolution.1, fov,
                     state.info().rotation.0, state.info().rotation.1,

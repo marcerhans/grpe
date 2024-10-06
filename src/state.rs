@@ -66,7 +66,7 @@ mod input {
         impl Default for State {
             fn default() -> Self {
                 Self {
-                    rot_diff: (0.0, 0.001),
+                    rot_diff: (0.0, 0.01),
                 }
             }
         }
@@ -104,6 +104,7 @@ mod info {
         pub invert_colors: bool,
         pub time_prev: Instant,
         pub fps: u64,
+        pub fps_smoothened: u64,
         pub view_mode: ViewMode,
         pub render_option: RenderOption,
     }
@@ -118,6 +119,7 @@ mod info {
                 invert_colors: false,
                 time_prev: Instant::now(),
                 fps: 0,
+                fps_smoothened: 0,
                 view_mode: Default::default(),
                 render_option: Default::default(),
             }
@@ -204,6 +206,9 @@ impl StateHandler {
                 }
             }
         }
+
+        let smooth_factor = 0.25;
+        self.info.fps_smoothened = (smooth_factor * self.info.fps as f64 + (1.0 - smooth_factor) * self.info.fps_smoothened as f64) as u64;
 
         println!("\x1B[H\x1B[18t"); // Query terminal for size. (Move to first row before printing/receiving, because it will be cleared anyway.)
 
