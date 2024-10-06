@@ -532,7 +532,6 @@ impl Terminal {
                             / (camera_normal_magnitude * normal_magnitude);
 
                         if cos_angle > 0.0 {
-                            // order_culled.push(order); // HMMMM
                             order_culled.append(&mut order.clone());
                         }
 
