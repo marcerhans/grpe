@@ -385,10 +385,27 @@ impl Terminal {
     }
 
     /// Maps lines between vertices to a [Canvas::buffer].
-    fn render_lines_between_projected_vertices(&mut self, culling: bool) {
+    fn render_lines_and_particles(&mut self, culling: bool) {
         let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
 
         for order in line_draw_order.iter() {
+            if let RenderOption::WireFrameAndParticles | RenderOption::CullingAndParticles =
+                self.config.option
+            {
+                if order.len() == 1 {
+                    // Render as particle.
+                    if let Some(particle) = &self.vertices_projected[order[0]] {
+                        Self::render_pixel(
+                            &mut self.canvas.buffer,
+                            &self.config.camera,
+                            particle[0] as isize,
+                            particle[2] as isize,
+                        );
+                    }
+                    continue;
+                }
+            }
+
             for ab in order.windows(2) {
                 if let (Some(a), Some(b)) = (
                     &self.vertices_projected[ab[0]],
@@ -530,10 +547,10 @@ impl RendererTrait for Terminal {
         match self.config.option {
             RenderOption::Vertices => self.render_projected_vertices(),
             RenderOption::WireFrame | RenderOption::WireFrameAndParticles => {
-                self.render_lines_between_projected_vertices(false)
+                self.render_lines_and_particles(false)
             }
             RenderOption::Culling | RenderOption::CullingAndParticles => {
-                self.render_lines_between_projected_vertices(true)
+                self.render_lines_and_particles(true)
             }
         }
 
