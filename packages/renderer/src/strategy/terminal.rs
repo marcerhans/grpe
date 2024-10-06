@@ -305,17 +305,6 @@ impl Terminal {
         let x = x + (camera.resolution.0 / 2) as isize;
         let mut z = z + (camera.resolution.1 / 2) as isize;
 
-        #[cfg(debug_assertions)]
-        {
-            // Only show points within view of [Camera].
-            // This should have been filtered already.
-            if !(x >= 0 && x < camera.resolution.0 as isize)
-                || !(z >= 0 && z < camera.resolution.1 as isize)
-            {
-                panic!("Camera: {:?} - {x} and {z}", camera.resolution);
-            }
-        }
-
         // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
         let mut character = Self::character_at(z as usize);
         z = z / 2;
@@ -388,11 +377,20 @@ impl Terminal {
     /// Note: This method is a bit all over the place.
     fn render_lines_and_particles(&mut self, culling: bool) {
         fn render_lines(
-            order: &Vec<usize>,
+            order: &[usize],
             vertices_projected: &Vec<Option<VectorRow<f64, 3>>>,
             buffer: &mut Vec<Vec<char>>,
             camera: &Camera,
         ) {
+            // While projected vertices have been filtered to only keep the ones within camera view;
+            // with the currently impelemntation for drawing lines, some parts of line(s) can get
+            // outside allowed boundaries.
+            // TODO: Should not be an issue. Write better code.
+            let x_min = -((camera.resolution.0 / 2) as isize);
+            let x_max = ((camera.resolution.0 / 2) as isize) - 1; // 0 included as positive
+            let z_min = -((camera.resolution.1 / 2) as isize);
+            let z_max = ((camera.resolution.1 / 2) as isize) - 1; // 0 included as positive
+
             for ab in order.windows(2) {
                 if let (Some(a), Some(b)) = (&vertices_projected[ab[0]], &vertices_projected[ab[1]])
                 {
@@ -439,10 +437,16 @@ impl Terminal {
                             if !swap {
                                 let x = small_base;
                                 let z = large_base + large_direction * large_step;
+                                if x < x_min || x > x_max || z < z_min || z > z_max {
+                                    continue;
+                                }
                                 Terminal::render_pixel(buffer, camera, x, z);
                             } else {
                                 let x = large_base + large_direction * large_step;
                                 let z = small_base;
+                                if x < x_min || x > x_max || z < z_min || z > z_max {
+                                    continue;
+                                }
                                 Terminal::render_pixel(buffer, camera, x, z);
                             }
                         }
@@ -458,10 +462,16 @@ impl Terminal {
                         if !swap {
                             let x = small_base + small_direction * small_step;
                             let z = large_base + large_direction * large_step;
+                            if x < x_min || x > x_max || z < z_min || z > z_max {
+                                continue;
+                            }
                             Terminal::render_pixel(buffer, camera, x, z);
                         } else {
                             let x = large_base + large_direction * large_step;
                             let z = small_base + small_direction * small_step;
+                            if x < x_min || x > x_max || z < z_min || z > z_max {
+                                continue;
+                            }
                             Terminal::render_pixel(buffer, camera, x, z);
                         }
                     }
@@ -470,11 +480,6 @@ impl Terminal {
         }
 
         let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
-        // let camera_normal = rotate(
-        //     &VectorRow::from([0.0, 1.0, 0.0]),
-        //     &self.config.camera.rotation.0,
-        //     &self.config.camera.rotation.1,
-        // );
         let camera_normal = &VectorRow::from([0.0, 1.0, 0.0]);
 
         for order in line_draw_order.iter() {
@@ -533,7 +538,8 @@ impl Terminal {
                             / (camera_normal_magnitude * normal_magnitude);
 
                         if cos_angle <= 0.0 {
-                            order_culled.append(&mut order.clone());
+                            order_culled.append(&mut abc.to_vec());
+                            // order_culled.append(&mut order.to_vec()); // SLOOOOOOOWWWW!!!!
                         }
                     }
                 }
