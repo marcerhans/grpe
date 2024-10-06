@@ -470,11 +470,12 @@ impl Terminal {
         }
 
         let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
-        let camera_normal = rotate(
-            &VectorRow::from([0.0, 1.0, 0.0]),
-            &self.config.camera.rotation.0,
-            &self.config.camera.rotation.1,
-        );
+        // let camera_normal = rotate(
+        //     &VectorRow::from([0.0, 1.0, 0.0]),
+        //     &self.config.camera.rotation.0,
+        //     &self.config.camera.rotation.1,
+        // );
+        let camera_normal = &VectorRow::from([0.0, 1.0, 0.0]);
 
         for order in line_draw_order.iter() {
             if let RenderOption::WireFrameAndParticles | RenderOption::CullingAndParticles =
@@ -531,11 +532,9 @@ impl Terminal {
                         let cos_angle = camera_normal.dot(&normal)
                             / (camera_normal_magnitude * normal_magnitude);
 
-                        if cos_angle > 0.0 {
+                        if cos_angle <= 0.0 {
                             order_culled.append(&mut order.clone());
                         }
-
-                        // Repeat for each vector pair (/vertex triplet).
                     }
                 }
                 render_lines(
