@@ -59,9 +59,11 @@ Set the resolution.
 -o <option>, --render-option <option>
 Default: vertices
 Available options:
-all - Renders everything possible.
-line - Renders only lines between vertices.
 vertices - Renders only vertices.
+wireframe - Renders only wireframe (lines between vertices).
+wireframeandvertices - wireframe + vertices.
+culling - Renders wireframe, but with backface culling.
+cullingandvertices - culling + vertices.
 
 -i, --info
 Default: true

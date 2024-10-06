@@ -59,9 +59,36 @@ pub enum RenderOption {
     Vertices,
     WireFrame,
     WireFrameAndVertices,
-    #[default]
     Culling,
+    #[default]
     CullingAndVertices,
+}
+
+impl FromStr for RenderOption {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "vertices" => Ok(RenderOption::Vertices),
+            "wireframe" => Ok(RenderOption::WireFrame),
+            "wireframeandvertices" => Ok(RenderOption::WireFrameAndVertices),
+            "culling" => Ok(RenderOption::Culling),
+            "cullingandvertices" => Ok(RenderOption::CullingAndVertices),
+            _ => Err("Could not convert from string"),
+        }
+    }
+}
+
+impl ToString for RenderOption {
+    fn to_string(&self) -> String {
+        match self {
+            RenderOption::Vertices => "vertices".to_owned(),
+            RenderOption::WireFrame => "wireframe".to_owned(),
+            RenderOption::WireFrameAndVertices => "wireframeandvertices".to_owned(),
+            RenderOption::Culling => "culling".to_owned(),
+            RenderOption::CullingAndVertices => "cullingandvertices".to_owned(),
+        }
+    }
 }
 
 #[derive(Default, Clone)]
