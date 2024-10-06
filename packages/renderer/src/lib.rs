@@ -56,33 +56,12 @@ impl Default for Camera {
 
 #[derive(Default, Clone)]
 pub enum RenderOption {
-    #[default]
-    All,
-    Line,
     Vertices,
-}
-
-impl FromStr for RenderOption {
-    type Err = &'static str;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "all" => Ok(RenderOption::All),
-            "line" => Ok(RenderOption::Line),
-            "vertices" => Ok(RenderOption::Vertices),
-            _ => Err("Could not convert from string"),
-        }
-    }
-}
-
-impl ToString for RenderOption {
-    fn to_string(&self) -> String {
-        match self {
-            RenderOption::All => "all".to_owned(),
-            RenderOption::Line => "line".to_owned(),
-            RenderOption::Vertices => "vertices".to_owned(),
-        }
-    }
+    WireFrame,
+    WireFrameAndVertices,
+    #[default]
+    Culling,
+    CullingAndVertices,
 }
 
 #[derive(Default, Clone)]

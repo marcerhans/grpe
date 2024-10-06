@@ -555,12 +555,12 @@ impl RendererTrait for Terminal {
         self.project_vertices_on_viewport();
 
         match self.config.option {
-            RenderOption::All | RenderOption::Vertices => self.render_projected_vertices(),
+            RenderOption::Vertices | RenderOption::WireFrameAndVertices => self.render_projected_vertices(),
             _ => (),
         }
 
         match self.config.option {
-            RenderOption::All | RenderOption::Line => {
+            RenderOption::WireFrame | RenderOption::WireFrameAndVertices => {
                 self.render_lines_between_projected_vertices()
             }
             _ => (),

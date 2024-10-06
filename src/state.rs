@@ -329,9 +329,11 @@ impl StateHandler {
         if let Some(_) = self.input.keyboard.o.take() {
             // Toggle render option
             config.option = match config.option {
-                renderer::RenderOption::All => renderer::RenderOption::Line,
-                renderer::RenderOption::Line => renderer::RenderOption::Vertices,
-                renderer::RenderOption::Vertices => renderer::RenderOption::All,
+                renderer::RenderOption::Vertices => renderer::RenderOption::WireFrame,
+                renderer::RenderOption::WireFrame => renderer::RenderOption::WireFrameAndVertices,
+                renderer::RenderOption::WireFrameAndVertices => renderer::RenderOption::Culling,
+                renderer::RenderOption::Culling => renderer::RenderOption::CullingAndVertices,
+                renderer::RenderOption::CullingAndVertices => renderer::RenderOption::Vertices,
             };
         }
 
