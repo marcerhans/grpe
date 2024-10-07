@@ -328,9 +328,9 @@ impl Terminal {
         self.vertices_projected.fill(None);
 
         let x_min = -((self.config.camera.resolution.0 / 2) as isize);
-        let x_max = ((self.config.camera.resolution.0 / 2) as isize) - 1; // 0 included as positive
+        let x_max = (self.config.camera.resolution.0 / 2) as isize;
         let z_min = -((self.config.camera.resolution.1 / 2) as isize);
-        let z_max = ((self.config.camera.resolution.1 / 2) as isize) - 1; // 0 included as positive
+        let z_max = (self.config.camera.resolution.1 / 2) as isize;
 
         for (index, vertex) in vertices.iter().enumerate() {
             if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
@@ -387,7 +387,7 @@ impl Terminal {
             // outside allowed boundaries.
             // TODO: Should not be an issue. Write better code.
             let x_min = -((camera.resolution.0 / 2) as isize);
-            let x_max = ((camera.resolution.0 / 2) as isize) - 1; // 0 included as positive
+            let x_max = (camera.resolution.0 / 2) as isize; // 0 included as positive
             let z_min = -((camera.resolution.1 / 2) as isize);
             let z_max = ((camera.resolution.1 / 2) as isize) - 1; // 0 included as positive
 
