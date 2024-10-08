@@ -382,97 +382,35 @@ impl Terminal {
             buffer: &mut Vec<Vec<char>>,
             camera: &Camera,
         ) {
-            // While projected vertices have been filtered to only keep the ones within camera view;
-            // with the currently impelemntation for drawing lines, some parts of line(s) can get
-            // outside allowed boundaries.
-            // TODO: Should not be an issue. Write better code.
-            let x_min = -((camera.resolution.0 / 2) as isize);
-            let x_max = (camera.resolution.0 / 2) as isize; // 0 included as positive
-            let z_min = -((camera.resolution.1 / 2) as isize);
-            let z_max = ((camera.resolution.1 / 2) as isize) - 1; // 0 included as positive
-
             for ab in order.windows(2) {
                 if let (Some(a), Some(b)) = (&vertices_projected[ab[0]], &vertices_projected[ab[1]])
                 {
-                    let dx = (a[0] - b[0]) as isize;
-                    let dz = (a[2] - b[2]) as isize;
-                    let dx_sign = dx.signum();
-                    let dz_sign = dz.signum();
-                    let dx = dx.abs();
-                    let dz = dz.abs();
+                    let mut x0 = a[0] as isize;
+                    let x1 = b[0] as isize;
+                    let mut z0 = a[2] as isize;
+                    let z1 = b[2] as isize;
 
-                    let (
-                        large_base,
-                        small_base,
-                        large_diff,
-                        small_diff,
-                        large_direction,
-                        small_direction,
-                        swap,
-                    ) = if dx >= dz {
-                        (
-                            a[0] as isize,
-                            a[2] as isize,
-                            dx,
-                            dz,
-                            -dx_sign,
-                            -dz_sign,
-                            true,
-                        )
-                    } else {
-                        (
-                            a[2] as isize,
-                            a[0] as isize,
-                            dz,
-                            dx,
-                            -dz_sign,
-                            -dx_sign,
-                            false,
-                        )
-                    };
+                    let dx = (x1 - x0).abs();
+                    let dz = (z1 - z0).abs();
 
-                    if small_diff == 0 {
-                        // Just draw straight line.
-                        for large_step in 0..=large_diff {
-                            if !swap {
-                                let x = small_base;
-                                let z = large_base + large_direction * large_step;
-                                if x < x_min || x > x_max || z < z_min || z > z_max {
-                                    continue;
-                                }
-                                Terminal::render_pixel(buffer, camera, x, z);
-                            } else {
-                                let x = large_base + large_direction * large_step;
-                                let z = small_base;
-                                if x < x_min || x > x_max || z < z_min || z > z_max {
-                                    continue;
-                                }
-                                Terminal::render_pixel(buffer, camera, x, z);
-                            }
+                    let sx = (x1 - x0).signum();
+                    let sz = (z1 - z0).signum();
+
+                    let mut err = dx - dz;
+
+                    while x0 != x1 || z0 != z1 {
+                        Terminal::render_pixel(buffer, camera, x0, z0);
+
+                        let e2 = 2 * err;
+
+                        if e2 > -dz {
+                            err = err - dz;
+                            x0 = x0 + sx;
                         }
-                        continue;
-                    }
 
-                    let ratio = large_diff as f64 / small_diff as f64;
-                    let mut small_step;
-
-                    for large_step in 0..=large_diff {
-                        small_step = (large_step as f64 / ratio) as isize;
-
-                        if !swap {
-                            let x = small_base + small_direction * small_step;
-                            let z = large_base + large_direction * large_step;
-                            if x < x_min || x > x_max || z < z_min || z > z_max {
-                                continue;
-                            }
-                            Terminal::render_pixel(buffer, camera, x, z);
-                        } else {
-                            let x = large_base + large_direction * large_step;
-                            let z = small_base + small_direction * small_step;
-                            if x < x_min || x > x_max || z < z_min || z > z_max {
-                                continue;
-                            }
-                            Terminal::render_pixel(buffer, camera, x, z);
+                        if e2 < dx {
+                            err = err + dx;
+                            z0 = z0 + sz;
                         }
                     }
                 }
