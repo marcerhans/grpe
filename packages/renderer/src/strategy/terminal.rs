@@ -542,7 +542,9 @@ impl Terminal {
                 );
             }
 
-            if polyfill {}
+            if polyfill {
+                
+            }
         }
     }
 
