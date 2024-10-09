@@ -465,8 +465,9 @@ impl Terminal {
         let camera_normal = &VectorRow::from([0.0, 1.0, 0.0]);
 
         for order in line_draw_order.iter() {
-            if let RenderOption::WireFrameAndParticles | RenderOption::CullingAndParticles =
-                self.config.option
+            if let RenderOption::WireFrameAndParticles
+            | RenderOption::CullingAndParticles
+            | RenderOption::PolyfillAndCullingAndParticles = self.config.option
             {
                 if order.len() == 1 {
                     // Render as single point particle.
@@ -541,8 +542,7 @@ impl Terminal {
                 );
             }
 
-            if polyfill {
-            }
+            if polyfill {}
         }
     }
 
@@ -607,8 +607,7 @@ impl RendererTrait for Terminal {
             RenderOption::Culling | RenderOption::CullingAndParticles => {
                 self.render_entities(true, false)
             }
-            RenderOption::PolyfillAndCulling
-            | RenderOption::PolyfillAndCullingAndParticles => {
+            RenderOption::PolyfillAndCulling | RenderOption::PolyfillAndCullingAndParticles => {
                 self.render_entities(true, true)
             }
         }
