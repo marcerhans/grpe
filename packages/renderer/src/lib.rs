@@ -69,8 +69,10 @@ pub enum RenderOption {
     WireFrame,
     WireFrameAndParticles,
     Culling,
-    #[default]
     CullingAndParticles,
+    PolyfillAndCulling,
+    #[default]
+    PolyfillAndCullingAndParticles,
 }
 
 impl Display for RenderOption {
@@ -81,6 +83,8 @@ impl Display for RenderOption {
             RenderOption::WireFrameAndParticles => write!(f, "wireframeandparticles"),
             RenderOption::Culling => write!(f, "culling"),
             RenderOption::CullingAndParticles => write!(f, "cullingandparticles"),
+            RenderOption::PolyfillAndCulling => write!(f, "polyfillandculling"),
+            RenderOption::PolyfillAndCullingAndParticles => write!(f, "polyfillandcullingandparticles"),
         }
     }
 }
@@ -95,6 +99,8 @@ impl FromStr for RenderOption {
             "wireframeandparticles" => Ok(RenderOption::WireFrameAndParticles),
             "culling" => Ok(RenderOption::Culling),
             "cullingandparticles" => Ok(RenderOption::CullingAndParticles),
+            "polyfillandculling" => Ok(RenderOption::PolyfillAndCulling),
+            "polyfillandcullingandparticles" => Ok(RenderOption::PolyfillAndCullingAndParticles),
             _ => Err("Could not convert from string"),
         }
     }

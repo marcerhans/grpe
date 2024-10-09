@@ -87,10 +87,7 @@ impl Canvas {
         };
 
         Self {
-            buffer: vec![
-                vec![None; resolution.0 as usize];
-                (resolution.1 / 2) as usize
-            ],
+            buffer: vec![vec![None; resolution.0 as usize]; (resolution.1 / 2) as usize],
             line_intersection_checker: Self::create_intersection_checker(
                 &config.camera.resolution,
                 &config.camera.position,
@@ -180,8 +177,7 @@ impl Canvas {
         if self.buffer.len() != (resolution.1 as usize)
             || self.buffer[0].len() != (resolution.0 as usize)
         {
-            self.buffer =
-                vec![vec![None; resolution.0 as usize]; (resolution.1 / 2) as usize];
+            self.buffer = vec![vec![None; resolution.0 as usize]; (resolution.1 / 2) as usize];
         }
 
         // TODO: Fix orthographic option
@@ -304,7 +300,13 @@ impl Terminal {
         write!(self.stdout_buffer, "{}", ansi::GO_TO_1_0).unwrap();
     }
 
-    fn render_pixel(buffer: &mut Vec<Vec<Option<(Option<f64>, Option<f64>, char)>>>, camera: &Camera, x: isize, y: f64, z: isize) {
+    fn render_pixel(
+        buffer: &mut Vec<Vec<Option<(Option<f64>, Option<f64>, char)>>>,
+        camera: &Camera,
+        x: isize,
+        y: f64,
+        z: isize,
+    ) {
         // Extract and adjust position based on camera resolution.
         let x = x + (camera.resolution.0 / 2) as isize;
         let mut z = z + (camera.resolution.1 / 2) as isize;
@@ -412,9 +414,12 @@ impl Terminal {
         }
     }
 
-    /// Maps lines between vertices to a [Canvas::buffer].
-    /// Note: This method is a bit all over the place.
-    fn render_lines_and_particles(&mut self, culling: bool) {
+    /// This method renders:
+    /// - Particles (single points + lines).
+    /// - Wireframe lines (lines between vertices of a face).
+    /// - Filled polygons (Technical detail: Will utilize depth buffer fully).
+    /// Note: This method is doing a bit too much. Might need refactoring soon.
+    fn render_entities(&mut self, culling: bool, polyfill: bool) {
         fn render_lines(
             order: &[usize],
             vertices_projected: &Vec<Option<VectorRow<f64, 3>>>,
@@ -535,6 +540,9 @@ impl Terminal {
                     &self.config.camera,
                 );
             }
+
+            if polyfill {
+            }
         }
     }
 
@@ -542,7 +550,7 @@ impl Terminal {
     fn write_rendered_scene_to_stdout_buffer(&mut self) {
         for character_row in self.canvas.buffer.iter().rev() {
             for column in character_row.iter() {
-                if let Some((_,  _, character)) = column {
+                if let Some((_, _, character)) = column {
                     write!(self.stdout_buffer, "{}", character).unwrap();
                 } else {
                     write!(self.stdout_buffer, "{}", character::EMPTY).unwrap();
@@ -594,10 +602,14 @@ impl RendererTrait for Terminal {
         match self.config.option {
             RenderOption::Vertices => self.render_projected_vertices(),
             RenderOption::WireFrame | RenderOption::WireFrameAndParticles => {
-                self.render_lines_and_particles(false)
+                self.render_entities(false, false)
             }
             RenderOption::Culling | RenderOption::CullingAndParticles => {
-                self.render_lines_and_particles(true)
+                self.render_entities(true, false)
+            }
+            RenderOption::PolyfillAndCulling
+            | RenderOption::PolyfillAndCullingAndParticles => {
+                self.render_entities(true, true)
             }
         }
 

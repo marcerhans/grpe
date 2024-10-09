@@ -350,18 +350,22 @@ impl StateHandler {
                 renderer::RenderOption::WireFrame => renderer::RenderOption::WireFrameAndParticles,
                 renderer::RenderOption::WireFrameAndParticles => renderer::RenderOption::Culling,
                 renderer::RenderOption::Culling => renderer::RenderOption::CullingAndParticles,
-                renderer::RenderOption::CullingAndParticles => renderer::RenderOption::Vertices,
+                renderer::RenderOption::CullingAndParticles => renderer::RenderOption::PolyfillAndCulling,
+                renderer::RenderOption::PolyfillAndCulling => renderer::RenderOption::PolyfillAndCullingAndParticles,
+                renderer::RenderOption::PolyfillAndCullingAndParticles => renderer::RenderOption::Vertices,
             };
         }
 
         if let Some(_) = self.input.keyboard.O.take() {
             // Toggle render option
             config.option = match config.option {
-                renderer::RenderOption::Vertices => renderer::RenderOption::CullingAndParticles,
+                renderer::RenderOption::Vertices => renderer::RenderOption::PolyfillAndCullingAndParticles,
                 renderer::RenderOption::WireFrame => renderer::RenderOption::Vertices,
                 renderer::RenderOption::WireFrameAndParticles => renderer::RenderOption::WireFrame,
                 renderer::RenderOption::Culling => renderer::RenderOption::WireFrameAndParticles,
                 renderer::RenderOption::CullingAndParticles => renderer::RenderOption::Culling,
+                renderer::RenderOption::PolyfillAndCulling => renderer::RenderOption::CullingAndParticles,
+                renderer::RenderOption::PolyfillAndCullingAndParticles => renderer::RenderOption::PolyfillAndCulling,
             };
         }
 
