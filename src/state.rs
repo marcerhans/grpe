@@ -30,6 +30,7 @@ mod input {
             pub a: Option<()>,
             pub r: Option<()>,
             pub o: Option<()>,
+            pub O: Option<()>,
             pub w: Option<()>,
             pub v: Option<()>,
             pub i: Option<()>,
@@ -229,8 +230,8 @@ impl StateHandler {
         if let Some(_) = self.input.auto.as_ref() {
             match event {
                 Event::Misc(_) => (),
-                Event::Character(c) => match c {
-                    'o' | 'v' | 'f' | 'F' | 'c' => (),
+                Event::Character(c) => match c.to_ascii_lowercase() {
+                    'o' | 'v' | 'f' | 'c' => (),
                     _ => self.input.auto = None,
                 },
                 _ => self.input.auto = None,
@@ -309,6 +310,7 @@ impl StateHandler {
                 'a' => self.input.keyboard.a = Some(()),
                 'r' => self.input.keyboard.r = Some(()),
                 'o' => self.input.keyboard.o = Some(()),
+                'O' => self.input.keyboard.O = Some(()),
                 'w' => self.input.keyboard.w = Some(()),
                 'v' => self.input.keyboard.v = Some(()),
                 'i' => self.input.keyboard.i = Some(()),
@@ -349,6 +351,17 @@ impl StateHandler {
                 renderer::RenderOption::WireFrameAndParticles => renderer::RenderOption::Culling,
                 renderer::RenderOption::Culling => renderer::RenderOption::CullingAndParticles,
                 renderer::RenderOption::CullingAndParticles => renderer::RenderOption::Vertices,
+            };
+        }
+
+        if let Some(_) = self.input.keyboard.O.take() {
+            // Toggle render option
+            config.option = match config.option {
+                renderer::RenderOption::Vertices => renderer::RenderOption::CullingAndParticles,
+                renderer::RenderOption::WireFrame => renderer::RenderOption::Vertices,
+                renderer::RenderOption::WireFrameAndParticles => renderer::RenderOption::WireFrame,
+                renderer::RenderOption::Culling => renderer::RenderOption::WireFrameAndParticles,
+                renderer::RenderOption::CullingAndParticles => renderer::RenderOption::Culling,
             };
         }
 
