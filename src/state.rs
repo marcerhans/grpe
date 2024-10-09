@@ -208,7 +208,9 @@ impl StateHandler {
         }
 
         let smooth_factor = 0.25;
-        self.info.fps_smoothened = (smooth_factor * self.info.fps as f64 + (1.0 - smooth_factor) * self.info.fps_smoothened as f64) as u64;
+        self.info.fps_smoothened = (smooth_factor * self.info.fps as f64
+            + (1.0 - smooth_factor) * self.info.fps_smoothened as f64)
+            as u64;
 
         println!("\x1B[H\x1B[18t"); // Query terminal for size. (Move to first row before printing/receiving, because it will be cleared anyway.)
 
@@ -227,6 +229,10 @@ impl StateHandler {
         if let Some(_) = self.input.auto.as_ref() {
             match event {
                 Event::Misc(_) => (),
+                Event::Character(c) => match c {
+                    'o' | 'v' | 'f' | 'F' | 'c' => (),
+                    _ => self.input.auto = None,
+                },
                 _ => self.input.auto = None,
             }
         }
