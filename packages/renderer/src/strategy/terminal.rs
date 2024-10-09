@@ -70,7 +70,7 @@ impl RendererBuilderTrait for TerminalBuilder {
 
 // TODO: Create either a whole new struct like "CanvasPerspective" and "CanvasOrthographic". OR something like "Canvas<Perspective>" and "Canvas<Orthographic>".
 struct Canvas {
-    buffer: Vec<Vec<(f64, char)>>,
+    buffer: Vec<Vec<Option<(Option<f64>, Option<f64>, char)>>>,
     /// Return: None if no intersection found. Otherwise point at which line between vertex and viewpoint intersects the viewport.
     line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>,
 }
@@ -88,7 +88,7 @@ impl Canvas {
 
         Self {
             buffer: vec![
-                vec![(0.0, character::EMPTY); resolution.0 as usize];
+                vec![None; resolution.0 as usize];
                 (resolution.1 / 2) as usize
             ],
             line_intersection_checker: Self::create_intersection_checker(
@@ -181,7 +181,7 @@ impl Canvas {
             || self.buffer[0].len() != (resolution.0 as usize)
         {
             self.buffer =
-                vec![vec![(0.0, character::EMPTY); resolution.0 as usize]; (resolution.1 / 2) as usize];
+                vec![vec![None; resolution.0 as usize]; (resolution.1 / 2) as usize];
         }
 
         // TODO: Fix orthographic option
@@ -291,17 +291,20 @@ impl Terminal {
 
     /// Clear the canvas buffer and the terminal screen.
     fn clear(&mut self) {
-        for v in self.canvas.buffer.iter_mut() {
-            for (depth, c) in v.iter_mut() {
-                *depth = 0.0;
-                *c = character::EMPTY;
+        for row in self.canvas.buffer.iter_mut() {
+            for column in row.iter_mut() {
+                if let Some((depth_upper, depth_lower, c)) = column {
+                    *depth_upper = None;
+                    *depth_lower = None;
+                    *c = character::EMPTY;
+                }
             }
         }
 
         write!(self.stdout_buffer, "{}", ansi::GO_TO_1_0).unwrap();
     }
 
-    fn render_pixel(buffer: &mut Vec<Vec<(f64, char)>>, camera: &Camera, x: isize, y: f64, z: isize) {
+    fn render_pixel(buffer: &mut Vec<Vec<Option<(Option<f64>, Option<f64>, char)>>>, camera: &Camera, x: isize, y: f64, z: isize) {
         // Extract and adjust position based on camera resolution.
         let x = x + (camera.resolution.0 / 2) as isize;
         let mut z = z + (camera.resolution.1 / 2) as isize;
@@ -311,19 +314,50 @@ impl Terminal {
         z = z / 2;
         let buff_val = &mut buffer[z as usize][x as usize];
 
-        // Has something already been painted closer to the camera? (check depth)
-        // TODO:
+        if let Some(buff_val) = buff_val {
+            // Update depth.
+            let mut current_depth = None;
 
-        if buff_val.1 == character::FULL {
-            // Is it already filled.
-            return;
-        } else if buff_val.1 == character::UPPER && character == character::LOWER {
-            character = character::FULL;
-        } else if buff_val.1 == character::LOWER && character == character::UPPER {
-            character = character::FULL;
+            if character == character::UPPER {
+                current_depth = Some(&mut buff_val.0);
+            } else if character == character::LOWER {
+                current_depth = Some(&mut buff_val.1);
+            }
+
+            if let Some(current_depth) = current_depth {
+                if let Some(current_depth) = current_depth {
+                    if *current_depth > y && y > 0.0 {
+                        *current_depth = y;
+                    }
+                } else {
+                    *current_depth = Some(y);
+                }
+            }
+
+            // Update character.
+            if buff_val.2 == character::FULL {
+                // Is it already filled. Just update depth
+                return;
+            } else if buff_val.2 == character::UPPER && character == character::LOWER {
+                character = character::FULL;
+            } else if buff_val.2 == character::LOWER && character == character::UPPER {
+                character = character::FULL;
+            }
+
+            buff_val.2 = character;
+        } else {
+            // Set depth and character.
+            let mut depth_upper = None;
+            let mut depth_lower = None;
+
+            if character == character::UPPER {
+                depth_upper = Some(y);
+            } else if character == character::LOWER {
+                depth_lower = Some(y);
+            }
+
+            buffer[z as usize][x as usize] = Some((depth_upper, depth_lower, character));
         }
-
-        *buff_val = (y, character);
     }
 
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera]/[Canvas].
@@ -384,7 +418,7 @@ impl Terminal {
         fn render_lines(
             order: &[usize],
             vertices_projected: &Vec<Option<VectorRow<f64, 3>>>,
-            buffer: &mut Vec<Vec<(f64, char)>>,
+            buffer: &mut Vec<Vec<Option<(Option<f64>, Option<f64>, char)>>>,
             camera: &Camera,
         ) {
             for ab in order.windows(2) {
@@ -507,8 +541,12 @@ impl Terminal {
     /// Print canvas buffer to terminal.
     fn write_rendered_scene_to_stdout_buffer(&mut self) {
         for character_row in self.canvas.buffer.iter().rev() {
-            for (_, character) in character_row.iter() {
-                write!(self.stdout_buffer, "{character}").unwrap();
+            for column in character_row.iter() {
+                if let Some((_,  _, character)) = column {
+                    write!(self.stdout_buffer, "{}", character).unwrap();
+                } else {
+                    write!(self.stdout_buffer, "{}", character::EMPTY).unwrap();
+                }
             }
             write!(self.stdout_buffer, "\n").unwrap();
         }
