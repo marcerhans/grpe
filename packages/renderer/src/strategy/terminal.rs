@@ -70,7 +70,7 @@ impl RendererBuilderTrait for TerminalBuilder {
 
 // TODO: Create either a whole new struct like "CanvasPerspective" and "CanvasOrthographic". OR something like "Canvas<Perspective>" and "Canvas<Orthographic>".
 struct Canvas {
-    buffer: Vec<Vec<char>>,
+    buffer: Vec<Vec<(f64, char)>>,
     /// Return: None if no intersection found. Otherwise point at which line between vertex and viewpoint intersects the viewport.
     line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>,
 }
@@ -88,7 +88,7 @@ impl Canvas {
 
         Self {
             buffer: vec![
-                vec![character::EMPTY; resolution.0 as usize];
+                vec![(0.0, character::EMPTY); resolution.0 as usize];
                 (resolution.1 / 2) as usize
             ],
             line_intersection_checker: Self::create_intersection_checker(
@@ -181,7 +181,7 @@ impl Canvas {
             || self.buffer[0].len() != (resolution.0 as usize)
         {
             self.buffer =
-                vec![vec![character::EMPTY; resolution.0 as usize]; (resolution.1 / 2) as usize];
+                vec![vec![(0.0, character::EMPTY); resolution.0 as usize]; (resolution.1 / 2) as usize];
         }
 
         // TODO: Fix orthographic option
@@ -292,7 +292,8 @@ impl Terminal {
     /// Clear the canvas buffer and the terminal screen.
     fn clear(&mut self) {
         for v in self.canvas.buffer.iter_mut() {
-            for c in v.iter_mut() {
+            for (depth, c) in v.iter_mut() {
+                *depth = 0.0;
                 *c = character::EMPTY;
             }
         }
@@ -300,7 +301,7 @@ impl Terminal {
         write!(self.stdout_buffer, "{}", ansi::GO_TO_1_0).unwrap();
     }
 
-    fn render_pixel(buffer: &mut Vec<Vec<char>>, camera: &Camera, x: isize, z: isize) {
+    fn render_pixel(buffer: &mut Vec<Vec<(f64, char)>>, camera: &Camera, x: isize, y: f64, z: isize) {
         // Extract and adjust position based on camera resolution.
         let x = x + (camera.resolution.0 / 2) as isize;
         let mut z = z + (camera.resolution.1 / 2) as isize;
@@ -310,16 +311,19 @@ impl Terminal {
         z = z / 2;
         let buff_val = &mut buffer[z as usize][x as usize];
 
-        if *buff_val == character::FULL {
+        // Has something already been painted closer to the camera? (check depth)
+        // TODO:
+
+        if buff_val.1 == character::FULL {
             // Is it already filled.
             return;
-        } else if *buff_val == character::UPPER && character == character::LOWER {
+        } else if buff_val.1 == character::UPPER && character == character::LOWER {
             character = character::FULL;
-        } else if *buff_val == character::LOWER && character == character::UPPER {
+        } else if buff_val.1 == character::LOWER && character == character::UPPER {
             character = character::FULL;
         }
 
-        *buff_val = character;
+        *buff_val = (y, character);
     }
 
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera]/[Canvas].
@@ -367,6 +371,7 @@ impl Terminal {
                     &mut self.canvas.buffer,
                     &self.config.camera,
                     vertex[0] as isize,
+                    vertex[1],
                     vertex[2] as isize,
                 );
             }
@@ -379,7 +384,7 @@ impl Terminal {
         fn render_lines(
             order: &[usize],
             vertices_projected: &Vec<Option<VectorRow<f64, 3>>>,
-            buffer: &mut Vec<Vec<char>>,
+            buffer: &mut Vec<Vec<(f64, char)>>,
             camera: &Camera,
         ) {
             for ab in order.windows(2) {
@@ -399,7 +404,7 @@ impl Terminal {
                     let mut err = dx - dz;
 
                     while x0 != x1 || z0 != z1 {
-                        Terminal::render_pixel(buffer, camera, x0, z0);
+                        Terminal::render_pixel(buffer, camera, x0, (b[1] - a[1]) / 2.0, z0);
 
                         let e2 = 2 * err;
 
@@ -431,6 +436,7 @@ impl Terminal {
                             &mut self.canvas.buffer,
                             &self.config.camera,
                             particle[0] as isize,
+                            particle[1],
                             particle[2] as isize,
                         );
                     }
@@ -501,7 +507,7 @@ impl Terminal {
     /// Print canvas buffer to terminal.
     fn write_rendered_scene_to_stdout_buffer(&mut self) {
         for character_row in self.canvas.buffer.iter().rev() {
-            for character in character_row.iter() {
+            for (_, character) in character_row.iter() {
                 write!(self.stdout_buffer, "{character}").unwrap();
             }
             write!(self.stdout_buffer, "\n").unwrap();
