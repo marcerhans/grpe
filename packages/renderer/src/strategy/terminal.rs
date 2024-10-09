@@ -420,7 +420,9 @@ impl Terminal {
     /// - Filled polygons (Technical detail: Will utilize depth buffer fully).
     /// Note: This method is doing a bit too much. Might need refactoring soon.
     fn render_entities(&mut self, culling: bool, polyfill: bool) {
-        assert!(culling == polyfill);
+        if polyfill {
+            assert!(culling);
+        }
 
         fn render_lines(
             order: &[usize],
