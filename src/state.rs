@@ -208,7 +208,7 @@ impl StateHandler {
             }
         }
 
-        let smooth_factor = 0.25;
+        let smooth_factor = 0.002;
         self.info.fps_smoothened = (smooth_factor * self.info.fps as f64
             + (1.0 - smooth_factor) * self.info.fps_smoothened as f64)
             as u64;

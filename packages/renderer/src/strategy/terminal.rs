@@ -420,6 +420,8 @@ impl Terminal {
     /// - Filled polygons (Technical detail: Will utilize depth buffer fully).
     /// Note: This method is doing a bit too much. Might need refactoring soon.
     fn render_entities(&mut self, culling: bool, polyfill: bool) {
+        assert!(culling == polyfill);
+
         fn render_lines(
             order: &[usize],
             vertices_projected: &Vec<Option<VectorRow<f64, 3>>>,
@@ -500,7 +502,7 @@ impl Terminal {
                 let mut order_culled: Vec<usize> = vec![];
 
                 // Determine if the face should be culled.
-                for abc in order.windows(3) {
+                for (index, abc) in order.windows(3).enumerate() {
                     if let (Some(a), Some(b), Some(c)) = (
                         &self.vertices_projected[abc[0]],
                         &self.vertices_projected[abc[1]],
@@ -522,17 +524,39 @@ impl Terminal {
                             / (camera_normal_magnitude * normal_magnitude);
 
                         if cos_angle <= 0.0 {
-                            order_culled.append(&mut abc.to_vec());
-                            // order_culled.append(&mut order.to_vec()); // SLOOOOOOOWWWW!!!!
+                            // order_culled.append(&mut abc.to_vec()); // TODO: Keeping in order to benchmark with more culled faces, but current code should be a bit faster.
+
+                            // 1 // TODO: Keeping in order to benchmark with more culled faces, but current code should be a bit faster.
+                            // let (first, rest) = abc.split_first().unwrap();
+                            // let mut rest = rest.to_vec();
+
+                            // if index == 0 {
+                            //     rest.insert(0,*first);
+                            // }
+
+                            // order_culled.append(&mut rest);
+
+                            // 2
+                            if index == 0 {
+                                order_culled.append(&mut abc.to_vec());
+                            } else {
+                                order_culled.append(&mut abc[1..].to_vec());
+                            }
                         }
                     }
                 }
+
                 render_lines(
                     &order_culled,
                     &self.vertices_projected,
                     &mut self.canvas.buffer,
                     &self.config.camera,
                 );
+
+                if polyfill && order_culled.len() != 0 {
+                    // Save some performance by only doing polyfill if face was not culled.
+
+                }
             } else {
                 render_lines(
                     order,
@@ -540,10 +564,6 @@ impl Terminal {
                     &mut self.canvas.buffer,
                     &self.config.camera,
                 );
-            }
-
-            if polyfill {
-                
             }
         }
     }
