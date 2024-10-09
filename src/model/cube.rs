@@ -23,10 +23,15 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     vertices.push(VectorRow::from([1.0, 1.0, 1.0]));
     vertices.push(VectorRow::from([-1.0, 1.0, 1.0]));
 
-    vertices.push(VectorRow::from([-1.0, 5.0, -1.0]));
-    vertices.push(VectorRow::from([1.0, 5.0, -1.0]));
-    vertices.push(VectorRow::from([1.0, 5.0, 1.0]));
-    vertices.push(VectorRow::from([-1.0, 5.0, 1.0]));
+    vertices.push(VectorRow::from([-1.0, 4.0, -1.0]));
+    vertices.push(VectorRow::from([1.0, 4.0, -1.0]));
+    vertices.push(VectorRow::from([1.0, 4.0, 1.0]));
+    vertices.push(VectorRow::from([-1.0, 4.0, 1.0]));
+
+    vertices.push(VectorRow::from([-0.25, 0.0, -0.25 + 1.25]));
+    vertices.push(VectorRow::from([0.25, 0.0, -0.25 + 1.25]));
+    vertices.push(VectorRow::from([-0.25, 0.0, 0.25 + 1.25]));
+    vertices.push(VectorRow::from([0.25, 0.0, 0.25 + 1.25]));
 
     for vertex in vertices.iter_mut() {
         vertex.0.scale(32.0);
@@ -47,6 +52,8 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     // Line Particles.
     lines.push(vec![4,5]);
     lines.push(vec![6,7]);
+    lines.push(vec![20,23]); // Cross
+    lines.push(vec![21,22]); // Cross
 
     // Faces
     lines.push(vec![8, 9, 10, 11, 8]); // Front
