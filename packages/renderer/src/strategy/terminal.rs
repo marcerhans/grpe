@@ -11,6 +11,8 @@ use crate::{
 };
 use linear_algebra::{quaternion::rotate, quaternion::Quaternion, vector::VectorRow};
 
+use meta_pixel::MetaPixel;
+
 /// Panic hook
 static PANIC_HOOK_FLAG: OnceLock<()> = OnceLock::new();
 
@@ -65,6 +67,80 @@ impl RendererBuilderTrait for TerminalBuilder {
         config: RendererConfiguration,
     ) -> Result<Self::Renderer, &'static str> {
         Self::Renderer::new(config)
+    }
+}
+
+mod meta_pixel {
+    /// [MetaPixel] exists mainly to lower the amount of memory allocations during tight loops.
+    #[derive(Clone)]
+    pub struct MetaPixel {
+        /// Instead of having pixels be optional, just flag as active or not. Saving allocations.
+        pub active: bool,
+
+        /// Pixels cover both upper and lower part of a "real" pixel, so depth is represented for two pixels.
+        pub depth_upper: Option<f64>,
+        pub depth_lower: Option<f64>,
+
+        /// Used for defining the edges of a polygon to be filled. Is switched of when polygon has been filled.
+        pub polygon_fill_border: bool,
+
+        /// 20 bytes should be enough to represent a symbol + coloring it (Example: \0x1B[38;2;000;125;255m\u{xxxx})
+        value: [char; Self::VALUE_MAX_LEN],
+    }
+
+    impl MetaPixel {
+        const VALUE_MAX_LEN: usize = 20;
+
+        fn reset(&mut self) {
+            self.active = false;
+            self.depth_upper = None;
+            self.depth_lower = None;
+            self.polygon_fill_border = false;
+            self.value = [0 as char; Self::VALUE_MAX_LEN];
+        }
+
+        fn value(&self) -> &char {
+            &self.value[Self::VALUE_MAX_LEN - 1]
+        }
+
+        fn set_value(&mut self, value: Value) {
+            self.value[Self::VALUE_MAX_LEN - 1] = value.value();
+        }
+
+        /// Set color with ansi code. Example: \0x1B[38;2;000;125;255m.
+        fn set_color(&mut self, ansi_color: &[char; Self::VALUE_MAX_LEN - 1]) {
+            self.value.copy_from_slice(ansi_color);
+        }
+    }
+
+    impl Default for MetaPixel {
+        fn default() -> Self {
+            Self {
+                active: false,
+                depth_upper: None,
+                depth_lower: None,
+                polygon_fill_border: false,
+                value: [0 as char; Self::VALUE_MAX_LEN],
+            }
+        }
+    }
+
+    enum Value {
+        Upper,
+        Lower,
+        Full,
+        Empty,
+    }
+
+    impl Value {
+        fn value(&self) -> char {
+            match self {
+                Value::Upper => '\u{2580}', // ▀
+                Value::Lower => '\u{2584}', // ▄
+                Value::Full => '\u{2588}', // █
+                Value::Empty => ' ',
+            }
+        }
     }
 }
 
@@ -557,7 +633,6 @@ impl Terminal {
 
                 if polyfill && order_culled.len() != 0 {
                     // Save some performance by only doing polyfill if face was not culled.
-
                 }
             } else {
                 render_lines(
