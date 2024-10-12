@@ -12,3 +12,8 @@ Grpe is a 3d renderer for the terminal. It is completely CPU-based (unless your 
 mate-terminal --full-screen --hide-menubar -e "target/release/grpe -m spiral -i"
 
 47.5 * x = 31.5
+
+## What is slow
+- The 'update' method of canvas changes size EVERY time. The if-statements are wrong.
+- It takes a long time to just CLEAR the buffer (Terminal::clear).
+- Writing to the stdout buffer takes a long time, and writes take long. Make stdout_buffer one continous piece of memory for faster writes.
