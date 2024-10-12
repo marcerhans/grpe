@@ -149,7 +149,7 @@ void errorHandler(const char* s) {
   }
 
   atomic_store(&error, true);
-  perror(s);
+  // perror(s); // Caused issues with Rusts locked buffers.
 }
 
 void signalHandler() {

@@ -749,6 +749,12 @@ impl __RendererTrait for Terminal {
     fn new(mut config: RendererConfiguration) -> Result<Self, &'static str> {
         println!("\x1B[?1049h"); // Enter alternative buffer mode. I.e., do not affect previous terminal history.
 
+        let prev_hook = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
+            println!("\x1B[?1049l");
+            prev_hook(info);
+        }));
+
         Terminal::check_config_camera(&mut config.camera)?;
         Terminal::check_config_option(&mut config.option)?;
 
