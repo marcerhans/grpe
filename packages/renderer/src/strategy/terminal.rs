@@ -84,32 +84,59 @@ mod meta_pixel {
         /// Used for defining the edges of a polygon to be filled. Is switched of when polygon has been filled.
         pub polygon_fill_border: bool,
 
-        /// 20 bytes should be enough to represent a symbol + coloring it (Example: \0x1B[38;2;000;125;255m\u{xxxx})
+        /// 20 bytes should be enough to represent a symbol + coloring it (Example: \x1B[38;2;000;125;255m\u{xxxx})
         value: [char; Self::VALUE_MAX_LEN],
     }
 
     impl MetaPixel {
         const VALUE_MAX_LEN: usize = 20;
+        const EMPTY: [char; Self::VALUE_MAX_LEN] = [
+            '\x1B',
+            '[',
+            '3',
+            '8',
+            ';',
+            '2',
+            ';',
+            '0',
+            '0',
+            '0',
+            ';',
+            '0',
+            '0',
+            '0',
+            ';',
+            '0',
+            '0',
+            '0',
+            'm',
+            Value::Empty.value(),
+        ];
 
         fn reset(&mut self) {
             self.active = false;
             self.depth_upper = None;
             self.depth_lower = None;
             self.polygon_fill_border = false;
-            self.value = [0 as char; Self::VALUE_MAX_LEN];
+            self.value = Self::EMPTY;
         }
 
-        fn value(&self) -> &char {
-            &self.value[Self::VALUE_MAX_LEN - 1]
+        fn value(&self) -> &[char; Self::VALUE_MAX_LEN] {
+            if self.active {
+                &self.value
+            } else {
+                &Self::EMPTY
+            }
         }
 
         fn set_value(&mut self, value: Value) {
             self.value[Self::VALUE_MAX_LEN - 1] = value.value();
         }
 
-        /// Set color with ansi code. Example: \0x1B[38;2;000;125;255m.
-        fn set_color(&mut self, ansi_color: &[char; Self::VALUE_MAX_LEN - 1]) {
-            self.value.copy_from_slice(ansi_color);
+        fn set_color(&mut self, rgb: &RGB) {
+            self.value[7..].copy_from_slice(&rgb.0);
+            self.value[11..].copy_from_slice(&rgb.1);
+            self.value[15..].copy_from_slice(&rgb.2);
         }
     }
 
@@ -120,12 +147,12 @@ mod meta_pixel {
                 depth_upper: None,
                 depth_lower: None,
                 polygon_fill_border: false,
-                value: [0 as char; Self::VALUE_MAX_LEN],
+                value: Self::EMPTY,
             }
         }
     }
 
-    enum Value {
+    pub enum Value {
         Upper,
         Lower,
         Full,
@@ -133,13 +160,21 @@ mod meta_pixel {
     }
 
     impl Value {
-        fn value(&self) -> char {
+        const fn value(&self) -> char {
             match self {
                 Value::Upper => '\u{2580}', // ▀
                 Value::Lower => '\u{2584}', // ▄
-                Value::Full => '\u{2588}', // █
+                Value::Full => '\u{2588}',  // █
                 Value::Empty => ' ',
             }
+        }
+    }
+
+    pub struct RGB([char; 3], [char; 3], [char; 3]);
+
+    impl Default for RGB {
+        fn default() -> Self {
+            Self(['0'; 3], ['0'; 3], ['0'; 3])
         }
     }
 }
