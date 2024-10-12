@@ -1,74 +1,14 @@
 use std::cell::RefCell;
 use std::io::Write;
 use std::io::{BufWriter, Stdout};
-use std::panic;
 use std::rc::Rc;
-use std::sync::OnceLock;
 
 use crate::{
     Camera, ProjectionMode, RenderOption, RendererBuilderTrait, RendererConfiguration,
     RendererTrait, ViewMode, __RendererTrait,
 };
 use linear_algebra::{quaternion::rotate, quaternion::Quaternion, vector::VectorRow};
-
 use meta_pixel::MetaPixel;
-
-/// Panic hook
-static PANIC_HOOK_FLAG: OnceLock<()> = OnceLock::new();
-
-mod character {
-    // pub static LINE_HORIZONTAL: char = '\u{254c}'; // ╌
-    // pub static LINE_VERTICAL: char = '\u{2506}'; // ┆
-    // pub static CENTER: char = '\u{253c}'; // ┼
-    pub static UPPER: char = '\u{2580}'; // ▀
-                                         // pub static UPPER: char = '\u{1FB91}'; // ▀
-    pub static LOWER: char = '\u{2584}'; // ▄
-                                         // pub static LOWER: char = '\u{1FB92}'; // ▄
-    pub static FULL: char = '\u{2588}'; // █
-                                        // pub static UPPER_EMPTY: char = '\u{1FB91}'; // 🮎
-                                        // pub static LOWER_EMPTY: char = '\u{1FB92}'; // 🮏
-                                        // pub static FULL_EMPTY: char = '\u{2592}'; // ▒
-                                        // pub static EMPTY: char = '\u{2592}';
-    pub static EMPTY: char = ' ';
-}
-
-mod ansi {
-    pub static CLEAR_SCREEN: &str = "\x1B[2J";
-    // pub static GO_TO_0_0: &str = "\x1B[H";
-    pub static GO_TO_1_0: &str = "\x1B[2H";
-}
-
-#[derive(Default)]
-pub struct TerminalBuilder {
-    config: RendererConfiguration,
-}
-
-impl RendererBuilderTrait for TerminalBuilder {
-    type Renderer = Terminal;
-
-    fn with_camera(mut self, mut camera: Camera) -> Result<Self, &'static str> {
-        Terminal::check_config_camera(&mut camera)?;
-        self.config.camera = camera;
-        Ok(self)
-    }
-
-    fn with_option(mut self, mut option: RenderOption) -> Result<Self, &'static str> {
-        Terminal::check_config_option(&mut option)?;
-        self.config.option = option;
-        Ok(self)
-    }
-
-    fn build(self) -> Result<Self::Renderer, &'static str> {
-        Self::Renderer::new(self.config)
-    }
-
-    fn build_with_config(
-        self,
-        config: RendererConfiguration,
-    ) -> Result<Self::Renderer, &'static str> {
-        Self::Renderer::new(config)
-    }
-}
 
 mod meta_pixel {
     /// [MetaPixel] exists mainly to lower the amount of memory allocations during tight loops.
@@ -176,6 +116,60 @@ mod meta_pixel {
         fn default() -> Self {
             Self(['0'; 3], ['0'; 3], ['0'; 3])
         }
+    }
+}
+
+mod character {
+    // pub static LINE_HORIZONTAL: char = '\u{254c}'; // ╌
+    // pub static LINE_VERTICAL: char = '\u{2506}'; // ┆
+    // pub static CENTER: char = '\u{253c}'; // ┼
+    pub static UPPER: char = '\u{2580}'; // ▀
+                                         // pub static UPPER: char = '\u{1FB91}'; // ▀
+    pub static LOWER: char = '\u{2584}'; // ▄
+                                         // pub static LOWER: char = '\u{1FB92}'; // ▄
+    pub static FULL: char = '\u{2588}'; // █
+                                        // pub static UPPER_EMPTY: char = '\u{1FB91}'; // 🮎
+                                        // pub static LOWER_EMPTY: char = '\u{1FB92}'; // 🮏
+                                        // pub static FULL_EMPTY: char = '\u{2592}'; // ▒
+                                        // pub static EMPTY: char = '\u{2592}';
+    pub static EMPTY: char = ' ';
+}
+
+mod ansi {
+    pub static CLEAR_SCREEN: &str = "\x1B[2J";
+    // pub static GO_TO_0_0: &str = "\x1B[H";
+    pub static GO_TO_1_0: &str = "\x1B[2H";
+}
+
+#[derive(Default)]
+pub struct TerminalBuilder {
+    config: RendererConfiguration,
+}
+
+impl RendererBuilderTrait for TerminalBuilder {
+    type Renderer = Terminal;
+
+    fn with_camera(mut self, mut camera: Camera) -> Result<Self, &'static str> {
+        Terminal::check_config_camera(&mut camera)?;
+        self.config.camera = camera;
+        Ok(self)
+    }
+
+    fn with_option(mut self, mut option: RenderOption) -> Result<Self, &'static str> {
+        Terminal::check_config_option(&mut option)?;
+        self.config.option = option;
+        Ok(self)
+    }
+
+    fn build(self) -> Result<Self::Renderer, &'static str> {
+        Self::Renderer::new(self.config)
+    }
+
+    fn build_with_config(
+        self,
+        config: RendererConfiguration,
+    ) -> Result<Self::Renderer, &'static str> {
+        Self::Renderer::new(config)
     }
 }
 
@@ -754,16 +748,6 @@ impl RendererTrait for Terminal {
 impl __RendererTrait for Terminal {
     fn new(mut config: RendererConfiguration) -> Result<Self, &'static str> {
         println!("\x1B[?1049h"); // Enter alternative buffer mode. I.e., do not affect previous terminal history.
-
-        let _ = PANIC_HOOK_FLAG.set({
-            let old_hook = panic::take_hook();
-
-            // TODO: Realized that this panic hook still will be in use even if [Terminal] is dropped. Should be fixed/considered.
-            panic::set_hook(Box::new(move |panic_info| {
-                println!("{}", ansi::CLEAR_SCREEN);
-                old_hook(panic_info);
-            }));
-        });
 
         Terminal::check_config_camera(&mut config.camera)?;
         Terminal::check_config_option(&mut config.option)?;
