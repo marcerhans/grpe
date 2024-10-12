@@ -8,14 +8,14 @@ use crate::{
     RendererTrait, ViewMode, __RendererTrait,
 };
 use linear_algebra::{quaternion::rotate, quaternion::Quaternion, vector::VectorRow};
-use meta_pixel::MetaPixel;
+use meta::Pixel;
 
-mod meta_pixel {
-    /// [MetaPixel] exists mainly to lower the amount of memory allocations during tight loops.
-    /// Due to text covering two pixels, the [MetaPixel] covers the upper and lower part of a true pixel.
+mod meta {
+    /// [Pixel] exists mainly to lower the amount of memory allocations during tight loops.
+    /// Due to text covering two pixels, the [Pixel] covers the upper and lower part of a true pixel.
     /// The first tuple value represents the upper portion, while the second the lower.
     #[derive(Clone)]
-    pub struct MetaPixel {
+    pub struct Pixel {
         /// Pixels cover both upper and lower part of a "real" pixel, so depth is represented for two pixels.
         pub depth: (Option<f64>, Option<f64>),
 
@@ -26,7 +26,7 @@ mod meta_pixel {
         value: [char; Self::VALUE_MAX_LEN],
     }
 
-    impl MetaPixel {
+    impl Pixel {
         const VALUE_MAX_LEN: usize = 20;
         const EMPTY: [char; Self::VALUE_MAX_LEN] = [
             '\x1B',
@@ -51,28 +51,32 @@ mod meta_pixel {
             Value::Empty.value(),
         ];
 
-        fn reset(&mut self) {
+        pub fn reset(&mut self) {
             self.depth = (None, None);
             self.polygon_fill_border = (false, false);
             self.value = Self::EMPTY;
         }
 
-        fn value(&self) -> &[char; Self::VALUE_MAX_LEN] {
+        pub fn value(&self) -> &char {
+            &self.value[Self::VALUE_MAX_LEN - 1]
+        }
+
+        pub fn value_formatted(&self) -> &[char; Self::VALUE_MAX_LEN] {
             &self.value
         }
 
-        fn set_value(&mut self, value: Value) {
+        pub fn set_value(&mut self, value: Value) {
             self.value[Self::VALUE_MAX_LEN - 1] = value.value();
         }
 
-        fn set_color(&mut self, rgb: &RGB) {
+        pub fn set_color(&mut self, rgb: &RGB) {
             self.value[7..].copy_from_slice(&rgb.0);
             self.value[11..].copy_from_slice(&rgb.1);
             self.value[15..].copy_from_slice(&rgb.2);
         }
     }
 
-    impl Default for MetaPixel {
+    impl Default for Pixel {
         fn default() -> Self {
             Self {
                 depth: (None, None),
@@ -82,6 +86,7 @@ mod meta_pixel {
         }
     }
 
+    #[derive(PartialEq)]
     pub enum Value {
         Upper,
         Lower,
@@ -90,12 +95,21 @@ mod meta_pixel {
     }
 
     impl Value {
-        const fn value(&self) -> char {
+        pub const fn value(&self) -> char {
             match self {
                 Value::Upper => '\u{2580}', // ▀
                 Value::Lower => '\u{2584}', // ▄
                 Value::Full => '\u{2588}',  // █
                 Value::Empty => ' ',
+            }
+        }
+
+        /// Get appropriate character to use for given vertical position.
+        pub fn at(z: usize) -> Self {
+            if z % 2 != 0 {
+                Value::Upper
+            } else {
+                Value::Lower
             }
         }
     }
@@ -143,7 +157,7 @@ impl RendererBuilderTrait for TerminalBuilder {
 
 // TODO: Create either a whole new struct like "CanvasPerspective" and "CanvasOrthographic". OR something like "Canvas<Perspective>" and "Canvas<Orthographic>".
 struct Canvas {
-    buffer: Vec<Vec<Option<(Option<f64>, Option<f64>, char)>>>,
+    buffer: Vec<Vec<Pixel>>,
     /// Return: None if no intersection found. Otherwise point at which line between vertex and viewpoint intersects the viewport.
     line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>,
 }
@@ -160,7 +174,10 @@ impl Canvas {
         };
 
         Self {
-            buffer: vec![vec![None; resolution.0 as usize]; (resolution.1 / 2) as usize],
+            buffer: vec![
+                vec![Pixel::default(); resolution.0 as usize];
+                (resolution.1 / 2) as usize
+            ],
             line_intersection_checker: Self::create_intersection_checker(
                 &config.camera.resolution,
                 &config.camera.position,
@@ -250,7 +267,8 @@ impl Canvas {
         if self.buffer.len() != (resolution.1 as usize)
             || self.buffer[0].len() != (resolution.0 as usize)
         {
-            self.buffer = vec![vec![None; resolution.0 as usize]; (resolution.1 / 2) as usize];
+            self.buffer =
+                vec![vec![Pixel::default(); resolution.0 as usize]; (resolution.1 / 2) as usize];
         }
 
         // TODO: Fix orthographic option
@@ -349,24 +367,11 @@ impl Terminal {
         Ok(())
     }
 
-    /// Get appropriate character to use for given vertical position.
-    fn character_at(y: usize) -> char {
-        if y % 2 != 0 {
-            return character::UPPER;
-        }
-
-        character::LOWER
-    }
-
     /// Clear the canvas buffer and the terminal screen.
     fn clear(&mut self) {
         for row in self.canvas.buffer.iter_mut() {
-            for column in row.iter_mut() {
-                if let Some((depth_upper, depth_lower, c)) = column {
-                    *depth_upper = None;
-                    *depth_lower = None;
-                    *c = character::EMPTY;
-                }
+            for pixel in row.iter_mut() {
+                pixel.reset();
             }
         }
 
@@ -374,7 +379,7 @@ impl Terminal {
     }
 
     fn render_pixel(
-        buffer: &mut Vec<Vec<Option<(Option<f64>, Option<f64>, char)>>>,
+        buffer: &mut Vec<Vec<meta::Pixel>>,
         camera: &Camera,
         x: isize,
         y: f64,
@@ -385,54 +390,42 @@ impl Terminal {
         let mut z = z + (camera.resolution.1 / 2) as isize;
 
         // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
-        let mut character = Self::character_at(z as usize);
+        let mut character = meta::Value::at(z as usize);
         z = z / 2;
-        let buff_val = &mut buffer[z as usize][x as usize];
+        let pixel = &mut buffer[z as usize][x as usize];
 
-        if let Some(buff_val) = buff_val {
-            // Update depth.
-            let mut current_depth = None;
+        // Update depth.
+        let current_depth;
 
-            if character == character::UPPER {
-                current_depth = Some(&mut buff_val.0);
-            } else if character == character::LOWER {
-                current_depth = Some(&mut buff_val.1);
-            }
-
-            if let Some(current_depth) = current_depth {
-                if let Some(current_depth) = current_depth {
-                    if *current_depth > y && y > 0.0 {
-                        *current_depth = y;
-                    }
-                } else {
-                    *current_depth = Some(y);
-                }
-            }
-
-            // Update character.
-            if buff_val.2 == character::FULL {
-                // Is it already filled. Just update depth
-                return;
-            } else if buff_val.2 == character::UPPER && character == character::LOWER {
-                character = character::FULL;
-            } else if buff_val.2 == character::LOWER && character == character::UPPER {
-                character = character::FULL;
-            }
-
-            buff_val.2 = character;
-        } else {
-            // Set depth and character.
-            let mut depth_upper = None;
-            let mut depth_lower = None;
-
-            if character == character::UPPER {
-                depth_upper = Some(y);
-            } else if character == character::LOWER {
-                depth_lower = Some(y);
-            }
-
-            buffer[z as usize][x as usize] = Some((depth_upper, depth_lower, character));
+        match character {
+            meta::Value::Upper => current_depth = &mut pixel.depth.0,
+            meta::Value::Lower => current_depth = &mut pixel.depth.1,
+            _ => unreachable!(),
         }
+
+        if let Some(current_depth) = current_depth {
+            if *current_depth > y {
+                *current_depth = y;
+            }
+        } else {
+            *current_depth = Some(y);
+        }
+
+        // Update character.
+        let pixel_value = *pixel.value();
+
+        if pixel_value == meta::Value::Full.value() {
+            // Already filled.
+            return;
+        } else if (pixel_value == meta::Value::Upper.value()
+            && character == meta::Value::Lower)
+            || (pixel_value == meta::Value::Lower.value()
+                && character == meta::Value::Upper)
+        {
+            character = meta::Value::Full;
+        }
+
+        pixel.set_value(character);
     }
 
     /// Projects vertices ([VectorRow]) onto the plane of the viewport that is the [Camera]/[Canvas].
@@ -500,7 +493,7 @@ impl Terminal {
         fn render_lines(
             order: &[usize],
             vertices_projected: &Vec<Option<VectorRow<f64, 3>>>,
-            buffer: &mut Vec<Vec<Option<(Option<f64>, Option<f64>, char)>>>,
+            buffer: &mut Vec<Vec<Pixel>>,
             camera: &Camera,
         ) {
             for ab in order.windows(2) {
@@ -645,11 +638,9 @@ impl Terminal {
     /// Print canvas buffer to terminal.
     fn write_rendered_scene_to_stdout_buffer(&mut self) {
         for character_row in self.canvas.buffer.iter().rev() {
-            for column in character_row.iter() {
-                if let Some((_, _, character)) = column {
-                    write!(self.stdout_buffer, "{}", character).unwrap();
-                } else {
-                    write!(self.stdout_buffer, "{}", character::EMPTY).unwrap();
+            for pixel in character_row.iter() {
+                for c in pixel.value_formatted().iter() {
+                    write!(self.stdout_buffer, "{c}").unwrap();
                 }
             }
             write!(self.stdout_buffer, "\n").unwrap();
