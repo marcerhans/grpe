@@ -27,8 +27,8 @@ mod meta {
     }
 
     impl Pixel {
-        const VALUE_MAX_LEN: usize = 20;
-        const EMPTY: [char; Self::VALUE_MAX_LEN] = [
+        pub const VALUE_MAX_LEN: usize = 20;
+        pub const EMPTY: [char; Self::VALUE_MAX_LEN] = [
             '\x1B',
             '[',
             '3',
@@ -318,7 +318,7 @@ pub struct Terminal {
     vertices: Option<Rc<RefCell<Vec<VectorRow<f64, 3>>>>>,
     vertices_projected: Vec<Option<VectorRow<f64, 3>>>,
     line_draw_order: Option<Rc<RefCell<Vec<Vec<usize>>>>>,
-    stdout_buffer: BufWriter<Stdout>,
+    stdout_buffer: String,
 
     // Extra
     extras: TerminalExtras,
@@ -375,7 +375,8 @@ impl Terminal {
             }
         }
 
-        write!(self.stdout_buffer, "\x1B[2H"); // Move to row 1 (zero indexed).
+        self.stdout_buffer.clear();
+        self.stdout_buffer.push_str("\x1B[2H"); // Move to row 1 (zero indexed).
     }
 
     fn render_pixel(
@@ -417,10 +418,8 @@ impl Terminal {
         if pixel_value == meta::Value::Full.value() {
             // Already filled.
             return;
-        } else if (pixel_value == meta::Value::Upper.value()
-            && character == meta::Value::Lower)
-            || (pixel_value == meta::Value::Lower.value()
-                && character == meta::Value::Upper)
+        } else if (pixel_value == meta::Value::Upper.value() && character == meta::Value::Lower)
+            || (pixel_value == meta::Value::Lower.value() && character == meta::Value::Upper)
         {
             character = meta::Value::Full;
         }
@@ -639,11 +638,15 @@ impl Terminal {
     fn write_rendered_scene_to_stdout_buffer(&mut self) {
         for character_row in self.canvas.buffer.iter().rev() {
             for pixel in character_row.iter() {
-                for c in pixel.value_formatted().iter() {
-                    write!(self.stdout_buffer, "{c}").unwrap();
-                }
+                // for c in pixel.value_formatted().iter() {
+                //     write!(self.stdout_buffer, "{c}").unwrap();
+                // }
+
+                // write!(self.stdout_buffer, "{}", pixel.value()).unwrap();
+                // self.stdout_buffer.push_str(&pixel.value_formatted().iter().collect::<String>()); // THIS IS SLOW!
+                self.stdout_buffer.push(*pixel.value()); // THIS IS FAST! I want to have a single write/push... but how?
             }
-            write!(self.stdout_buffer, "\n").unwrap();
+            self.stdout_buffer.push('\n');
         }
     }
 }
@@ -700,7 +703,7 @@ impl RendererTrait for Terminal {
         }
 
         self.write_rendered_scene_to_stdout_buffer();
-        self.stdout_buffer.flush().unwrap();
+        print!("{}", self.stdout_buffer);
     }
 }
 
@@ -720,7 +723,11 @@ impl __RendererTrait for Terminal {
         Ok(Self {
             vertices: None,
             vertices_projected: Vec::new(),
-            stdout_buffer: BufWriter::new(std::io::stdout()),
+            stdout_buffer: String::with_capacity(
+                config.camera.resolution.0 as usize
+                    * config.camera.resolution.1 as usize
+                    * meta::Pixel::VALUE_MAX_LEN as usize,
+            ),
             line_draw_order: None,
             canvas: Canvas::new(&config),
             config,
