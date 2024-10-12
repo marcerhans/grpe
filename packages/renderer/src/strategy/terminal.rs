@@ -12,17 +12,15 @@ use meta_pixel::MetaPixel;
 
 mod meta_pixel {
     /// [MetaPixel] exists mainly to lower the amount of memory allocations during tight loops.
+    /// Due to text covering two pixels, the [MetaPixel] covers the upper and lower part of a true pixel.
+    /// The first tuple value represents the upper portion, while the second the lower.
     #[derive(Clone)]
     pub struct MetaPixel {
-        /// Instead of having pixels be optional, just flag as active or not. Saving allocations.
-        pub active: bool,
-
         /// Pixels cover both upper and lower part of a "real" pixel, so depth is represented for two pixels.
-        pub depth_upper: Option<f64>,
-        pub depth_lower: Option<f64>,
+        pub depth: (Option<f64>, Option<f64>),
 
         /// Used for defining the edges of a polygon to be filled. Is switched of when polygon has been filled.
-        pub polygon_fill_border: bool,
+        pub polygon_fill_border: (bool, bool),
 
         /// 20 bytes should be enough to represent a symbol + coloring it (Example: \x1B[38;2;000;125;255m\u{xxxx})
         value: [char; Self::VALUE_MAX_LEN],
@@ -54,19 +52,13 @@ mod meta_pixel {
         ];
 
         fn reset(&mut self) {
-            self.active = false;
-            self.depth_upper = None;
-            self.depth_lower = None;
-            self.polygon_fill_border = false;
+            self.depth = (None, None);
+            self.polygon_fill_border = (false, false);
             self.value = Self::EMPTY;
         }
 
         fn value(&self) -> &[char; Self::VALUE_MAX_LEN] {
-            if self.active {
-                &self.value
-            } else {
-                &Self::EMPTY
-            }
+            &self.value
         }
 
         fn set_value(&mut self, value: Value) {
@@ -83,10 +75,8 @@ mod meta_pixel {
     impl Default for MetaPixel {
         fn default() -> Self {
             Self {
-                active: false,
-                depth_upper: None,
-                depth_lower: None,
-                polygon_fill_border: false,
+                depth: (None, None),
+                polygon_fill_border: (false, false),
                 value: Self::EMPTY,
             }
         }
