@@ -109,28 +109,6 @@ mod meta_pixel {
     }
 }
 
-mod character {
-    // pub static LINE_HORIZONTAL: char = '\u{254c}'; // ╌
-    // pub static LINE_VERTICAL: char = '\u{2506}'; // ┆
-    // pub static CENTER: char = '\u{253c}'; // ┼
-    pub static UPPER: char = '\u{2580}'; // ▀
-                                         // pub static UPPER: char = '\u{1FB91}'; // ▀
-    pub static LOWER: char = '\u{2584}'; // ▄
-                                         // pub static LOWER: char = '\u{1FB92}'; // ▄
-    pub static FULL: char = '\u{2588}'; // █
-                                        // pub static UPPER_EMPTY: char = '\u{1FB91}'; // 🮎
-                                        // pub static LOWER_EMPTY: char = '\u{1FB92}'; // 🮏
-                                        // pub static FULL_EMPTY: char = '\u{2592}'; // ▒
-                                        // pub static EMPTY: char = '\u{2592}';
-    pub static EMPTY: char = ' ';
-}
-
-mod ansi {
-    pub static CLEAR_SCREEN: &str = "\x1B[2J";
-    // pub static GO_TO_0_0: &str = "\x1B[H";
-    pub static GO_TO_1_0: &str = "\x1B[2H";
-}
-
 #[derive(Default)]
 pub struct TerminalBuilder {
     config: RendererConfiguration,
@@ -331,7 +309,7 @@ pub struct Terminal {
 /// This implementation can be seen as being the pipeline stages for the renderer, in the order of definitions.
 impl Terminal {
     pub fn clear_screen(&self) {
-        print!("{}", ansi::CLEAR_SCREEN);
+        print!("\x1B[2J");
     }
 
     pub fn set_extras(&mut self, extras: TerminalExtras) {
@@ -392,7 +370,7 @@ impl Terminal {
             }
         }
 
-        write!(self.stdout_buffer, "{}", ansi::GO_TO_1_0).unwrap();
+        write!(self.stdout_buffer, "\x1B[2H"); // Move to row 1 (zero indexed).
     }
 
     fn render_pixel(
