@@ -74,7 +74,7 @@ pub mod pixel {
         // }
     }
 
-    #[derive(PartialEq)]
+    #[derive(PartialEq, Clone)]
     pub enum Value {
         Upper,
         Lower,
@@ -163,7 +163,11 @@ impl Buffer {
         self.meta.iter_mut().for_each(|pixel| pixel.reset());
     }
 
-    pub fn pixel(&mut self, col: usize, row: usize) -> &mut pixel::Pixel {
+    pub fn pixel(&self, row: usize, col: usize) -> &pixel::Pixel {
+        &self.meta[col + row * self.meta_dimensions.0]
+    }
+
+    pub fn pixel_mut(&mut self, row: usize, col: usize) -> &mut pixel::Pixel {
         &mut self.meta[col + row * self.meta_dimensions.0]
     }
 }
@@ -171,6 +175,37 @@ impl Buffer {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn set_and_check(buffer: &mut Buffer, value: pixel::Value, at: &[(usize, usize)]) {
+        for (row, col) in at {
+            buffer.pixel_mut(*row, *col).set_value(value.clone());
+            assert!(buffer.pixel(*row, *col).value() == value.value());
+            assert!(buffer.data[col + row * buffer.meta_dimensions.0] == value.value());
+        }
+    }
+
+    fn check_for_value_in_buffer(
+        buffer: &Buffer,
+        value: pixel::Value,
+        except_values_at: &[(usize, usize)],
+    ) {
+        for row in 0..buffer.meta_dimensions.1 {
+            'a: for col in 0..buffer.meta_dimensions.0 {
+                for exception in except_values_at {
+                    if row == exception.0 && col == exception.1 {
+                        continue 'a;
+                    }
+                }
+
+                if row != 0 && col != 0 {
+                    assert!(buffer.pixel(row, col).value() == value.value());
+                    assert!(
+                        buffer.data[col + row * buffer.meta_dimensions.0 as usize] == value.value()
+                    );
+                }
+            }
+        }
+    }
 
     #[test]
     fn lengths() {
@@ -226,48 +261,15 @@ mod tests {
         {
             let resolution = (10, 10);
             let mut buffer = Buffer::new(&resolution);
-
-            buffer.pixel(0, 0).set_value(pixel::Value::Full);
-            assert!(buffer.pixel(0, 0).value() == pixel::Value::Full.value());
-            assert!(buffer.data[0] == pixel::Value::Full.value());
-
-            for row in 0..buffer.meta_dimensions.1 {
-                for col in 0..buffer.meta_dimensions.0 {
-                    if row != 0 && col != 0 {
-                        assert!(buffer.pixel(col, row).value() == pixel::Value::Empty.value());
-                        assert!(
-                            buffer.data[col + row * resolution.0 as usize]
-                                == pixel::Value::Empty.value()
-                        );
-                    }
-                }
-            }
+            set_and_check(&mut buffer, pixel::Value::Full, &[(0,0)]);
+            check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[(0, 0)]);
         }
         {
             let resolution = (10, 10);
+            let row_col: [(usize, usize); 2] = [(4,3), (2,5)];
             let mut buffer = Buffer::new(&resolution);
-
-            buffer.pixel(3, 4).set_value(pixel::Value::Full);
-            assert!(buffer.pixel(3, 4).value() == pixel::Value::Full.value());
-            assert!(buffer.data[3 + 4 * resolution.0 as usize] == pixel::Value::Full.value());
-
-            buffer.pixel(5, 2).set_value(pixel::Value::Full);
-            assert!(buffer.pixel(5, 2).value() == pixel::Value::Full.value());
-            assert!(buffer.data[5 + 2 * resolution.0 as usize] == pixel::Value::Full.value());
-
-            for row in 0..buffer.meta_dimensions.1 {
-                for col in 0..buffer.meta_dimensions.0 {
-                    if (row == 4 && col == 3) || (row == 2 && col == 5) {
-                        continue;
-                    }
-
-                    assert!(buffer.pixel(col, row).value() == pixel::Value::Empty.value());
-                    assert!(
-                        buffer.data[col + row * resolution.0 as usize]
-                            == pixel::Value::Empty.value()
-                    );
-                }
-            }
+            set_and_check(&mut buffer, pixel::Value::Full, &row_col);
+            check_for_value_in_buffer(&buffer, pixel::Value::Empty, &row_col);
         }
     }
 
@@ -275,57 +277,27 @@ mod tests {
     fn reset_pixel_values() {
         {
             let resolution = (10, 10);
+            let row_col: [(usize, usize); 2] = [(4,3), (2,5)];
             let mut buffer = Buffer::new(&resolution);
+            set_and_check(&mut buffer, pixel::Value::Full, &row_col);
+            check_for_value_in_buffer(&buffer, pixel::Value::Empty, &row_col);
+            buffer.pixel_mut(2, 5).reset();
+            check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[(4, 3)]);
+            buffer.pixel_mut(4, 3).reset();
+            check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[]);
+        }
+    }
 
-            buffer.pixel(3, 4).set_value(pixel::Value::Full);
-            assert!(buffer.pixel(3, 4).value() == pixel::Value::Full.value());
-            assert!(buffer.data[3 + 4 * resolution.0 as usize] == pixel::Value::Full.value());
-
-            buffer.pixel(5, 2).set_value(pixel::Value::Full);
-            assert!(buffer.pixel(5, 2).value() == pixel::Value::Full.value());
-            assert!(buffer.data[5 + 2 * resolution.0 as usize] == pixel::Value::Full.value());
-
-            for row in 0..buffer.meta_dimensions.1 {
-                for col in 0..buffer.meta_dimensions.0 {
-                    if (row == 4 && col == 3) || (row == 2 && col == 5) {
-                        continue;
-                    }
-
-                    assert!(buffer.pixel(col, row).value() == pixel::Value::Empty.value());
-                    assert!(
-                        buffer.data[col + row * resolution.0 as usize]
-                            == pixel::Value::Empty.value()
-                    );
-                }
-            }
-
-            buffer.pixel(5, 2).reset();
-
-            for row in 0..buffer.meta_dimensions.1 {
-                for col in 0..buffer.meta_dimensions.0 {
-                    if row == 4 && col == 3 {
-                        continue;
-                    }
-
-                    assert!(buffer.pixel(col, row).value() == pixel::Value::Empty.value());
-                    assert!(
-                        buffer.data[col + row * resolution.0 as usize]
-                            == pixel::Value::Empty.value()
-                    );
-                }
-            }
-
-            buffer.pixel(3, 4).reset();
-
-            for row in 0..buffer.meta_dimensions.1 {
-                for col in 0..buffer.meta_dimensions.0 {
-                    assert!(buffer.pixel(col, row).value() == pixel::Value::Empty.value());
-                    assert!(
-                        buffer.data[col + row * resolution.0 as usize]
-                            == pixel::Value::Empty.value()
-                    );
-                }
-            }
+    #[test]
+    fn clear_buffer() {
+        {
+            let resolution = (10, 10);
+            let row_col: [(usize, usize); 2] = [(4,3), (2,5)];
+            let mut buffer = Buffer::new(&resolution);
+            set_and_check(&mut buffer, pixel::Value::Full, &row_col);
+            check_for_value_in_buffer(&buffer, pixel::Value::Empty, &row_col);
+            buffer.clear();
+            check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[]);
         }
     }
 }
