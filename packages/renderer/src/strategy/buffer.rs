@@ -25,20 +25,14 @@ pub mod pixel {
     // pub const VALUE_MAX_LEN: usize = 1;
     // pub const EMPTY: [char; VALUE_MAX_LEN] = [Value::Empty.value()];
 
-    /////// TODO: Redo docs!
-    // / [Pixel] exists mainly to lower the amount of memory allocations during tight loops.
-    // / Due to text covering two pixels, the [Pixel] covers the upper and lower part of a true pixel.
-    // / The first tuple value represents the upper portion, while the second the lower.
     pub struct Pixel {
         /// Pixels cover both upper and lower part of a "real" pixel, so depth is represented for two pixels.
         pub depth: (Option<f64>, Option<f64>),
 
-        /// Used for defining the edges of a polygon to be filled. Is switched of when polygon has been filled.
+        /// Used for defining the edges of a polygon to be filled. Is switched of when polygon has been filled. Upper, lower.
         pub polygon_fill_border: (bool, bool),
 
-        /// (Pointer to slice of a memory buffer, length of slice)
-        /// Note that this struct should be regarded as the true owner of the buffer data. The only reason for it to be part
-        /// of the [super::Canvas] struct is to allow for faster IO.
+        /// Slice of buffer in [super::TerminalBuffer].
         slice: &'static mut [char],
     }
 
@@ -111,6 +105,8 @@ pub mod pixel {
     // }
 }
 
+/// The main purpose of [TerminalBuffer] is to keep a continuous buffer such that fast IO can be achieved.
+/// Editing values in the buffer should only be done via the [pixel::Pixel] (via [TerminalBuffer::pixel_mut]).
 pub struct TerminalBuffer {
     data: Vec<char>,
     meta: Vec<pixel::Pixel>,
