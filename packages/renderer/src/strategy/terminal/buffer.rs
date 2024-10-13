@@ -1,29 +1,29 @@
 pub mod pixel {
-    pub const VALUE_MAX_LEN: usize = 20;
-    pub const EMPTY: [char; VALUE_MAX_LEN] = [
-        '\x1B',
-        '[',
-        '3',
-        '8',
-        ';',
-        '2',
-        ';',
-        '0',
-        '0',
-        '0',
-        ';',
-        '0',
-        '0',
-        '0',
-        ';',
-        '0',
-        '0',
-        '0',
-        'm',
-        Value::Empty.value(),
-    ];
-    // pub const VALUE_MAX_LEN: usize = 1;
-    // pub const EMPTY: [char; VALUE_MAX_LEN] = [Value::Empty.value()];
+    // pub const VALUE_MAX_LEN: usize = 20;
+    // pub const EMPTY: [char; VALUE_MAX_LEN] = [
+    //     '\x1B',
+    //     '[',
+    //     '3',
+    //     '8',
+    //     ';',
+    //     '2',
+    //     ';',
+    //     '0',
+    //     '0',
+    //     '0',
+    //     ';',
+    //     '0',
+    //     '0',
+    //     '0',
+    //     ';',
+    //     '0',
+    //     '0',
+    //     '0',
+    //     'm',
+    //     Value::Empty.value(),
+    // ];
+    pub const VALUE_MAX_LEN: usize = 1;
+    pub const EMPTY: [char; VALUE_MAX_LEN] = [Value::Empty.value()];
 
     pub struct Pixel {
         /// Pixels cover both upper and lower part of a "real" pixel, so depth is represented for two pixels.
@@ -156,6 +156,10 @@ impl TerminalBuffer {
             meta: meta,
             meta_dimensions,
         }
+    }
+
+    pub fn data(&self) -> &Vec<char> {
+        &self.data
     }
 
     pub fn clear(&mut self) {

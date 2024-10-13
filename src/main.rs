@@ -10,8 +10,8 @@ use std::{
 
 use io::{platform::unix::EventHandler, EventHandlerTrait};
 use renderer::{
-    renderer::TerminalBuilder, Camera, ProjectionMode, RendererBuilderTrait, RendererTrait,
-    VectorRow,
+    renderer::terminal::TerminalBuilder, Camera, ProjectionMode, RendererBuilderTrait,
+    RendererTrait, VectorRow,
 };
 use state::StateHandler;
 

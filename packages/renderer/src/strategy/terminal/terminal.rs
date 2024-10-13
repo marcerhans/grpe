@@ -2,12 +2,12 @@ use std::cell::RefCell;
 use std::io::Write;
 use std::rc::Rc;
 
+use super::buffer::*;
 use crate::{
     Camera, ProjectionMode, RenderOption, RendererBuilderTrait, RendererConfiguration,
     RendererTrait, ViewMode, __RendererTrait,
 };
 use linear_algebra::{quaternion::rotate, quaternion::Quaternion, vector::VectorRow};
-use super::buffer::*;
 
 struct Canvas {
     buffer: TerminalBuffer,
@@ -17,9 +17,6 @@ struct Canvas {
 
 impl Canvas {
     fn new(config: &RendererConfiguration) -> Self {
-        let resolution = &config.camera.resolution;
-        let len = (resolution.0 as usize) * ((resolution.1 / 2) as usize);
-
         // TODO: Fix orthographic option
         let fov = if let ProjectionMode::Perspective { fov } = config.camera.projection_mode {
             fov
@@ -28,7 +25,7 @@ impl Canvas {
         };
 
         Self {
-            buffer: vec![0 as char; len],
+            buffer: TerminalBuffer::new(&config.camera.resolution),
             // buffer_metadata: vec![Pixel::default(); len],
             line_intersection_checker: Self::create_intersection_checker(
                 &config.camera.resolution,
@@ -115,10 +112,10 @@ impl Canvas {
 
     fn update(&mut self, config: &RendererConfiguration) -> Result<(), &'static str> {
         let resolution = config.camera.resolution;
-        let len = (resolution.0 as usize) * ((resolution.1 / 2) as usize);
+        let len = TerminalBuffer::data_len(&resolution);
 
-        if self.buffer.len() != len {
-            self.buffer = vec![0 as char; len];
+        if self.buffer.data().len() != len {
+            self.buffer = TerminalBuffer::new(&resolution);
         }
 
         // TODO: Fix orthographic option
@@ -189,8 +186,6 @@ impl RendererBuilderTrait for TerminalBuilder {
 }
 
 /// Terminal renderer.
-/// TODO: Split config and pipeline stuff up?
-/// (struct TerminalConfiguration(RendererConfiguration, OtherDerivedConfigs, canvas(?)) and struct Pipeline(vertices, vertices_projected, canvas(?))
 pub struct Terminal {
     // Affected by config.
     config: RendererConfiguration,
@@ -250,27 +245,27 @@ impl Terminal {
 
     /// Clear the canvas buffer and the terminal screen.
     fn clear(&mut self) {
-        self.canvas.buffer.fill(0 as char);
+        self.canvas.buffer.clear();
         print!("\x1B[2H"); // Move to row 1 (zero indexed).
     }
 
-    fn render_pixel(buffer: &mut Vec<char>, camera: &Camera, x: isize, y: f64, z: isize) {
+    fn render_pixel(buffer: &mut TerminalBuffer, camera: &Camera, x: isize, y: f64, z: isize) {
         // Extract and adjust position based on camera resolution.
         let x = x + (camera.resolution.0 / 2) as isize;
         let mut z = z + (camera.resolution.1 / 2) as isize;
 
         // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
-        let mut character = meta::PixelValue::at(z as usize);
+        let mut character = pixel::Value::at(z as usize);
         z = z / 2;
         let index = x as usize + z as usize * camera.resolution.0 as usize;
-        let pixel = &mut buffer[index];
+        let pixel = buffer.pixel_mut(z as usize, x as usize);
 
         // Update depth.
         let current_depth;
 
         match character {
-            meta::PixelValue::Upper => current_depth = &mut pixel.depth.0,
-            meta::PixelValue::Lower => current_depth = &mut pixel.depth.1,
+            pixel::Value::Upper => current_depth = &mut pixel.depth.0,
+            pixel::Value::Lower => current_depth = &mut pixel.depth.1,
             _ => unreachable!(),
         }
 
@@ -283,17 +278,17 @@ impl Terminal {
         }
 
         // Update character.
-        let pixel_value = *pixel.value();
+        let pixel_value = pixel.value();
 
-        if pixel_value == meta::PixelValue::Full.value() {
+        if pixel_value == pixel::Value::Full.value() {
             // Already filled.
             return;
-        } else if (pixel_value == meta::PixelValue::Upper.value()
-            && character == meta::PixelValue::Lower)
-            || (pixel_value == meta::PixelValue::Lower.value()
-                && character == meta::PixelValue::Upper)
+        } else if (pixel_value == pixel::Value::Upper.value()
+            && character == pixel::Value::Lower)
+            || (pixel_value == pixel::Value::Lower.value()
+                && character == pixel::Value::Upper)
         {
-            character = meta::PixelValue::Full;
+            character = pixel::Value::Full;
         }
 
         pixel.set_value(character);
@@ -364,7 +359,7 @@ impl Terminal {
         fn render_lines(
             order: &[usize],
             vertices_projected: &Vec<Option<VectorRow<f64, 3>>>,
-            buffer: &mut Vec<char>,
+            buffer: &mut TerminalBuffer,
             camera: &Camera,
         ) {
             for ab in order.windows(2) {
@@ -508,9 +503,13 @@ impl Terminal {
 
     /// Print canvas buffer to terminal.
     fn write_rendered_scene_to_stdout(&mut self) {
-        static AAA: [u8; 200 * 200] = [0; 200 * 200]; // TODO: Use real values...
         std::io::stdout()
-            .write_all(&AAA)
+            .write_all(unsafe {
+                std::slice::from_raw_parts(
+                    self.canvas.buffer.data().as_ptr() as *const u8,
+                    std::mem::size_of::<char>() *  self.canvas.buffer.data().len(),
+                )
+            })
             .expect("Failed to write to stdout");
     }
 }
