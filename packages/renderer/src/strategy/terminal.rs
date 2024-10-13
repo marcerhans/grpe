@@ -1,6 +1,5 @@
 use std::cell::RefCell;
 use std::io::Write;
-use std::io::{BufWriter, Stdout};
 use std::rc::Rc;
 
 use crate::{
@@ -157,7 +156,7 @@ impl RendererBuilderTrait for TerminalBuilder {
 
 // TODO: Create either a whole new struct like "CanvasPerspective" and "CanvasOrthographic". OR something like "Canvas<Perspective>" and "Canvas<Orthographic>".
 struct Canvas {
-    buffer: Vec<Vec<Pixel>>,
+    buffer: Vec<char>,
     /// Return: None if no intersection found. Otherwise point at which line between vertex and viewpoint intersects the viewport.
     line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>,
 }
@@ -174,10 +173,7 @@ impl Canvas {
         };
 
         Self {
-            buffer: vec![
-                vec![Pixel::default(); resolution.0 as usize];
-                (resolution.1 / 2) as usize
-            ],
+            buffer: vec![0 as char; (resolution.0 as usize) * ((resolution.1 / 2) as usize)],
             line_intersection_checker: Self::create_intersection_checker(
                 &config.camera.resolution,
                 &config.camera.position,
@@ -263,12 +259,10 @@ impl Canvas {
 
     fn update(&mut self, config: &RendererConfiguration) -> Result<(), &'static str> {
         let resolution = config.camera.resolution;
+        let len = (resolution.0 as usize) * ((resolution.1 / 2) as usize);
 
-        if self.buffer.len() != (resolution.1 as usize)
-            || self.buffer[0].len() != (resolution.0 as usize)
-        {
-            self.buffer =
-                vec![vec![Pixel::default(); resolution.0 as usize]; (resolution.1 / 2) as usize];
+        if self.buffer.len() != len {
+            self.buffer = vec![0 as char; len];
         }
 
         // TODO: Fix orthographic option
@@ -369,12 +363,7 @@ impl Terminal {
 
     /// Clear the canvas buffer and the terminal screen.
     fn clear(&mut self) {
-        for row in self.canvas.buffer.iter_mut() {
-            for pixel in row.iter_mut() {
-                pixel.reset();
-            }
-        }
-
+        self.canvas.buffer.fill(0 as char);
         self.stdout_buffer.clear();
         self.stdout_buffer.push_str("\x1B[2H"); // Move to row 1 (zero indexed).
     }
@@ -635,19 +624,9 @@ impl Terminal {
     }
 
     /// Print canvas buffer to terminal.
-    fn write_rendered_scene_to_stdout_buffer(&mut self) {
-        for character_row in self.canvas.buffer.iter().rev() {
-            for pixel in character_row.iter() {
-                // for c in pixel.value_formatted().iter() {
-                //     write!(self.stdout_buffer, "{c}").unwrap();
-                // }
-
-                // write!(self.stdout_buffer, "{}", pixel.value()).unwrap();
-                // self.stdout_buffer.push_str(&pixel.value_formatted().iter().collect::<String>()); // THIS IS SLOW!
-                self.stdout_buffer.push(*pixel.value()); // THIS IS FAST! I want to have a single write/push... but how?
-            }
-            self.stdout_buffer.push('\n');
-        }
+    fn write_rendered_scene_to_stdout(&mut self) {
+        static AAA: [u8; 200*200] = [0; 200*200]; // TODO: Use real values...
+        std::io::stdout().write_all(&AAA).expect("Failed to write to stdout");
     }
 }
 
@@ -702,8 +681,7 @@ impl RendererTrait for Terminal {
             }
         }
 
-        self.write_rendered_scene_to_stdout_buffer();
-        print!("{}", self.stdout_buffer);
+        self.write_rendered_scene_to_stdout();
     }
 }
 
