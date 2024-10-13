@@ -257,8 +257,7 @@ impl Terminal {
         // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
         let mut character = pixel::Value::at(z as usize);
         z = z / 2;
-        let index = x as usize + z as usize * camera.resolution.0 as usize;
-        let pixel = buffer.pixel_mut(z as usize, x as usize);
+        let pixel = buffer.pixel_mut(camera.resolution.1 as usize / 2 - z as usize - 1, x as usize); // TODO: Ugly fix for the buffer being upside down.
 
         // Update depth.
         let current_depth;
@@ -504,12 +503,13 @@ impl Terminal {
     /// Print canvas buffer to terminal.
     fn write_rendered_scene_to_stdout(&mut self) {
         std::io::stdout()
-            .write_all(unsafe {
-                std::slice::from_raw_parts(
-                    self.canvas.buffer.data().as_ptr() as *const u8,
-                    std::mem::size_of::<char>() *  self.canvas.buffer.data().len(),
-                )
-            })
+            // .write_all(unsafe {
+            //     std::slice::from_raw_parts(
+            //         self.canvas.buffer.data().as_ptr() as *const u8,
+            //         std::mem::size_of::<char>() *  self.canvas.buffer.data().len(),
+            //     )
+            // })
+            .write_all(&self.canvas.buffer.data().iter().collect::<String>().as_bytes())
             .expect("Failed to write to stdout");
     }
 }
