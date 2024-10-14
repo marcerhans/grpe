@@ -406,19 +406,19 @@ impl StateHandler {
         }
 
         if let Some(_) = self.input.keyboard.i.take() {
-            rot_diff.0 -= std::f64::consts::FRAC_PI_4;
+            rot_diff.0 -= std::f64::consts::FRAC_PI_8;
         }
 
         if let Some(_) = self.input.keyboard.k.take() {
-            rot_diff.0 += std::f64::consts::FRAC_PI_4;
+            rot_diff.0 += std::f64::consts::FRAC_PI_8;
         }
 
         if let Some(_) = self.input.keyboard.j.take() {
-            rot_diff.1 -= std::f64::consts::FRAC_PI_4;
+            rot_diff.1 -= std::f64::consts::FRAC_PI_8;
         }
 
         if let Some(_) = self.input.keyboard.l.take() {
-            rot_diff.1 += std::f64::consts::FRAC_PI_4;
+            rot_diff.1 += std::f64::consts::FRAC_PI_8;
         }
 
         // Calculate positional change(s) based on input.
