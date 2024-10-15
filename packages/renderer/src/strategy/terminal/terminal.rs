@@ -524,12 +524,61 @@ impl Terminal {
                         .collect::<Vec<&VectorRow<f64, 3>>>();
 
                     // Get bounding vertices.
-                    let start_x = vertices.iter().map(|vertex| vertex[0] as isize).max();
-                    let end_x = vertices.iter().map(|vertex| vertex[0] as isize).min();
-                    let start_z = vertices.iter().map(|vertex| vertex[2] as isize).max();
-                    let end_z = vertices.iter().map(|vertex| vertex[2] as isize).min();
+                    let start_x = vertices
+                        .iter()
+                        .map(|vertex| vertex[0] as isize)
+                        .min()
+                        .unwrap();
+                    let end_x = vertices
+                        .iter()
+                        .map(|vertex| vertex[0] as isize)
+                        .max()
+                        .unwrap();
+                    let start_z = vertices
+                        .iter()
+                        .map(|vertex| vertex[2] as isize)
+                        .min()
+                        .unwrap();
+                    let end_z = vertices
+                        .iter()
+                        .map(|vertex| vertex[2] as isize)
+                        .max()
+                        .unwrap();
 
                     // Scan from "top-left" to "bottom-right" and to fill polygon.
+                    let (mut upper, mut lower) = (false, false);
+                    for z in start_z..end_z {
+                        for x in start_x..end_x {
+                            // Ignore the vertices themselves.
+                            for vertex in &vertices {
+                                if x == vertex[0] as isize && z == vertex[2] as isize {
+                                    continue;
+                                }
+                            }
+
+                            // Extract and adjust position based on camera resolution.
+                            let x = x + (self.config.camera.resolution.0 / 2) as isize;
+                            let z = (z + (self.config.camera.resolution.1 / 2) as isize) / 2;
+                            let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
+                            let pixel = self.canvas.buffer.pixel_mut(z, x as usize); // TODO: Ugly fix for the buffer being upside down.
+
+                            if pixel.polygon_fill_border.0 {
+                                upper = !upper;
+                            } else if upper {
+                                pixel.set_value(pixel::Value::Upper);
+                            }
+
+                            if pixel.polygon_fill_border.1 {
+                                lower = !lower;
+                            } else if lower {
+                                if pixel.value() == pixel::Value::Upper.value() {
+                                    pixel.set_value(pixel::Value::Full);
+                                } else {
+                                    pixel.set_value(pixel::Value::Lower);
+                                }
+                            }
+                        }
+                    }
                 }
             } else {
                 render_lines(
