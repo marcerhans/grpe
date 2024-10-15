@@ -249,7 +249,14 @@ impl Terminal {
         print!("\x1B[2H"); // Move to row 1 (zero indexed).
     }
 
-    fn render_pixel(buffer: &mut TerminalBuffer, camera: &Camera, x: isize, y: f64, z: isize) {
+    fn render_pixel(
+        buffer: &mut TerminalBuffer,
+        camera: &Camera,
+        x: isize,
+        y: f64,
+        z: isize,
+        polygon_border: bool,
+    ) {
         // Extract and adjust position based on camera resolution.
         let x = x + (camera.resolution.0 / 2) as isize;
         let mut z = z + (camera.resolution.1 / 2) as isize;
@@ -257,7 +264,10 @@ impl Terminal {
         // (Some z-axis gymnastics below due to terminal characters always taking two slots in the vertical/z-axis.)
         let mut character = pixel::Value::at(z as usize);
         z = z / 2;
-        let pixel = buffer.pixel_mut(camera.resolution.1 as usize / 2 - z as usize - 1, x as usize); // TODO: Ugly fix for the buffer being upside down.
+        let pixel = buffer.pixel_mut(
+            camera.resolution.1 as usize / 2 - z as usize - 1,
+            x as usize,
+        ); // TODO: Ugly fix for the buffer being upside down.
 
         // Update depth.
         let current_depth;
@@ -276,16 +286,23 @@ impl Terminal {
             *current_depth = Some(y);
         }
 
+        // Mark as polygon border?
+        if polygon_border {
+            match character {
+                pixel::Value::Upper => pixel.polygon_fill_border.0 = true,
+                pixel::Value::Lower => pixel.polygon_fill_border.1 = true,
+                _ => unreachable!(),
+            }
+        }
+
         // Update character.
         let pixel_value = pixel.value();
 
         if pixel_value == pixel::Value::Full.value() {
             // Already filled.
             return;
-        } else if (pixel_value == pixel::Value::Upper.value()
-            && character == pixel::Value::Lower)
-            || (pixel_value == pixel::Value::Lower.value()
-                && character == pixel::Value::Upper)
+        } else if (pixel_value == pixel::Value::Upper.value() && character == pixel::Value::Lower)
+            || (pixel_value == pixel::Value::Lower.value() && character == pixel::Value::Upper)
         {
             character = pixel::Value::Full;
         }
@@ -340,6 +357,7 @@ impl Terminal {
                     vertex[0] as isize,
                     vertex[1],
                     vertex[2] as isize,
+                    false,
                 );
             }
         }
@@ -360,6 +378,7 @@ impl Terminal {
             vertices_projected: &Vec<Option<VectorRow<f64, 3>>>,
             buffer: &mut TerminalBuffer,
             camera: &Camera,
+            polygon_border: bool,
         ) {
             for ab in order.windows(2) {
                 if let (Some(a), Some(b)) = (&vertices_projected[ab[0]], &vertices_projected[ab[1]])
@@ -378,7 +397,7 @@ impl Terminal {
                     let mut err = dx - dz;
 
                     while x0 != x1 || z0 != z1 {
-                        Terminal::render_pixel(buffer, camera, x0, (b[1] - a[1]) / 2.0, z0);
+                        Terminal::render_pixel(buffer, camera, x0, (b[1] - a[1]) / 2.0, z0, polygon_border);
 
                         let e2 = 2 * err;
 
@@ -413,6 +432,7 @@ impl Terminal {
                             particle[0] as isize,
                             particle[1],
                             particle[2] as isize,
+                            false,
                         );
                     }
                     continue;
@@ -422,6 +442,7 @@ impl Terminal {
                         &self.vertices_projected,
                         &mut self.canvas.buffer,
                         &self.config.camera,
+                        false,
                     );
                     continue;
                 }
@@ -484,6 +505,7 @@ impl Terminal {
                     &self.vertices_projected,
                     &mut self.canvas.buffer,
                     &self.config.camera,
+                    true,
                 );
 
                 if polyfill && order_culled.len() != 0 {
@@ -495,6 +517,7 @@ impl Terminal {
                     &self.vertices_projected,
                     &mut self.canvas.buffer,
                     &self.config.camera,
+                    false,
                 );
             }
         }
@@ -509,7 +532,15 @@ impl Terminal {
             //         std::mem::size_of::<char>() *  self.canvas.buffer.data().len(),
             //     )
             // })
-            .write_all(&self.canvas.buffer.data().iter().collect::<String>().as_bytes())
+            .write_all(
+                &self
+                    .canvas
+                    .buffer
+                    .data()
+                    .iter()
+                    .collect::<String>()
+                    .as_bytes(),
+            )
             .expect("Failed to write to stdout");
     }
 }
