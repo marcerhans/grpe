@@ -397,7 +397,14 @@ impl Terminal {
                     let mut err = dx - dz;
 
                     while x0 != x1 || z0 != z1 {
-                        Terminal::render_pixel(buffer, camera, x0, (b[1] - a[1]) / 2.0, z0, polygon_border);
+                        Terminal::render_pixel(
+                            buffer,
+                            camera,
+                            x0,
+                            (b[1] - a[1]) / 2.0,
+                            z0,
+                            polygon_border,
+                        );
 
                         let e2 = 2 * err;
 
@@ -510,6 +517,19 @@ impl Terminal {
 
                 if polyfill && order_culled.len() != 0 {
                     // Save some performance by only doing polyfill if face was not culled.
+                    // Filter out only relevant vertices.
+                    let vertices = order_culled
+                        .iter()
+                        .filter_map(|&index| self.vertices_projected[index].as_ref())
+                        .collect::<Vec<&VectorRow<f64, 3>>>();
+
+                    // Get bounding vertices.
+                    let start_x = vertices.iter().map(|vertex| vertex[0] as isize).max();
+                    let end_x = vertices.iter().map(|vertex| vertex[0] as isize).min();
+                    let start_z = vertices.iter().map(|vertex| vertex[2] as isize).max();
+                    let end_z = vertices.iter().map(|vertex| vertex[2] as isize).min();
+
+                    // Scan from "top-left" to "bottom-right" and to fill polygon.
                 }
             } else {
                 render_lines(
