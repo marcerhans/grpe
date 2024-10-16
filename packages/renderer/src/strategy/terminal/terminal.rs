@@ -546,35 +546,52 @@ impl Terminal {
                         .unwrap();
 
                     // Scan from "top-left" to "bottom-right" and to fill polygon.
-                    let (mut upper, mut lower) = (false, false);
-                    for z in start_z..end_z {
-                        for x in start_x..end_x {
-                            // Ignore the vertices themselves.
-                            for vertex in &vertices {
-                                if x == vertex[0] as isize && z == vertex[2] as isize {
-                                    continue;
-                                }
-                            }
+                    for z in start_z..=end_z{
+                        let mut start_upper = None;
+                        let mut start_lower = None;
 
+                        for x in start_x..=end_x {
                             // Extract and adjust position based on camera resolution.
                             let x = x + (self.config.camera.resolution.0 / 2) as isize;
                             let z = (z + (self.config.camera.resolution.1 / 2) as isize) / 2;
                             let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
-                            let pixel = self.canvas.buffer.pixel_mut(z, x as usize); // TODO: Ugly fix for the buffer being upside down.
+                            let polygon_fill_border = self.canvas.buffer.pixel(z, x as usize).polygon_fill_border;
 
-                            if pixel.polygon_fill_border.0 {
-                                upper = !upper;
-                            } else if upper {
-                                pixel.set_value(pixel::Value::Upper);
+                            if polygon_fill_border.0 {
+                                if let Some(start) = start_upper.as_mut() {
+                                    if x == *start + 1 {
+                                        *start = x;
+                                    } else {
+                                        for fill in *start..=x {
+                                            let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
+                                            if pixel.value() == pixel::Value::Lower.value() {
+                                                pixel.set_value(pixel::Value::Full);
+                                            } else if pixel.value() != pixel::Value::Full.value() {
+                                                pixel.set_value(pixel::Value::Upper);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    start_upper = Some(x);
+                                }
                             }
 
-                            if pixel.polygon_fill_border.1 {
-                                lower = !lower;
-                            } else if lower {
-                                if pixel.value() == pixel::Value::Upper.value() {
-                                    pixel.set_value(pixel::Value::Full);
+                            if polygon_fill_border.1 {
+                                if let Some(start) = start_lower.as_mut() {
+                                    if x == *start + 1 {
+                                        *start = x;
+                                    } else {
+                                        for fill in *start..=x {
+                                            let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
+                                            if pixel.value() == pixel::Value::Upper.value() {
+                                                pixel.set_value(pixel::Value::Full);
+                                            } else if pixel.value() != pixel::Value::Full.value() {
+                                                pixel.set_value(pixel::Value::Lower);
+                                            }
+                                        }
+                                    }
                                 } else {
-                                    pixel.set_value(pixel::Value::Lower);
+                                    start_lower = Some(x);
                                 }
                             }
                         }
