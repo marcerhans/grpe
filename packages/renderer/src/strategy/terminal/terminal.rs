@@ -574,6 +574,7 @@ impl Terminal {
                                 } else {
                                     start_upper = Some(x);
                                 }
+                                self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.0 = false;
                             }
 
                             if polygon_fill_border.1 {
@@ -593,6 +594,7 @@ impl Terminal {
                                 } else {
                                     start_lower = Some(x);
                                 }
+                                self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.1 = false;
                             }
                         }
                     }
