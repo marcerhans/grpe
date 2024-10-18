@@ -401,7 +401,7 @@ impl Terminal {
                             buffer,
                             camera,
                             x0,
-                            (b[1] - a[1]) / 2.0,
+                            a[1],
                             z0,
                             polygon_border,
                         );
@@ -501,7 +501,7 @@ impl Terminal {
                             if index == 0 {
                                 order_culled.append(&mut abc.to_vec());
                             } else {
-                                order_culled.append(&mut abc[1..].to_vec());
+                                order_culled.push(abc[2]);
                             }
                         }
                     }
@@ -562,14 +562,14 @@ impl Terminal {
                                     if x == *start + 1 {
                                         *start = x;
                                     } else {
-                                        for fill in *start..=x {
-                                            let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
-                                            if pixel.value() == pixel::Value::Lower.value() {
-                                                pixel.set_value(pixel::Value::Full);
-                                            } else if pixel.value() != pixel::Value::Full.value() {
-                                                pixel.set_value(pixel::Value::Upper);
-                                            }
-                                        }
+                                        // for fill in *start..=x {
+                                        //     let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
+                                        //     if pixel.value() == pixel::Value::Lower.value() {
+                                        //         pixel.set_value(pixel::Value::Full);
+                                        //     } else if pixel.value() != pixel::Value::Full.value() {
+                                        //         pixel.set_value(pixel::Value::Upper);
+                                        //     }
+                                        // }
                                     }
                                 } else {
                                     start_upper = Some(x);
@@ -582,14 +582,14 @@ impl Terminal {
                                     if x == *start + 1 {
                                         *start = x;
                                     } else {
-                                        for fill in *start..=x {
-                                            let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
-                                            if pixel.value() == pixel::Value::Upper.value() {
-                                                pixel.set_value(pixel::Value::Full);
-                                            } else if pixel.value() != pixel::Value::Full.value() {
-                                                pixel.set_value(pixel::Value::Lower);
-                                            }
-                                        }
+                                        // for fill in *start..=x {
+                                        //     let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
+                                        //     if pixel.value() == pixel::Value::Upper.value() {
+                                        //         pixel.set_value(pixel::Value::Full);
+                                        //     } else if pixel.value() != pixel::Value::Full.value() {
+                                        //         pixel.set_value(pixel::Value::Lower);
+                                        //     }
+                                        // }
                                     }
                                 } else {
                                     start_lower = Some(x);
