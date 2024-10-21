@@ -11,8 +11,8 @@ use linear_algebra::{quaternion::rotate, quaternion::Quaternion, vector::VectorR
 
 struct Canvas {
     buffer: TerminalBuffer,
-    /// Returns [None] if no intersection is found. Otherwise point at which line between vertex and viewpoint intersects the viewport.
-    line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>>,
+    /// Returns [None] if no intersection is found. Otherwise point at which line between vertex and viewpoint intersects the viewport, and it's depth.
+    line_intersection_checker: Box<dyn Fn(&VectorRow<f64, 3>) -> Option<(VectorRow<f64, 3>, f64)>>,
 }
 
 impl Canvas {
@@ -26,14 +26,13 @@ impl Canvas {
 
         Self {
             buffer: TerminalBuffer::new(&config.camera.resolution),
-            // buffer_metadata: vec![Pixel::default(); len],
             line_intersection_checker: Self::create_intersection_checker(
                 &config.camera.resolution,
-                &config.camera.position,
-                &fov,
+                config.camera.position.clone(),
+                fov,
                 &config.camera.view_mode,
-                &config.camera.rotation.0,
-                &config.camera.rotation.1,
+                config.camera.rotation.0.clone(),
+                config.camera.rotation.1.clone(),
             ),
         }
     }
@@ -41,44 +40,34 @@ impl Canvas {
     /// Returns checker for line intersection with canvas plane.
     fn create_intersection_checker(
         camera_resolution: &(u64, u64),
-        camera_position: &VectorRow<f64, 3>,
-        camera_fov: &u64,
+        camera_position: VectorRow<f64, 3>,
+        camera_fov: u64,
         camera_view_mode: &ViewMode,
-        rotation: &Quaternion<f64>,
-        rotation_inverse: &Quaternion<f64>,
-    ) -> Box<dyn Fn(&VectorRow<f64, 3>) -> Option<VectorRow<f64, 3>>> {
+        rotation: Quaternion<f64>,
+        rotation_inverse: Quaternion<f64>,
+    ) -> Box<dyn Fn(&VectorRow<f64, 3>) -> Option<(VectorRow<f64, 3>, f64)>> {
         Box::new({
             // Cached values for closure.
-            let normal = rotate(
-                &VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]),
-                rotation,
-                rotation_inverse,
-            );
-            let mut viewpoint: VectorRow<f64, 3>;
-            let mut viewport_origin: VectorRow<f64, 3>;
+            let normal = VectorRow::<f64, 3>::from([0.0, 1.0, 0.0]);
+            let mut viewpoint: VectorRow<f64, 3> = VectorRow::from([0.0, 0.0, 0.0]);
+            let mut viewport_origin: VectorRow<f64, 3> = VectorRow::from([0.0, 0.0, 0.0]);
 
             match camera_view_mode {
                 crate::ViewMode::FirstPerson => {
-                    viewpoint = camera_position.clone();
                     viewport_origin = VectorRow::<f64, 3>::from([
                         0.0,
                         0.0 + (camera_resolution.0 as f64 / 2.0)
-                            / f64::tan((*camera_fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
+                            / f64::tan((camera_fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
                         0.0,
                     ]);
-                    viewport_origin = rotate(&viewport_origin, rotation, rotation_inverse);
-                    viewport_origin = (&viewport_origin.0 + &viewpoint.0).into();
                 }
                 crate::ViewMode::Orbital => {
-                    viewport_origin = camera_position.clone();
                     viewpoint = VectorRow::<f64, 3>::from([
                         0.0,
                         0.0 - (camera_resolution.0 as f64 / 2.0)
-                            / f64::tan((*camera_fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
+                            / f64::tan((camera_fov as f64 / 2.0) * (std::f64::consts::PI / 180.0)),
                         0.0,
                     ]);
-                    viewpoint = rotate(&viewpoint, rotation, rotation_inverse);
-                    viewpoint = (&viewpoint.0 + &viewport_origin.0).into();
                 }
             }
 
@@ -89,8 +78,10 @@ impl Canvas {
             // Closure.
             // (This is based on the plane formula and the parametric form of the line from the viewpoint to a vertex).
             move |vertex_origin| {
+                let vertex: VectorRow<f64, 3> = (&vertex_origin.0 - &camera_position.0).into();
+                let vertex = rotate(&vertex, &rotation_inverse, &rotation);
                 let mut viewpoint_to_vertex_direction_vector =
-                    VectorRow::from(&vertex_origin.0 - &viewpoint.0);
+                    VectorRow::from(&vertex.0 - &viewpoint.0);
                 let divisor = normal.dot(&viewpoint_to_vertex_direction_vector);
 
                 if divisor.abs() < f64::EPSILON {
@@ -105,7 +96,10 @@ impl Canvas {
 
                 viewpoint_to_vertex_direction_vector.0.scale(t);
 
-                Some((&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into())
+                Some((
+                    (&viewpoint.0 + &viewpoint_to_vertex_direction_vector.0).into(),
+                    vertex[1],
+                ))
             }
         })
     }
@@ -127,11 +121,11 @@ impl Canvas {
 
         self.line_intersection_checker = Self::create_intersection_checker(
             &config.camera.resolution,
-            &config.camera.position,
-            &fov,
+            config.camera.position.clone(),
+            fov,
             &config.camera.view_mode,
-            &config.camera.rotation.0,
-            &config.camera.rotation.1,
+            config.camera.rotation.0.clone(),
+            config.camera.rotation.1.clone(),
         );
         Ok(())
     }
@@ -279,8 +273,10 @@ impl Terminal {
         }
 
         if let Some(current_depth) = current_depth {
-            if *current_depth > y {
+            if *current_depth < y {
                 *current_depth = y;
+            } else {
+                return;
             }
         } else {
             *current_depth = Some(y);
@@ -321,16 +317,8 @@ impl Terminal {
         let z_max = (self.config.camera.resolution.1 / 2) as isize;
 
         for (index, vertex) in vertices.iter().enumerate() {
-            if let Some(intersection) = (self.canvas.line_intersection_checker)(vertex) {
-                // Undo any previously applied rotation.
-                let mut intersection =
-                    VectorRow::<f64, 3>::from(&intersection.0 - &self.config.camera.position.0);
-                intersection = rotate(
-                    &intersection,
-                    &self.config.camera.rotation.1,
-                    &self.config.camera.rotation.0,
-                );
-
+            if let Some((mut intersection, depth)) = (self.canvas.line_intersection_checker)(vertex)
+            {
                 // Adjust points according to width heigh pixel ratio.
                 intersection[0] = intersection[0] * self.extras.pixel_width_scaling;
                 intersection[2] = intersection[2] * self.extras.pixel_height_scaling;
@@ -341,6 +329,9 @@ impl Terminal {
                 {
                     continue;
                 }
+
+                // Store depth information.
+                intersection[1] = depth;
 
                 self.vertices_projected[index] = Some(intersection);
             }
@@ -397,14 +388,7 @@ impl Terminal {
                     let mut err = dx - dz;
 
                     while x0 != x1 || z0 != z1 {
-                        Terminal::render_pixel(
-                            buffer,
-                            camera,
-                            x0,
-                            a[1],
-                            z0,
-                            polygon_border,
-                        );
+                        Terminal::render_pixel(buffer, camera, x0, a[1], z0, polygon_border);
 
                         let e2 = 2 * err;
 
@@ -546,56 +530,123 @@ impl Terminal {
                         .unwrap();
 
                     // Scan from "top-left" to "bottom-right" and to fill polygon.
-                    for z in start_z..=end_z{
-                        let mut start_upper = None;
-                        let mut start_lower = None;
+                    for z in ((start_z + 2)..=end_z).step_by(2) {
+                        // let mut start_upper = None;
+                        // let mut start_lower = None;
 
                         for x in start_x..=end_x {
                             // Extract and adjust position based on camera resolution.
                             let x = x + (self.config.camera.resolution.0 / 2) as isize;
                             let z = (z + (self.config.camera.resolution.1 / 2) as isize) / 2;
                             let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
-                            let polygon_fill_border = self.canvas.buffer.pixel(z, x as usize).polygon_fill_border;
+                            let polygon_fill_border =
+                                self.canvas.buffer.pixel(z, x as usize).polygon_fill_border;
 
-                            if polygon_fill_border.0 {
-                                if let Some(start) = start_upper.as_mut() {
-                                    if x == *start + 1 {
-                                        *start = x;
-                                    } else {
-                                        // for fill in *start..=x {
-                                        //     let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
-                                        //     if pixel.value() == pixel::Value::Lower.value() {
-                                        //         pixel.set_value(pixel::Value::Full);
-                                        //     } else if pixel.value() != pixel::Value::Full.value() {
-                                        //         pixel.set_value(pixel::Value::Upper);
-                                        //     }
-                                        // }
-                                    }
-                                } else {
-                                    start_upper = Some(x);
-                                }
-                                self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.0 = false;
-                            }
+                            // if polygon_fill_border.0 {
+                            //     if let Some(start) = start_upper.as_mut() {
+                            //         if x == *start + 1 {
+                            //             *start = x;
+                            //             self.canvas
+                            //                 .buffer
+                            //                 .pixel_mut(z, x as usize)
+                            //                 .polygon_fill_border
+                            //                 .0 = false;
+                            //         } else {
+                            //             let depth =
+                            //                 self.canvas.buffer.pixel(z, *start as usize).depth;
 
-                            if polygon_fill_border.1 {
-                                if let Some(start) = start_lower.as_mut() {
-                                    if x == *start + 1 {
-                                        *start = x;
-                                    } else {
-                                        // for fill in *start..=x {
-                                        //     let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
-                                        //     if pixel.value() == pixel::Value::Upper.value() {
-                                        //         pixel.set_value(pixel::Value::Full);
-                                        //     } else if pixel.value() != pixel::Value::Full.value() {
-                                        //         pixel.set_value(pixel::Value::Lower);
-                                        //     }
-                                        // }
-                                    }
-                                } else {
-                                    start_lower = Some(x);
-                                }
-                                self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.1 = false;
-                            }
+                            //             for fill in *start..=x {
+                            //                 let pixel =
+                            //                     self.canvas.buffer.pixel_mut(z, fill as usize);
+                            //                 if !pixel.polygon_fill_border.0 {
+                            //                     if depth.0 > pixel.depth.0 {
+                            //                         pixel.set_char('\u{2594}');
+                            //                         // }
+                            //                         // if pixel.value() == pixel::Value::Lower.value() {
+                            //                         //     pixel.set_value(pixel::Value::Full);
+                            //                         // } else if pixel.value() != pixel::Value::Full.value() {
+                            //                         //     pixel.set_value(pixel::Value::Upper);
+                            //                     }
+                            //                 }
+                            //             }
+                            //             self.canvas
+                            //                 .buffer
+                            //                 .pixel_mut(z, *start as usize)
+                            //                 .polygon_fill_border
+                            //                 .0 = false;
+                            //             self.canvas
+                            //                 .buffer
+                            //                 .pixel_mut(z, x as usize)
+                            //                 .polygon_fill_border
+                            //                 .0 = false;
+                            //         }
+                            //     } else {
+                            //         start_upper = Some(x);
+                            //     }
+                            // }
+
+                            // if polygon_fill_border.1 {
+                            //     if let Some(start) = start_lower.as_mut() {
+                            //         if x == *start + 1 {
+                            //             *start = x;
+                            //             self.canvas
+                            //                 .buffer
+                            //                 .pixel_mut(z, x as usize)
+                            //                 .polygon_fill_border
+                            //                 .1 = false;
+                            //         } else {
+                            //             let depth =
+                            //                 self.canvas.buffer.pixel(z, *start as usize).depth;
+
+                            //             for fill in *start..=x {
+                            //                 let pixel =
+                            //                     self.canvas.buffer.pixel_mut(z, fill as usize);
+                            //                 if !pixel.polygon_fill_border.1 {
+                            //                     if depth.1 > pixel.depth.1 {
+                            //                         pixel.set_char('\u{2581}');
+                            //                         // }
+                            //                         // if pixel.value() == pixel::Value::Lower.value() {
+                            //                         //     pixel.set_value(pixel::Value::Full);
+                            //                         // } else if pixel.value() != pixel::Value::Full.value() {
+                            //                         //     pixel.set_value(pixel::Value::Upper);
+                            //                     }
+                            //                 }
+                            //             }
+                            //             self.canvas
+                            //                 .buffer
+                            //                 .pixel_mut(z, *start as usize)
+                            //                 .polygon_fill_border
+                            //                 .1 = false;
+                            //             self.canvas
+                            //                 .buffer
+                            //                 .pixel_mut(z, x as usize)
+                            //                 .polygon_fill_border
+                            //                 .1 = false;
+                            //         }
+                            //     } else {
+                            //         start_lower = Some(x);
+                            //     }
+                            // }
+
+                            // if polygon_fill_border.1 {
+                            //     if let Some(start) = start_lower.as_mut() {
+                            //         if x == *start + 1 {
+                            //             *start = x;
+                            //         } else {
+                            //             // for fill in *start..=x {
+                            //             //     let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
+                            //             //     if pixel.value() == pixel::Value::Upper.value() {
+                            //             //         pixel.set_value(pixel::Value::Full);
+                            //             //     } else if pixel.value() != pixel::Value::Full.value() {
+                            //             //         pixel.set_value(pixel::Value::Lower);
+                            //             //     }
+                            //             // }
+                            //         }
+                            //     } else {
+                            //         start_lower = Some(x);
+                            //     }
+                            //     self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.1 = false;
+                            // }
                         }
                     }
                 }
