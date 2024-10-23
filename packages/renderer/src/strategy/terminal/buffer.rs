@@ -61,10 +61,6 @@ pub mod pixel {
             self.slice[VALUE_MAX_LEN - 1] = value.value();
         }
 
-        pub fn set_char(&mut self, c: char) {
-            self.slice[VALUE_MAX_LEN - 1] = c;
-        }
-
         // pub fn set_color(&mut self, rgb: &RGB) {
         //     self.value[7..].copy_from_slice(&rgb.0);
         //     self.value[11..].copy_from_slice(&rgb.1);
@@ -77,6 +73,7 @@ pub mod pixel {
         Upper,
         Lower,
         Full,
+        Custom(char),
         Empty,
     }
 
@@ -86,6 +83,7 @@ pub mod pixel {
                 Value::Upper => '\u{2580}', // ▀
                 Value::Lower => '\u{2584}', // ▄
                 Value::Full => '\u{2588}',  // █
+                Value::Custom(c) => *c,
                 Value::Empty => ' ',
             }
         }

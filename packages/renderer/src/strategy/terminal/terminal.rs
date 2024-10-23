@@ -631,126 +631,6 @@ impl Terminal {
 
                             self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.1 = false;
                         }
-
-                        print!("\x1B[2KUpper:");
-                        for x in start_x..=end_x {
-                            // Extract and adjust position based on camera resolution.
-                            let x = x + (self.config.camera.resolution.0 / 2) as isize;
-                            let z = (z + (self.config.camera.resolution.1 / 2) as isize) / 2;
-                            let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
-                            let pixel = self.canvas.buffer.pixel(z, x as usize);
-                            if let Some(depth) = pixel.depth.0 {
-                                print!("{},", depth as isize);
-                            } else {
-                                print!("0,");
-                            }
-                        }
-                        println!("########");
-
-                        print!("\x1B[2KLower:");
-                        for x in start_x..=end_x {
-                            // Extract and adjust position based on camera resolution.
-                            let x = x + (self.config.camera.resolution.0 / 2) as isize;
-                            let z = (z + (self.config.camera.resolution.1 / 2) as isize) / 2;
-                            let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
-                            let pixel = self.canvas.buffer.pixel(z, x as usize);
-                            if let Some(depth) = pixel.depth.1 {
-                                print!("{},", depth as isize);
-                            } else {
-                                print!("0,");
-                            }
-                        }
-                        println!("########");
-
-                            // if polygon_fill_border.0 {
-                            //     if let Some(start) = start_upper.as_mut() {
-                            //         if x == *start + 1 {
-                            //             *start = x;
-                            //             self.canvas
-                            //                 .buffer
-                            //                 .pixel_mut(z, x as usize)
-                            //                 .polygon_fill_border
-                            //                 .0 = false;
-                            //         } else {
-                            //             let depth =
-                            //                 self.canvas.buffer.pixel(z, *start as usize).depth;
-
-                            //             for fill in (*start)..=x {
-                            //                 let pixel =
-                            //                     self.canvas.buffer.pixel_mut(z, fill as usize);
-                            //                 // if !pixel.polygon_fill_border.0 {
-                            //                 if depth.0 < pixel.depth.0 {
-                            //                     // pixel.set_char('\u{2594}');
-                            //                     // }
-                            //                     // if pixel.value() == pixel::Value::Lower.value() {
-                            //                     //     pixel.set_value(pixel::Value::Full);
-                            //                     // } else if pixel.value() != pixel::Value::Full.value() {
-                            //                     //     pixel.set_value(pixel::Value::Upper);
-                            //                     // if pixel.value() == pixel::Value::Upper.value() {
-                            //                     //     pixel.set_value(pixel::Value::Empty);
-                            //                     // } else if pixel.value()
-                            //                     //     != pixel::Value::Full.value()
-                            //                     // {
-                            //                     //     pixel.set_value(pixel::Value::Lower);
-                            //                     // }
-                            //                 }
-                            //                 // }
-                            //             }
-                            //         }
-                            //     } else {
-                            //         start_upper = Some(x);
-                            //     }
-                            // }
-
-                        //     //     self.canvas
-                        //     //         .buffer
-                        //     //         .pixel_mut(z, x as usize)
-                        //     //         .polygon_fill_border
-                        //     //         .0 = false;
-                        //     // }
-
-                        //     // if polygon_fill_border.1 {
-                        //     //     if let Some(start) = start_lower.as_mut() {
-                        //     //         if x == *start + 1 {
-                        //     //             *start = x;
-                        //     //             self.canvas
-                        //     //                 .buffer
-                        //     //                 .pixel_mut(z, x as usize)
-                        //     //                 .polygon_fill_border
-                        //     //                 .1 = false;
-                        //     //         } else {
-                        //     //             let depth =
-                        //     //                 self.canvas.buffer.pixel(z, *start as usize).depth;
-
-                        //     //             for fill in (*start)..=x {
-                        //     //                 let pixel =
-                        //     //                     self.canvas.buffer.pixel_mut(z, fill as usize);
-                        //     //                 // if !pixel.polygon_fill_border.1 {
-                        //     //                 if depth.1 < pixel.depth.1 {
-                        //     //                     // pixel.set_char('\u{2581}');
-                        //     //                     // }
-                        //     //                     if pixel.value() == pixel::Value::Lower.value() {
-                        //     //                         pixel.set_value(pixel::Value::Empty);
-                        //     //                     } else if pixel.value()
-                        //     //                         != pixel::Value::Full.value()
-                        //     //                     {
-                        //     //                         pixel.set_value(pixel::Value::Upper);
-                        //     //                     }
-                        //     //                 }
-                        //     //                 // }
-                        //     //             }
-                        //     //         }
-                        //     //     } else {
-                        //     //         start_lower = Some(x);
-                        //     //     }
-
-                        //     //     self.canvas
-                        //     //         .buffer
-                        //     //         .pixel_mut(z, x as usize)
-                        //     //         .polygon_fill_border
-                        //     //         .1 = false;
-                            // }
-                        // }
                     }
                 }
             } else {
@@ -768,12 +648,6 @@ impl Terminal {
     /// Print canvas buffer to terminal.
     fn write_rendered_scene_to_stdout(&mut self) {
         std::io::stdout()
-            // .write_all(unsafe {
-            //     std::slice::from_raw_parts(
-            //         self.canvas.buffer.data().as_ptr() as *const u8,
-            //         std::mem::size_of::<char>() *  self.canvas.buffer.data().len(),
-            //     )
-            // })
             .write_all(
                 &self
                     .canvas
@@ -844,7 +718,7 @@ impl RendererTrait for Terminal {
 
 impl __RendererTrait for Terminal {
     fn new(mut config: RendererConfiguration) -> Result<Self, &'static str> {
-        // println!("\x1B[?1049h"); // Enter alternative buffer mode. I.e., do not affect previous terminal history.
+        println!("\x1B[?1049h"); // Enter alternative buffer mode. I.e., do not affect previous terminal history.
 
         let prev_hook = std::panic::take_hook();
         std::panic::set_hook(Box::new(move |info| {
