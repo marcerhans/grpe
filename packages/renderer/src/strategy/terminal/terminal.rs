@@ -541,7 +541,7 @@ impl Terminal {
                         .unwrap();
 
                     // Scan from "top-left" to "bottom-right" and to fill polygon.
-                    for z in ((start_z)..=(start_z+6)).rev().step_by(2) {
+                    for z in ((start_z)..=end_z).rev().step_by(2) {
                         let mut start_upper = None;
                         let mut start_lower = None;
 
@@ -565,15 +565,31 @@ impl Terminal {
 
                                         for fill in (*start+1)..x {
                                             let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
-                                            pixel.depth.0 = Some(interpolate_depth(depth_start, depth_end, steps_max, step_current));
-                                            step_current += 1.0;
+                                            let depth_new = interpolate_depth(depth_start, depth_end, steps_max, step_current);
 
-                                            // Hmmmmmmmm
+                                            if let Some(depth_old) = &mut pixel.depth.0 {
+                                                if *depth_old > depth_new {
+                                                    *depth_old = depth_new;
+
+                                                    // Fill with empty space.
+                                                    if pixel.value() == pixel::Value::Upper.value() {
+                                                        pixel.set_value(pixel::Value::Empty);
+                                                    } else if pixel.value() == pixel::Value::Full.value() {
+                                                        pixel.set_value(pixel::Value::Lower);
+                                                    }
+                                                }
+                                            } else {
+                                                pixel.depth.0 = Some(depth_new);
+                                            }
+
+                                            step_current += 1.0;
                                         }
                                     }
                                 } else {
                                     start_upper = Some(x);
                                 }
+
+                                self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.0 = false;
                             }
 
                             if polygon_fill_border.1 {
@@ -588,16 +604,32 @@ impl Terminal {
 
                                         for fill in (*start+1)..x {
                                             let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
-                                            pixel.depth.1 = Some(interpolate_depth(depth_start, depth_end, steps_max, step_current));
-                                            step_current += 1.0;
+                                            let depth_new = interpolate_depth(depth_start, depth_end, steps_max, step_current);
 
-                                            // Hmmmmmmmm
+                                            if let Some(depth_old) = &mut pixel.depth.1 {
+                                                if *depth_old > depth_new {
+                                                    *depth_old = depth_new;
+
+                                                    // Fill with empty space.
+                                                    if pixel.value() == pixel::Value::Lower.value() {
+                                                        pixel.set_value(pixel::Value::Empty);
+                                                    } else if pixel.value() == pixel::Value::Full.value() {
+                                                        pixel.set_value(pixel::Value::Upper);
+                                                    }
+                                                }
+                                            } else {
+                                                pixel.depth.1 = Some(depth_new);
+                                            }
+
+                                            step_current += 1.0;
                                         }
                                     }
                                 } else {
                                     start_lower = Some(x);
                                 }
                             }
+
+                            self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.1 = false;
                         }
 
                         print!("\x1B[2KUpper:");
