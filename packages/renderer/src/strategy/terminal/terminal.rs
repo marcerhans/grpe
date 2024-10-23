@@ -273,9 +273,10 @@ impl Terminal {
         }
 
         if let Some(current_depth) = current_depth {
-            if *current_depth < y {
+            if *current_depth > y {
                 *current_depth = y;
             } else {
+                // New value(s) should be ignored.
                 return;
             }
         } else {
@@ -363,6 +364,12 @@ impl Terminal {
         if polyfill {
             assert!(culling);
         }
+        
+        #[inline]
+        fn interpolate_depth(start: f64, end: f64, steps_max: f64, step_current: f64) -> f64 {
+            let div = step_current / steps_max;
+            (1.0 - div) * start + div * end
+        }
 
         fn render_lines(
             order: &[usize],
@@ -386,9 +393,11 @@ impl Terminal {
                     let sz = (z1 - z0).signum();
 
                     let mut err = dx - dz;
+                    let steps_max = (b[0] - a[0]).abs() + (b[2] - a[2]).abs();
+                    let mut step_current = 0.0;
 
                     while x0 != x1 || z0 != z1 {
-                        Terminal::render_pixel(buffer, camera, x0, a[1], z0, polygon_border);
+                        Terminal::render_pixel(buffer, camera, x0, interpolate_depth(a[1], b[1], steps_max, step_current), z0, polygon_border);
 
                         let e2 = 2 * err;
 
@@ -401,6 +410,8 @@ impl Terminal {
                             err = err + dx;
                             z0 = z0 + sz;
                         }
+
+                        step_current += 1.0;
                     }
                 }
             }
@@ -530,9 +541,9 @@ impl Terminal {
                         .unwrap();
 
                     // Scan from "top-left" to "bottom-right" and to fill polygon.
-                    for z in ((start_z + 2)..=end_z).step_by(2) {
-                        // let mut start_upper = None;
-                        // let mut start_lower = None;
+                    for z in ((start_z)..=(start_z+6)).rev().step_by(2) {
+                        let mut start_upper = None;
+                        let mut start_lower = None;
 
                         for x in start_x..=end_x {
                             // Extract and adjust position based on camera resolution.
@@ -541,6 +552,83 @@ impl Terminal {
                             let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
                             let polygon_fill_border =
                                 self.canvas.buffer.pixel(z, x as usize).polygon_fill_border;
+
+                            if polygon_fill_border.0 {
+                                if let Some(start) = start_upper.as_mut() {
+                                    if x == *start + 1 {
+                                        *start = x;
+                                    } else {
+                                        let depth_start = self.canvas.buffer.pixel(z, *start as usize).depth.0.unwrap();
+                                        let depth_end = self.canvas.buffer.pixel(z, *start as usize).depth.0.unwrap();
+                                        let steps_max = (x - *start) as f64;
+                                        let mut step_current: f64 = 0.0;
+
+                                        for fill in (*start+1)..x {
+                                            let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
+                                            pixel.depth.0 = Some(interpolate_depth(depth_start, depth_end, steps_max, step_current));
+                                            step_current += 1.0;
+
+                                            // Hmmmmmmmm
+                                        }
+                                    }
+                                } else {
+                                    start_upper = Some(x);
+                                }
+                            }
+
+                            if polygon_fill_border.1 {
+                                if let Some(start) = start_lower.as_mut() {
+                                    if x == *start + 1 {
+                                        *start = x;
+                                    } else {
+                                        let depth_start = self.canvas.buffer.pixel(z, *start as usize).depth.1.unwrap();
+                                        let depth_end = self.canvas.buffer.pixel(z, *start as usize).depth.1.unwrap();
+                                        let steps_max = (x - *start) as f64;
+                                        let mut step_current: f64 = 0.0;
+
+                                        for fill in (*start+1)..x {
+                                            let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
+                                            pixel.depth.1 = Some(interpolate_depth(depth_start, depth_end, steps_max, step_current));
+                                            step_current += 1.0;
+
+                                            // Hmmmmmmmm
+                                        }
+                                    }
+                                } else {
+                                    start_lower = Some(x);
+                                }
+                            }
+                        }
+
+                        print!("\x1B[2KUpper:");
+                        for x in start_x..=end_x {
+                            // Extract and adjust position based on camera resolution.
+                            let x = x + (self.config.camera.resolution.0 / 2) as isize;
+                            let z = (z + (self.config.camera.resolution.1 / 2) as isize) / 2;
+                            let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
+                            let pixel = self.canvas.buffer.pixel(z, x as usize);
+                            if let Some(depth) = pixel.depth.0 {
+                                print!("{},", depth as isize);
+                            } else {
+                                print!("0,");
+                            }
+                        }
+                        println!("########");
+
+                        print!("\x1B[2KLower:");
+                        for x in start_x..=end_x {
+                            // Extract and adjust position based on camera resolution.
+                            let x = x + (self.config.camera.resolution.0 / 2) as isize;
+                            let z = (z + (self.config.camera.resolution.1 / 2) as isize) / 2;
+                            let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
+                            let pixel = self.canvas.buffer.pixel(z, x as usize);
+                            if let Some(depth) = pixel.depth.1 {
+                                print!("{},", depth as isize);
+                            } else {
+                                print!("0,");
+                            }
+                        }
+                        println!("########");
 
                             // if polygon_fill_border.0 {
                             //     if let Some(start) = start_upper.as_mut() {
@@ -555,99 +643,82 @@ impl Terminal {
                             //             let depth =
                             //                 self.canvas.buffer.pixel(z, *start as usize).depth;
 
-                            //             for fill in *start..=x {
+                            //             for fill in (*start)..=x {
                             //                 let pixel =
                             //                     self.canvas.buffer.pixel_mut(z, fill as usize);
-                            //                 if !pixel.polygon_fill_border.0 {
-                            //                     if depth.0 > pixel.depth.0 {
-                            //                         pixel.set_char('\u{2594}');
-                            //                         // }
-                            //                         // if pixel.value() == pixel::Value::Lower.value() {
-                            //                         //     pixel.set_value(pixel::Value::Full);
-                            //                         // } else if pixel.value() != pixel::Value::Full.value() {
-                            //                         //     pixel.set_value(pixel::Value::Upper);
-                            //                     }
+                            //                 // if !pixel.polygon_fill_border.0 {
+                            //                 if depth.0 < pixel.depth.0 {
+                            //                     // pixel.set_char('\u{2594}');
+                            //                     // }
+                            //                     // if pixel.value() == pixel::Value::Lower.value() {
+                            //                     //     pixel.set_value(pixel::Value::Full);
+                            //                     // } else if pixel.value() != pixel::Value::Full.value() {
+                            //                     //     pixel.set_value(pixel::Value::Upper);
+                            //                     // if pixel.value() == pixel::Value::Upper.value() {
+                            //                     //     pixel.set_value(pixel::Value::Empty);
+                            //                     // } else if pixel.value()
+                            //                     //     != pixel::Value::Full.value()
+                            //                     // {
+                            //                     //     pixel.set_value(pixel::Value::Lower);
+                            //                     // }
                             //                 }
+                            //                 // }
                             //             }
-                            //             self.canvas
-                            //                 .buffer
-                            //                 .pixel_mut(z, *start as usize)
-                            //                 .polygon_fill_border
-                            //                 .0 = false;
-                            //             self.canvas
-                            //                 .buffer
-                            //                 .pixel_mut(z, x as usize)
-                            //                 .polygon_fill_border
-                            //                 .0 = false;
                             //         }
                             //     } else {
                             //         start_upper = Some(x);
                             //     }
                             // }
 
-                            // if polygon_fill_border.1 {
-                            //     if let Some(start) = start_lower.as_mut() {
-                            //         if x == *start + 1 {
-                            //             *start = x;
-                            //             self.canvas
-                            //                 .buffer
-                            //                 .pixel_mut(z, x as usize)
-                            //                 .polygon_fill_border
-                            //                 .1 = false;
-                            //         } else {
-                            //             let depth =
-                            //                 self.canvas.buffer.pixel(z, *start as usize).depth;
+                        //     //     self.canvas
+                        //     //         .buffer
+                        //     //         .pixel_mut(z, x as usize)
+                        //     //         .polygon_fill_border
+                        //     //         .0 = false;
+                        //     // }
 
-                            //             for fill in *start..=x {
-                            //                 let pixel =
-                            //                     self.canvas.buffer.pixel_mut(z, fill as usize);
-                            //                 if !pixel.polygon_fill_border.1 {
-                            //                     if depth.1 > pixel.depth.1 {
-                            //                         pixel.set_char('\u{2581}');
-                            //                         // }
-                            //                         // if pixel.value() == pixel::Value::Lower.value() {
-                            //                         //     pixel.set_value(pixel::Value::Full);
-                            //                         // } else if pixel.value() != pixel::Value::Full.value() {
-                            //                         //     pixel.set_value(pixel::Value::Upper);
-                            //                     }
-                            //                 }
-                            //             }
-                            //             self.canvas
-                            //                 .buffer
-                            //                 .pixel_mut(z, *start as usize)
-                            //                 .polygon_fill_border
-                            //                 .1 = false;
-                            //             self.canvas
-                            //                 .buffer
-                            //                 .pixel_mut(z, x as usize)
-                            //                 .polygon_fill_border
-                            //                 .1 = false;
-                            //         }
-                            //     } else {
-                            //         start_lower = Some(x);
-                            //     }
-                            // }
+                        //     // if polygon_fill_border.1 {
+                        //     //     if let Some(start) = start_lower.as_mut() {
+                        //     //         if x == *start + 1 {
+                        //     //             *start = x;
+                        //     //             self.canvas
+                        //     //                 .buffer
+                        //     //                 .pixel_mut(z, x as usize)
+                        //     //                 .polygon_fill_border
+                        //     //                 .1 = false;
+                        //     //         } else {
+                        //     //             let depth =
+                        //     //                 self.canvas.buffer.pixel(z, *start as usize).depth;
 
-                            // if polygon_fill_border.1 {
-                            //     if let Some(start) = start_lower.as_mut() {
-                            //         if x == *start + 1 {
-                            //             *start = x;
-                            //         } else {
-                            //             // for fill in *start..=x {
-                            //             //     let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
-                            //             //     if pixel.value() == pixel::Value::Upper.value() {
-                            //             //         pixel.set_value(pixel::Value::Full);
-                            //             //     } else if pixel.value() != pixel::Value::Full.value() {
-                            //             //         pixel.set_value(pixel::Value::Lower);
-                            //             //     }
-                            //             // }
-                            //         }
-                            //     } else {
-                            //         start_lower = Some(x);
-                            //     }
-                            //     self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.1 = false;
+                        //     //             for fill in (*start)..=x {
+                        //     //                 let pixel =
+                        //     //                     self.canvas.buffer.pixel_mut(z, fill as usize);
+                        //     //                 // if !pixel.polygon_fill_border.1 {
+                        //     //                 if depth.1 < pixel.depth.1 {
+                        //     //                     // pixel.set_char('\u{2581}');
+                        //     //                     // }
+                        //     //                     if pixel.value() == pixel::Value::Lower.value() {
+                        //     //                         pixel.set_value(pixel::Value::Empty);
+                        //     //                     } else if pixel.value()
+                        //     //                         != pixel::Value::Full.value()
+                        //     //                     {
+                        //     //                         pixel.set_value(pixel::Value::Upper);
+                        //     //                     }
+                        //     //                 }
+                        //     //                 // }
+                        //     //             }
+                        //     //         }
+                        //     //     } else {
+                        //     //         start_lower = Some(x);
+                        //     //     }
+
+                        //     //     self.canvas
+                        //     //         .buffer
+                        //     //         .pixel_mut(z, x as usize)
+                        //     //         .polygon_fill_border
+                        //     //         .1 = false;
                             // }
-                        }
+                        // }
                     }
                 }
             } else {
@@ -741,7 +812,7 @@ impl RendererTrait for Terminal {
 
 impl __RendererTrait for Terminal {
     fn new(mut config: RendererConfiguration) -> Result<Self, &'static str> {
-        println!("\x1B[?1049h"); // Enter alternative buffer mode. I.e., do not affect previous terminal history.
+        // println!("\x1B[?1049h"); // Enter alternative buffer mode. I.e., do not affect previous terminal history.
 
         let prev_hook = std::panic::take_hook();
         std::panic::set_hook(Box::new(move |info| {
