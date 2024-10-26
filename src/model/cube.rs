@@ -57,14 +57,14 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     // Line Particles.
     lines.push(vec![4,5]);
     lines.push(vec![6,7]);
-    // lines.push(vec![20,23]); // Cross
-    // lines.push(vec![21,22]); // Cross
+    lines.push(vec![20,23]); // Cross
+    lines.push(vec![21,22]); // Cross
 
     // // Faces
     lines.push(vec![8, 9, 10, 11, 8]); // Front
     // lines.push(vec![12, 15, 14, 13, 12]); // Back
     // lines.push(vec![12, 8, 11, 15, 12]); // Left
-    // lines.push(vec![9, 13, 14, 10, 9]); // Right
+    lines.push(vec![9, 13, 14, 10, 9]); // Right
     lines.push(vec![11, 10, 14, 15, 11]); // Top
     // lines.push(vec![8, 12, 13, 9, 8]); // Bottom
     // lines.push(vec![16, 17, 18, 19, 16]); // Backpanel
