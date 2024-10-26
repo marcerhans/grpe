@@ -547,7 +547,7 @@ impl Terminal {
                     for z in (start_z..=end_z).rev().step_by(2) {
                         let mut start_upper = None;
                         let z_ = z;
-                        // let mut start_lower = None;
+                        let mut start_lower = None;
                         let x = start_x + (self.config.camera.resolution.0 / 2) as isize;
                         let z = (start_z + (self.config.camera.resolution.1 / 2) as isize) / 2;
                         let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
@@ -634,45 +634,46 @@ impl Terminal {
                                 self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.0 -= 1;
                             }
 
-                            // if polygon_fill_border.1 > 0 {
-                            //     if let Some(start) = start_lower.as_mut() {
-                            //         if x == *start + 1 {
-                            //             *start = x;
-                            //         } else {
-                            //             let depth_start = self.canvas.buffer.pixel(z, *start as usize).depth.1.unwrap();
-                            //             let depth_end = self.canvas.buffer.pixel(z, *start as usize).depth.1.unwrap();
-                            //             let steps_max = (x - *start) as f64;
-                            //             let mut step_current: f64 = 0.0;
+                            if polygon_fill_border.1 > 0 {
+                                if let Some(start) = start_lower.as_mut() {
+                                    if x == *start + 1 {
+                                        *start = x;
+                                    } else {
+                                        let depth_start = self.canvas.buffer.pixel(z, *start as usize).depth.1.unwrap();
+                                        let depth_end = self.canvas.buffer.pixel(z, *start as usize).depth.1.unwrap();
+                                        let steps_max = (x - *start) as f64;
+                                        let mut step_current: f64 = 0.0;
 
-                            //             for fill in (*start+1)..x {
-                            //                 let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
-                            //                 let depth_new = interpolate_depth(depth_start, depth_end, steps_max, step_current);
+                                        for fill in (*start+1)..x {
+                                            let pixel = self.canvas.buffer.pixel_mut(z, fill as usize);
+                                            let depth_new = interpolate_depth(depth_start, depth_end, steps_max, step_current);
 
-                            //                 if let Some(depth_old) = &mut pixel.depth.1 {
-                            //                     if *depth_old > depth_new {
-                            //                         *depth_old = depth_new;
+                                            if let Some(depth_old) = &mut pixel.depth.1 {
+                                                if *depth_old > depth_new {
+                                                    *depth_old = depth_new;
 
-                            //                         // Fill with empty space.
-                            //                         if pixel.value() == pixel::Value::Lower.value() {
-                            //                             pixel.set_value(pixel::Value::Custom('_'));
-                            //                         } else if pixel.value() == pixel::Value::Full.value() {
-                            //                             pixel.set_value(pixel::Value::Upper);
-                            //                         }
-                            //                     }
-                            //                 } else {
-                            //                     pixel.depth.1 = Some(depth_new);
-                            //                 }
+                                                    // Fill with empty space.
+                                                    if pixel.value() == pixel::Value::Lower.value() {
+                                                        // pixel.set_value(pixel::Value::Custom(char::from_digit(count, 16).unwrap_or('F')));
+                                                        // pixel.set_value(pixel::Value::Custom('*'));
+                                                        pixel.set_value(pixel::Value::Empty);
+                                                    } else if pixel.value() == pixel::Value::Full.value() {
+                                                        pixel.set_value(pixel::Value::Upper);
+                                                    }
+                                                }
+                                            } else {
+                                                pixel.depth.1 = Some(depth_new);
+                                            }
 
-                            //                 step_current += 1.0;
-                            //             }
-                            //         }
-                            //     } else {
-                            //         start_lower = Some(x);
-                            //     }
+                                            step_current += 1.0;
+                                        }
+                                    }
+                                } else {
+                                    start_upper = Some(x);
+                                }
 
-                            //     // self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.1 -= 1;
-                            // }
-
+                                self.canvas.buffer.pixel_mut(z, x as usize).polygon_fill_border.1 -= 1;
+                            }
                         }
 
                         // print!("\x1B[2K{}:", count);
