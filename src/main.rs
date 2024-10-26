@@ -93,7 +93,7 @@ fn main() {
                 write!(
                     writer,
                     "\x1B[{};H\x1B[2K",
-                    (updated_config.camera.resolution.1 + 60) / 2
+                    (updated_config.camera.resolution.1 + 110) / 2
                 )
                 .unwrap();
                 let info  = format!("FPS: {:0>4} | Events handled: {:0>10} | Resolution: ({},{}) | FOV: {:0>3} | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2}) | Camera Position: ({:.2},{:.2},{:.2}) | ViewMode: {} | RenderOption: {}",
