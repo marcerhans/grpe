@@ -568,22 +568,22 @@ impl Terminal {
                         let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
                         self.canvas.buffer.pixel_mut(z, x as usize).set_value(pixel::Value::Custom('#'));
 
-                        print!("\x1B[2K{}:", count);
-                        for x in start_x..=end_x {
-                            // Extract and adjust position based on camera resolution.
-                            let x = x + (self.config.camera.resolution.0 / 2) as isize;
-                            let z = (z_ + (self.config.camera.resolution.1 / 2) as isize) / 2;
-                            let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
-                            let pixel = self.canvas.buffer.pixel(z, x as usize);
+                        // print!("\x1B[2K{}:", count);
+                        // for x in start_x..=end_x {
+                        //     // Extract and adjust position based on camera resolution.
+                        //     let x = x + (self.config.camera.resolution.0 / 2) as isize;
+                        //     let z = (z_ + (self.config.camera.resolution.1 / 2) as isize) / 2;
+                        //     let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
+                        //     let pixel = self.canvas.buffer.pixel(z, x as usize);
 
-                            // if let Some(depth) = pixel.depth.0 {
-                            //     print!("{},", depth as isize);
-                            // } else {
-                            //     print!("0,");
-                            // }
-                            print!("{}", pixel.polygon_fill_border.0);
-                        }
-                        println!("########");
+                        //     // if let Some(depth) = pixel.depth.0 {
+                        //     //     print!("{},", depth as isize);
+                        //     // } else {
+                        //     //     print!("0,");
+                        //     // }
+                        //     print!("{}", pixel.polygon_fill_border.0);
+                        // }
+                        // println!("########");
 
                         for x in start_x..=end_x {
                             // Extract and adjust position based on camera resolution.
@@ -613,8 +613,9 @@ impl Terminal {
 
                                                     // Fill with empty space.
                                                     if pixel.value() == pixel::Value::Upper.value() {
-                                                        pixel.set_value(pixel::Value::Custom(char::from_digit(count, 16).unwrap_or('F')));
+                                                        // pixel.set_value(pixel::Value::Custom(char::from_digit(count, 16).unwrap_or('F')));
                                                         // pixel.set_value(pixel::Value::Custom('*'));
+                                                        pixel.set_value(pixel::Value::Empty);
                                                     } else if pixel.value() == pixel::Value::Full.value() {
                                                         pixel.set_value(pixel::Value::Lower);
                                                     }
