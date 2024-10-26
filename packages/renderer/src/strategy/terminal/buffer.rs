@@ -30,7 +30,7 @@ pub mod pixel {
         pub depth: (Option<f64>, Option<f64>),
 
         /// Used for defining the edges of a polygon to be filled. Is switched of when polygon has been filled. Upper, lower.
-        pub polygon_fill_border: (bool, bool),
+        pub polygon_fill_border: (usize, usize),
 
         /// Slice of buffer in [super::TerminalBuffer].
         slice: &'static mut [char],
@@ -42,14 +42,14 @@ pub mod pixel {
             slice.copy_from_slice(&EMPTY);
             Self {
                 depth: (None, None),
-                polygon_fill_border: (false, false),
+                polygon_fill_border: (0, 0),
                 slice,
             }
         }
 
         pub fn reset(&mut self) {
             self.depth = (None, None);
-            self.polygon_fill_border = (false, false);
+            self.polygon_fill_border = (0, 0);
             self.slice.copy_from_slice(&EMPTY);
         }
 

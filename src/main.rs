@@ -46,7 +46,7 @@ fn main() {
     let vertices = Rc::new(RefCell::new(
         args.model
             .as_ref()
-            .unwrap_or(&model::Model::Plane)
+            .unwrap_or(&model::Model::Cube)
             .get_vertices(),
     ));
     renderer.set_vertices(Rc::clone(&vertices));
@@ -55,7 +55,7 @@ fn main() {
     let line_draw_order = Rc::new(RefCell::new(
         args.model
             .as_ref()
-            .unwrap_or(&model::Model::Plane)
+            .unwrap_or(&model::Model::Cube)
             .get_line_draw_order(),
     ));
     renderer.set_vertices_line_draw_order(Rc::clone(&line_draw_order));
@@ -93,7 +93,7 @@ fn main() {
                 write!(
                     writer,
                     "\x1B[{};H\x1B[2K",
-                    (updated_config.camera.resolution.1 + 4) / 2
+                    (updated_config.camera.resolution.1 + 110) / 2
                 )
                 .unwrap();
                 let info  = format!("FPS: {:0>4} | Events handled: {:0>10} | Resolution: ({},{}) | FOV: {:0>3} | Camera Rotation: (Pitch: {:.2}, Yaw: {:.2}) | Camera Position: ({:.2},{:.2},{:.2}) | ViewMode: {} | RenderOption: {}",
