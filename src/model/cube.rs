@@ -62,12 +62,12 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
 
     // // Faces
     lines.push(vec![8, 9, 10, 11, 8]); // Front
-    // lines.push(vec![12, 15, 14, 13, 12]); // Back
-    // lines.push(vec![12, 8, 11, 15, 12]); // Left
+    lines.push(vec![12, 15, 14, 13, 12]); // Back
+    lines.push(vec![12, 8, 11, 15, 12]); // Left
     lines.push(vec![9, 13, 14, 10, 9]); // Right
     lines.push(vec![11, 10, 14, 15, 11]); // Top
-    // lines.push(vec![8, 12, 13, 9, 8]); // Bottom
-    // lines.push(vec![16, 17, 18, 19, 16]); // Backpanel
+    lines.push(vec![8, 12, 13, 9, 8]); // Bottom
+    lines.push(vec![16, 17, 18, 19, 16]); // Backpanel
 
     // lines.push(vec![24, 25, 26, 27, 24]); // Top
     // lines.push(vec![9, 25, 26, 10, 9]); // Top
