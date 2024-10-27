@@ -569,7 +569,7 @@ impl Terminal {
                                         let pixel = self.canvas.buffer.pixel_mut(z, step as usize);
 
                                         if let Some(depth_old) = pixel.depth.0 {
-                                            if depth_old > depth_new {
+                                            if !polygon_fill_border.0 && depth_old > depth_new {
                                                 // Fill with empty space.
                                                 if pixel.value() == pixel::Value::Upper.value() {
                                                     pixel.set_value(pixel::Value::Empty);
@@ -578,6 +578,8 @@ impl Terminal {
                                                 {
                                                     pixel.set_value(pixel::Value::Lower);
                                                 }
+
+                                                pixel.depth.0 = Some(depth_new);
                                             }
                                         } else {
                                             pixel.depth.0 = Some(depth_new);
@@ -585,6 +587,8 @@ impl Terminal {
 
                                         steps_taken += 1.0;
                                     }
+
+                                    start_upper = Some(*start);
                                 } else {
                                     start_upper = Some(x);
                                 }
