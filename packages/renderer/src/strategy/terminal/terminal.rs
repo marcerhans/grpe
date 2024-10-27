@@ -569,10 +569,11 @@ impl Terminal {
                                         let pixel = self.canvas.buffer.pixel_mut(z, step as usize);
 
                                         if let Some(depth_old) = pixel.depth.0 {
-                                            if !polygon_fill_border.0 && depth_old > depth_new {
+                                            if !pixel.polygon_fill_border.0 && depth_old > depth_new {
                                                 // Fill with empty space.
                                                 if pixel.value() == pixel::Value::Upper.value() {
-                                                    pixel.set_value(pixel::Value::Empty);
+                                                    pixel.set_value(pixel::Value::Custom('*'));
+                                                    // pixel.set_value(pixel::Value::Empty);
                                                 } else if pixel.value()
                                                     == pixel::Value::Full.value()
                                                 {
@@ -587,11 +588,9 @@ impl Terminal {
 
                                         steps_taken += 1.0;
                                     }
-
-                                    start_upper = Some(*start);
-                                } else {
-                                    start_upper = Some(x);
                                 }
+
+                                start_upper = Some(x);
                             }
 
                             // Clear border flags.
