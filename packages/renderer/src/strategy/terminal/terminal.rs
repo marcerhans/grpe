@@ -285,7 +285,6 @@ impl Terminal {
             if *current_depth > y {
                 *current_depth = y;
             } else {
-                // New value(s) should be ignored.
                 return;
             }
         } else {
@@ -560,18 +559,17 @@ impl Terminal {
                                     let steps_max = (x - *start) as f64;
                                     let mut steps_taken = 1.0; // Start at 1, because we skip first.
 
-                                    for step in (*start + 1)..x {
+                                    for step in (*start..x).skip(1) {
                                         let depth_new = interpolate_depth(
                                             depth_start,
                                             depth_end,
                                             steps_max,
                                             steps_taken,
                                         );
-                                        let mut pixel =
-                                            self.canvas.buffer.pixel_mut(z, step as usize);
+                                        let pixel = self.canvas.buffer.pixel_mut(z, step as usize);
 
                                         if let Some(depth_old) = pixel.depth.0 {
-                                            if !pixel.polygon_fill_border.0 && depth_old > depth_new {
+                                            if depth_old > depth_new {
                                                 // Fill with empty space.
                                                 if pixel.value() == pixel::Value::Upper.value() {
                                                     pixel.set_value(pixel::Value::Empty);
