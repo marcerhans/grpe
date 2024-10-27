@@ -571,7 +571,7 @@ impl Terminal {
                                             self.canvas.buffer.pixel_mut(z, step as usize);
 
                                         if let Some(depth_old) = pixel.depth.0 {
-                                            if depth_old > depth_new {
+                                            if !pixel.polygon_fill_border.0 && depth_old > depth_new {
                                                 // Fill with empty space.
                                                 if pixel.value() == pixel::Value::Upper.value() {
                                                     pixel.set_value(pixel::Value::Empty);
