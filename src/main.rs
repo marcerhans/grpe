@@ -35,7 +35,7 @@ fn main() {
     // 2. Instantiate renderer.
     let camera_default = Camera {
         resolution: args.resolution.unwrap_or((64, 64)),
-        position: VectorRow::from([0.0, 0.0, 0.0]),
+        position: VectorRow::from([4.0, 0.0, 0.0]),
         rotation: (rotation, rotation_prim),
         projection_mode: ProjectionMode::Perspective { fov: 90 },
         ..Default::default()
