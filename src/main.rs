@@ -21,11 +21,22 @@ fn main() {
     // 1. Instantiate IO handler.
     let event_handler = EventHandler::init().expect("Failed to initialize event handler.");
 
+    let rotation: (f64, f64) = (std::f64::consts::FRAC_PI_4, 0.0);
+    let pitch = linear_algebra::quaternion::Quaternion(
+        rotation.0.cos(),
+        rotation.0.sin() * (rotation.1 * 2.0).cos(),
+        rotation.0.sin() * (rotation.1 * 2.0).sin(),
+        0.0,
+    );
+    let yaw = linear_algebra::quaternion::Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
+    let rotation = &pitch * &yaw;
+    let rotation_prim = rotation.inverse();
+
     // 2. Instantiate renderer.
     let camera_default = Camera {
         resolution: args.resolution.unwrap_or((64, 64)),
         position: VectorRow::from([0.0, 0.0, 0.0]),
-        // position: VectorRow::from([0.0, 0.04, 0.0]), // MODEL
+        rotation: (rotation, rotation_prim),
         projection_mode: ProjectionMode::Perspective { fov: 90 },
         ..Default::default()
     };
@@ -36,9 +47,6 @@ fn main() {
         .unwrap();
 
     let mut extras = renderer.extras().clone();
-    // let scale = 66.0; // MODEL
-    // extras.pixel_width_scaling = scale * (47.5 / 32.0); // MODEL: Just for drafting model from image. Shoule be 1.0.
-    // extras.pixel_height_scaling = scale; // MODEL: Just for drafting model from image. Shoule be 1.0.
     extras.pixel_width_scaling = 65.5 / 43.5;
     renderer.set_extras(extras);
 
@@ -64,7 +72,7 @@ fn main() {
     let mut state = StateHandler::new(args, event_handler, vertices, line_draw_order);
 
     // 6. Engine loop
-    while state.event_handler.running() {
+    // while state.event_handler.running() {
         let updated_config = state.update(renderer.config().clone());
         let mut writer = BufWriter::new(stdout().lock());
 
@@ -128,5 +136,5 @@ fn main() {
         renderer.render();
 
         println!("\x1B[H\x1B[0m"); // Restore style . (Move to first row before printing/receiving, because it will be cleared anyway.)
-    }
+    // }
 }
