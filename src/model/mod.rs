@@ -5,12 +5,14 @@ use renderer::VectorRow;
 mod plane;
 mod spiral;
 mod cube;
+mod star;
 mod test;
 
 pub enum Model {
     Plane,
     Spiral,
     Cube,
+    Star,
     Test,
 }
 
@@ -22,6 +24,7 @@ impl FromStr for Model {
             "plane" => Ok(Model::Plane),
             "spiral" => Ok(Model::Spiral),
             "cube" => Ok(Model::Cube),
+            "star" => Ok(Model::Star),
             "test" => Ok(Model::Test),
             _ => Err("Could not convert to string."),
         }
@@ -41,6 +44,9 @@ impl Model {
             }
             Model::Cube => {
                 vertices.append(&mut cube::get_vertices());
+            }
+            Model::Star=> {
+                vertices.append(&mut star::get_vertices());
             }
             Model::Test => {
                 vertices.append(&mut test::get_vertices());
@@ -62,6 +68,9 @@ impl Model {
             }
             Model::Cube => {
                 lines.append(&mut cube::get_line_draw_order());
+            }
+            Model::Star => {
+                lines.append(&mut star::get_line_draw_order());
             }
             Model::Test => {
                 lines.append(&mut test::get_line_draw_order());
