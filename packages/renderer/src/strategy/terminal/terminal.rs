@@ -436,8 +436,8 @@ impl Terminal {
             if order.len() > 2 {
                 // Close the polygon by drawing line between start and end vertices.
                 if let (Some(a), Some(b)) = (
-                    &vertices_projected[order[0]],
                     &vertices_projected[order[order.len() - 1]],
+                    &vertices_projected[order[0]],
                 ) {
                     render_line(buffer, camera, polygon_border, a, b);
                 }
