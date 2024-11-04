@@ -377,54 +377,74 @@ impl Terminal {
             camera: &Camera,
             polygon_border: bool,
         ) {
+            #[inline]
+            fn render_line(
+                buffer: &mut TerminalBuffer,
+                camera: &Camera,
+                polygon_border: bool,
+                a: &VectorRow<f64, 3>,
+                b: &VectorRow<f64, 3>,
+            ) {
+                let mut x0 = a[0] as isize;
+                let x1 = b[0] as isize;
+                let mut z0 = a[2] as isize;
+                let z1 = b[2] as isize;
+
+                let dx = (x1 - x0).abs();
+                let dz = (z1 - z0).abs();
+
+                let sx = (x1 - x0).signum();
+                let sz = (z1 - z0).signum();
+
+                let mut err = dx - dz;
+                let steps_max = (b[0] - a[0]).abs() + (b[2] - a[2]).abs();
+                let mut steps_taken = 0;
+
+                while x0 != x1 || z0 != z1 {
+                    Terminal::render_pixel(
+                        buffer,
+                        camera,
+                        x0,
+                        interpolate_depth(a[1], b[1], steps_max, steps_taken as f64),
+                        z0,
+                        polygon_border,
+                    );
+
+                    let e2 = 2 * err;
+
+                    if e2 > -dz {
+                        err = err - dz;
+                        x0 = x0 + sx;
+                    }
+
+                    if e2 < dx {
+                        err = err + dx;
+                        z0 = z0 + sz;
+                    }
+
+                    steps_taken += 1;
+                }
+            }
+
             for ab in order.windows(2) {
                 if let (Some(a), Some(b)) = (&vertices_projected[ab[0]], &vertices_projected[ab[1]])
                 {
-                    let mut x0 = a[0] as isize;
-                    let x1 = b[0] as isize;
-                    let mut z0 = a[2] as isize;
-                    let z1 = b[2] as isize;
+                    render_line(buffer, camera, polygon_border, a, b);
+                }
+            }
 
-                    let dx = (x1 - x0).abs();
-                    let dz = (z1 - z0).abs();
-
-                    let sx = (x1 - x0).signum();
-                    let sz = (z1 - z0).signum();
-
-                    let mut err = dx - dz;
-                    let steps_max = (b[0] - a[0]).abs() + (b[2] - a[2]).abs();
-                    let mut steps_taken = 0;
-
-                    while x0 != x1 || z0 != z1 {
-                        Terminal::render_pixel(
-                            buffer,
-                            camera,
-                            x0,
-                            interpolate_depth(a[1], b[1], steps_max, steps_taken as f64),
-                            z0,
-                            polygon_border,
-                        );
-
-                        let e2 = 2 * err;
-
-                        if e2 > -dz {
-                            err = err - dz;
-                            x0 = x0 + sx;
-                        }
-
-                        if e2 < dx {
-                            err = err + dx;
-                            z0 = z0 + sz;
-                        }
-
-                        steps_taken += 1;
-                    }
+            if order.len() > 2 {
+                // Close the polygon by drawing line between start and end vertices.
+                if let (Some(a), Some(b)) = (
+                    &vertices_projected[order[0]],
+                    &vertices_projected[order[order.len() - 1]],
+                ) {
+                    render_line(buffer, camera, polygon_border, a, b);
                 }
             }
         }
 
         let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
-        let camera_normal = &VectorRow::from([0.0, 1.0, 0.0]);
 
         for order in line_draw_order.iter() {
             if let RenderOption::WireFrameAndParticles
@@ -461,65 +481,56 @@ impl Terminal {
             }
 
             if culling {
-                let mut order_culled: Vec<usize> = vec![];
-
                 // Determine if the face should be culled.
-                for (index, abc) in order.windows(3).enumerate() {
-                    if let (Some(a), Some(b), Some(c)) = (
-                        &self.vertices_projected[abc[0]],
-                        &self.vertices_projected[abc[1]],
-                        &self.vertices_projected[abc[2]],
-                    ) {
-                        // Span two vectors stemming from the same point. This implies CCW rotation.
-                        let v_a: VectorRow<f64, 3> = (&b.0 - &a.0).into();
-                        let v_b: VectorRow<f64, 3> = (&c.0 - &a.0).into();
+                let mut bottom_right: (usize, &VectorRow<f64, 3>) =
+                    (0, &self.vertices_projected[order[0]].as_ref().unwrap());
 
-                        // Calculate the cross product.
-                        let normal = v_a.cross(&v_b);
-
-                        // Calculate angle between cross product and the [Camera] normal in order to decide if it should be culled.
-                        let camera_normal_magnitude = 1.0; // We already know this due to just rotating existing length of 1.0.
-                        let normal_magnitude =
-                            (normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2])
-                                .sqrt();
-                        let cos_angle = camera_normal.dot(&normal)
-                            / (camera_normal_magnitude * normal_magnitude);
-
-                        if cos_angle <= 0.0 {
-                            // order_culled.append(&mut abc.to_vec()); // TODO: Keeping in order to benchmark with more culled faces, but current code should be a bit faster.
-
-                            // 1 // TODO: Keeping in order to benchmark with more culled faces, but current code should be a bit faster.
-                            // let (first, rest) = abc.split_first().unwrap();
-                            // let mut rest = rest.to_vec();
-
-                            // if index == 0 {
-                            //     rest.insert(0,*first);
-                            // }
-
-                            // order_culled.append(&mut rest);
-
-                            // 2
-                            if index == 0 {
-                                order_culled.append(&mut abc.to_vec());
-                            } else {
-                                order_culled.push(abc[2]);
+                for index in 1..order.len() {
+                    if let Some(vertex) = &self.vertices_projected[order[index]].as_ref() {
+                        if vertex[2] < bottom_right.1[2] {
+                            bottom_right = (index, vertex);
+                        } else if vertex[2] == bottom_right.1[2] {
+                            if vertex[0] > bottom_right.1[0] {
+                                bottom_right = (index, vertex);
                             }
                         }
                     }
                 }
 
+                let next_index = (bottom_right.0 + 1) % order.len();
+                let prev_index = bottom_right.0.checked_sub(1).unwrap_or(order.len() - 1);
+                let current_to_next: VectorRow<f64, 3> = (&self.vertices_projected
+                    [order[next_index]]
+                    .as_ref()
+                    .unwrap()
+                    .0
+                    - &bottom_right.1 .0)
+                    .into();
+                let current_to_prev: VectorRow<f64, 3> = (&self.vertices_projected
+                    [order[prev_index]]
+                    .as_ref()
+                    .unwrap()
+                    .0
+                    - &bottom_right.1 .0)
+                    .into();
+                let should_be_culled = current_to_next.cross(&current_to_prev)[1] > 0.0;
+
+                if should_be_culled {
+                    continue;
+                }
+
                 render_lines(
-                    &order_culled,
+                    &order,
                     &self.vertices_projected,
                     &mut self.canvas.buffer,
                     &self.config.camera,
                     true,
                 );
 
-                if polyfill && order_culled.len() != 0 {
+                if polyfill {
                     // Save some performance by only doing polyfill if face was not culled.
                     // Filter out only relevant vertices.
-                    let vertices = order_culled
+                    let vertices = order
                         .iter()
                         .filter_map(|&index| self.vertices_projected[index].as_ref())
                         .collect::<Vec<&VectorRow<f64, 3>>>();
