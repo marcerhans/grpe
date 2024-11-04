@@ -446,7 +446,7 @@ impl Terminal {
 
         let line_draw_order = self.line_draw_order.as_ref().unwrap().as_ref().borrow();
 
-        for order in line_draw_order.iter() {
+        'outer: for order in line_draw_order.iter() {
             if let RenderOption::WireFrameAndParticles
             | RenderOption::CullingAndParticles
             | RenderOption::PolyfillAndCullingAndParticles = self.config.option
@@ -482,23 +482,31 @@ impl Terminal {
 
             if culling {
                 // Determine if the face should be culled.
-                let mut bottom_right: (usize, &VectorRow<f64, 3>) =
-                    (0, &self.vertices_projected[order[0]].as_ref().unwrap());
+                let mut bottom_right: Option<(usize, &VectorRow<f64, 3>)> = None;
 
-                for index in 1..order.len() {
+                for index in 0..order.len() {
                     if let Some(vertex) = &self.vertices_projected[order[index]].as_ref() {
-                        if vertex[2] < bottom_right.1[2] {
-                            bottom_right = (index, vertex);
-                        } else if vertex[2] == bottom_right.1[2] {
-                            if vertex[0] > bottom_right.1[0] {
-                                bottom_right = (index, vertex);
+                        if bottom_right.is_none() {
+                            bottom_right = Some((index, vertex));
+                            continue;
+                        } else if let Some(bottom_right) = &mut bottom_right {
+                            if vertex[2] < bottom_right.1[2] {
+                                *bottom_right = (index, vertex);
+                            } else if vertex[2] == bottom_right.1[2] {
+                                if vertex[0] > bottom_right.1[0] {
+                                    *bottom_right = (index, vertex);
+                                }
                             }
                         }
+                    } else {
+                        continue 'outer;
                     }
                 }
 
+                let bottom_right = bottom_right.unwrap();
                 let next_index = (bottom_right.0 + 1) % order.len();
                 let prev_index = bottom_right.0.checked_sub(1).unwrap_or(order.len() - 1);
+
                 let current_to_next: VectorRow<f64, 3> = (&self.vertices_projected
                     [order[next_index]]
                     .as_ref()

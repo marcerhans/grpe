@@ -27,7 +27,7 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     let mut lines = vec![];
 
     // Faces
-    lines.push(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]); // Front
+    lines.push(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9]); // Front
 
     lines
 }
