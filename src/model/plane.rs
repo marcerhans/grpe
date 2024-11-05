@@ -118,20 +118,21 @@ mod wings {
             VectorRow::from([5.5, 0.98, 0.05]),   // 3
             VectorRow::from([7.0, 0.98, -0.05]),  // 4
             VectorRow::from([7.0, 0.98, 0.05]),   // 5
-            VectorRow::from([8.9, 0.98, 0.0]),   // 6
-            VectorRow::from([8.08, 1.33, 0.0]),  // 7
-            VectorRow::from([6.8, 2.25, 0.0]),   // 8
-            VectorRow::from([6.33, 2.25, 0.0]),  // 9
-            VectorRow::from([6.33, 2.25, -0.05]), // 10
-            VectorRow::from([4.22, 4.25, 0.05]),  // 11
-            VectorRow::from([4.22, 4.25, -0.05]), // 12
-            VectorRow::from([4.5, 4.25, 0.05]),   // 13
-            VectorRow::from([4.36, 4.35, 0.0]),  // 14
-            VectorRow::from([3.55, 4.35, 0.0]),  // 15
-            VectorRow::from([3.64, 2.8, -0.05]),  // 16
-            VectorRow::from([3.64, 2.8, 0.05]),   // 17
-            VectorRow::from([3.72, 2.8, -0.05]),  // 18
-            VectorRow::from([3.72, 2.8, 0.05]),   // 19
+            VectorRow::from([8.9, 0.98, 0.0]),    // 6
+            VectorRow::from([8.08, 1.33, 0.0]),   // 7
+            VectorRow::from([6.8, 2.25, 0.0]),    // 8
+            VectorRow::from([6.33, 2.25, -0.05]), // 9
+            VectorRow::from([6.33, 2.25, 0.05]),  // 10
+            VectorRow::from([6.33, 2.25, -0.05]), // 11
+            VectorRow::from([4.22, 4.25, 0.05]),  // 12
+            VectorRow::from([4.22, 4.25, -0.05]), // 13
+            VectorRow::from([4.5, 4.25, 0.05]),   // 14
+            VectorRow::from([4.36, 4.35, 0.0]),   // 15
+            VectorRow::from([3.55, 4.35, 0.0]),   // 16
+            VectorRow::from([3.64, 2.8, -0.05]),  // 17
+            VectorRow::from([3.64, 2.8, 0.05]),   // 18
+            VectorRow::from([3.72, 2.8, -0.05]),  // 19
+            VectorRow::from([3.72, 2.8, 0.05]),   // 20
         ]);
 
         // Thick inner flap.
@@ -172,19 +173,19 @@ mod wings {
         // Main part.
         line_draw_order.append(&mut vec![
             vec![
-                start + 0,
-                start + 2,
-                start + 4,
-                start + 6,
-                start + 7,
-                start + 8,
-                start + 9,
-                start + 10,
-                start + 12,
-                start + 14,
-                start + 15,
+                start + 19,
+                start + 17,
                 start + 16,
-                start + 18,
+                start + 15,
+                start + 13,
+                start + 11,
+                start + 9,
+                start + 8,
+                start + 7,
+                start + 6,
+                start + 4,
+                start + 2,
+                start + 0,
             ],
             vec![
                 start + 1,
@@ -193,16 +194,16 @@ mod wings {
                 start + 6,
                 start + 7,
                 start + 8,
-                start + 9,
-                start + 11,
-                start + 13,
+                start + 10,
+                start + 12,
                 start + 14,
                 start + 15,
-                start + 17,
-                start + 19,
+                start + 16,
+                start + 18,
+                start + 20,
             ],
         ]);
-        start += 20;
+        start += 21;
 
         // Thick inner flap.
         line_draw_order.append(&mut vec![
