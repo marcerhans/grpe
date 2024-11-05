@@ -165,6 +165,7 @@ mod wings {
             for ele in order.iter_mut() {
                 *ele += get_vertices().len() / 2;
             }
+            order.reverse();
         }
         line_draw_order.append(&mut line_draw_order_mirrored);
 
