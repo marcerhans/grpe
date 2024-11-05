@@ -201,16 +201,9 @@ mod wings {
                 start + 17,
                 start + 19,
             ],
-            vec![
-                start + 8,
-                start + 9,
-                start + 11,
-                start + 13,
-                start + 14,
-                start + 12,
-                start + 10,
-            ],
-            // vec![start + 9, start + 11, start + 14, start + 12, start + 10],
+            vec![start + 8, start + 9, start + 10],
+            vec![start + 9, start + 11, start + 12, start + 10],
+            vec![start + 11, start + 13, start + 12],
         ]);
         start += 20;
 
