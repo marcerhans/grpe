@@ -126,7 +126,7 @@ mod wings {
             VectorRow::from([6.33, 2.25, -0.05]), // 11
             VectorRow::from([4.22, 4.25, 0.05]),  // 12
             VectorRow::from([4.22, 4.25, -0.05]), // 13
-            VectorRow::from([4.5, 4.25, 0.05]),   // 14
+            VectorRow::from([4.5, 4.25, 0.00]),   // 14
             VectorRow::from([4.36, 4.35, 0.0]),   // 15
             VectorRow::from([3.55, 4.35, 0.0]),   // 16
             VectorRow::from([3.64, 2.8, -0.05]),  // 17
@@ -177,6 +177,7 @@ mod wings {
                 start + 17,
                 start + 16,
                 start + 15,
+                start + 14,
                 start + 13,
                 start + 11,
                 start + 9,
