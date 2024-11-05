@@ -17,3 +17,5 @@ mate-terminal --full-screen --hide-menubar -e "target/release/grpe -m spiral -i"
 - The 'update' method of canvas changes size EVERY time. The if-statements are wrong.
 - It takes a long time to just CLEAR the buffer (Terminal::clear).
 - Writing to the stdout buffer takes a long time, and writes take long. Make stdout_buffer one continous piece of memory for faster writes.
+
+while [ : ]; do cargo run --release -- -i -m plane -r $(tput cols) $((($(tput lines) * 2 - 5))); done
