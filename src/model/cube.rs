@@ -33,6 +33,11 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     vertices.push(VectorRow::from([-0.25, 0.0, 0.25 + 1.25]));
     vertices.push(VectorRow::from([0.25, 0.0, 0.25 + 1.25]));
 
+    vertices.push(VectorRow::from([-0.75, -0.9, -0.75]));
+    vertices.push(VectorRow::from([0.75, -0.9, -0.75]));
+    vertices.push(VectorRow::from([0.75, -0.9, 0.75]));
+    vertices.push(VectorRow::from([-0.75, -0.9, 0.75]));
+
     for vertex in vertices.iter_mut() {
         vertex.0.scale(32.0);
     }
@@ -63,6 +68,7 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     lines.push(vec![11, 10, 14, 15]); // Top
     lines.push(vec![8, 12, 13, 9]); // Bottom
     lines.push(vec![16, 17, 18, 19]); // Backpanel
+    lines.push(vec![24, 25, 26, 27]); // Backpanel CLOSE
 
     lines
 }

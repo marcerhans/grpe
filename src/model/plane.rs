@@ -155,10 +155,25 @@ mod wings {
             VectorRow::from([3.23, 4.34, 0.05]),  // 5
         ]);
 
-        // VectorRow::from([5.28, 3.24, 0.0]), // 0
-        // VectorRow::from([5.28, 3.24, -0.0]), // 0
-        // VectorRow::from([5.9, 3.24, 0.0]), // 0
-        // VectorRow::from([4.35, 4.34, 0.0]), // 0
+        // Inner front flap.
+        vertices.append(&mut vec![
+            VectorRow::from([6.78, 2.27, 0.0]),   // 0
+            VectorRow::from([6.35, 2.27, -0.05]), // 1
+            VectorRow::from([6.35, 2.27, 0.05]),  // 2
+            VectorRow::from([5.34, 3.21, -0.05]), // 3
+            VectorRow::from([5.34, 3.21, 0.05]),  // 4
+            VectorRow::from([5.61, 3.21, 0.0]),   // 5
+        ]);
+
+        // Outer front flap.
+        vertices.append(&mut vec![
+            VectorRow::from([5.85, 3.24, 0.0]),   // 0
+            VectorRow::from([5.34, 3.24, -0.05]), // 1
+            VectorRow::from([5.34, 3.24, 0.05]),  // 2
+            VectorRow::from([4.24, 4.23, -0.05]), // 3
+            VectorRow::from([4.24, 4.23, 0.05]),  // 4
+            VectorRow::from([4.5, 4.23, 0.00]),   // 5
+        ]);
 
         // Duplicate and mirror.
         vertices.append(&mut mirror_y(&vertices));
@@ -202,7 +217,7 @@ mod wings {
                 start + 19,
             ],
             vec![start + 8, start + 9, start + 10],
-            vec![start + 9, start + 11, start + 12, start + 10],
+            // vec![start + 9, start + 11, start + 12, start + 10], // Causing odd clipping?
             vec![start + 11, start + 13, start + 12],
         ]);
         start += 20;
@@ -224,6 +239,26 @@ mod wings {
             vec![start + 0, start + 1, start + 2],
             vec![start + 1, start + 3, start + 4, start + 2],
             vec![start + 3, start + 5, start + 4],
+        ]);
+        start += 6;
+
+        // Inner front flap.
+        line_draw_order.append(&mut vec![
+            vec![start + 5, start + 4, start + 2, start + 0],
+            vec![start + 0, start + 1, start + 3, start + 5],
+            vec![start + 2, start + 1, start + 0],
+            vec![start + 2, start + 4, start + 3, start + 1],
+            vec![start + 4, start + 5, start + 3],
+        ]);
+        start += 6;
+
+        // Outer front flap.
+        line_draw_order.append(&mut vec![
+            vec![start + 5, start + 4, start + 2, start + 0],
+            vec![start + 0, start + 1, start + 3, start + 5],
+            vec![start + 2, start + 1, start + 0],
+            vec![start + 2, start + 4, start + 3, start + 1],
+            vec![start + 4, start + 5, start + 3],
         ]);
 
         // Mirror for right wing.
