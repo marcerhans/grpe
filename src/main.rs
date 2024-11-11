@@ -10,8 +10,7 @@ use std::{
 
 use io::{platform::unix::EventHandler, EventHandlerTrait};
 use renderer::{
-    renderer::terminal::TerminalBuilder, Camera, ProjectionMode, RendererBuilderTrait,
-    RendererTrait, VectorRow,
+    renderer::terminal::TerminalBuilder, Camera, ProjectionMode, RenderOption, RendererBuilderTrait, RendererTrait, VectorRow
 };
 use state::StateHandler;
 
@@ -21,7 +20,7 @@ fn main() {
     // 1. Instantiate IO handler.
     let event_handler = EventHandler::init().expect("Failed to initialize event handler.");
 
-    let rotation: (f64, f64) = (std::f64::consts::FRAC_PI_4, 0.0);
+    let rotation: (f64, f64) = (-std::f64::consts::FRAC_PI_4, 0.0);
     let pitch = linear_algebra::quaternion::Quaternion(
         rotation.0.cos(),
         rotation.0.sin() * (rotation.1 * 2.0).cos(),
@@ -37,12 +36,14 @@ fn main() {
         resolution: args.resolution.unwrap_or((64, 64)),
         position: VectorRow::from([4.0, 0.0, 0.0]),
         rotation: (rotation, rotation_prim),
-        projection_mode: ProjectionMode::Perspective { fov: 90 },
+        projection_mode: ProjectionMode::Perspective { fov: 15 },
         ..Default::default()
     };
     let mut renderer = TerminalBuilder::default()
         .with_camera(camera_default.clone())
         .expect("Bad camera config.")
+        // .with_option(RenderOption::Vertices)
+        // .expect("Bad option config.")
         .build()
         .unwrap();
 
@@ -72,7 +73,7 @@ fn main() {
     let mut state = StateHandler::new(args, event_handler, vertices, line_draw_order);
 
     // 6. Engine loop
-    // while state.event_handler.running() {
+    while state.event_handler.running() {
         let updated_config = state.update(renderer.config().clone());
         let mut writer = BufWriter::new(stdout().lock());
 
@@ -136,5 +137,7 @@ fn main() {
         renderer.render();
 
         println!("\x1B[H\x1B[0m"); // Restore style . (Move to first row before printing/receiving, because it will be cleared anyway.)
-    // }
+    }
+
+    std::thread::sleep(std::time::Duration::from_millis(1000));
 }

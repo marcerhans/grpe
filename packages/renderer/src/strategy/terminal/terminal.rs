@@ -1,6 +1,6 @@
-use std::cell::RefCell;
 use std::io::Write;
 use std::rc::Rc;
+use std::{cell::RefCell, ptr::write};
 
 use super::buffer::*;
 use crate::{
@@ -605,6 +605,12 @@ impl Terminal {
                                             pixel.depth.0 = Some(depth_new);
                                         }
 
+                                        // if pixel.value() == pixel::Value::Empty.value() {
+                                        //     pixel.set_value(pixel::Value::Upper);
+                                        // } else if pixel.value() == pixel::Value::Lower.value() {
+                                        //     pixel.set_value(pixel::Value::Full);
+                                        // }
+
                                         steps_taken += 1;
                                     }
                                 }
@@ -652,6 +658,12 @@ impl Terminal {
                                             pixel.depth.1 = Some(depth_new);
                                         }
 
+                                        // if pixel.value() == pixel::Value::Empty.value() {
+                                        //     pixel.set_value(pixel::Value::Lower);
+                                        // } else if pixel.value() == pixel::Value::Upper.value() {
+                                        //     pixel.set_value(pixel::Value::Full);
+                                        // }
+
                                         steps_taken += 1.0;
                                     }
                                 }
@@ -685,17 +697,21 @@ impl Terminal {
 
     /// Print canvas buffer to terminal.
     fn write_rendered_scene_to_stdout(&mut self) {
+        // std::io::stdout()
+        //     .write_all(
+        //         &self
+        //             .canvas
+        //             .buffer
+        //             .data()
+        //             .iter()
+        //             .collect::<String>()
+        //             .as_bytes(),
+        //     )
+        //     .expect("Failed to write to stdout");
+
         std::io::stdout()
-            .write_all(
-                &self
-                    .canvas
-                    .buffer
-                    .data()
-                    .iter()
-                    .collect::<String>()
-                    .as_bytes(),
-            )
-            .expect("Failed to write to stdout");
+            .write_all(&self.canvas.buffer.data())
+            .expect("Failed to write to stdout.");
     }
 }
 

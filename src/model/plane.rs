@@ -275,6 +275,45 @@ mod wings {
     }
 }
 
+mod canards {
+    use super::*;
+
+    pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
+        let mut vertices = vec![];
+
+        // Main part.
+        vertices.append(&mut vec![
+        ]);
+
+        // Duplicate and mirror.
+        vertices.append(&mut mirror_y(&vertices));
+
+        vertices
+    }
+
+    pub fn get_line_draw_order(mut start: usize) -> Vec<Vec<usize>> {
+        let mut line_draw_order = vec![];
+
+        // Main part.
+        line_draw_order.append(&mut vec![
+            vec![
+                ],
+        ]);
+
+        // Mirror for right canard.
+        let mut line_draw_order_mirrored = line_draw_order.clone();
+        for order in &mut line_draw_order_mirrored {
+            for ele in order.iter_mut() {
+                *ele += get_vertices().len() / 2;
+            }
+            order.reverse();
+        }
+        line_draw_order.append(&mut line_draw_order_mirrored);
+
+        line_draw_order
+    }
+}
+
 pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     let mut vertices = vec![];
 
