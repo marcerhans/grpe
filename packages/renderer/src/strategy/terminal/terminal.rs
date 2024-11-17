@@ -697,21 +697,21 @@ impl Terminal {
 
     /// Print canvas buffer to terminal.
     fn write_rendered_scene_to_stdout(&mut self) {
-        // std::io::stdout()
-        //     .write_all(
-        //         &self
-        //             .canvas
-        //             .buffer
-        //             .data()
-        //             .iter()
-        //             .collect::<String>()
-        //             .as_bytes(),
-        //     )
-        //     .expect("Failed to write to stdout");
-
         std::io::stdout()
-            .write_all(&self.canvas.buffer.data())
-            .expect("Failed to write to stdout.");
+            .write_all(
+                &self
+                    .canvas
+                    .buffer
+                    .data()
+                    .iter()
+                    .collect::<String>()
+                    .as_bytes(),
+            )
+            .expect("Failed to write to stdout");
+
+        // std::io::stdout()
+        //     .write_all(&self.canvas.buffer.data())
+        //     .expect("Failed to write to stdout.");
     }
 }
 
