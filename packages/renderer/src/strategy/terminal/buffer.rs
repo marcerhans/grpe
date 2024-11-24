@@ -12,8 +12,14 @@ pub mod pixel {
     impl<'a> Meta<'a> {
         pub unsafe fn from_slice(slice: &'a mut [u8]) -> Self {
             // Ensure the slice has the correct alignment for f64 (typically 8 bytes) and that it has a valid size.
-            debug_assert!(slice.as_mut_ptr() as usize % std::mem::align_of::<f64>() == 0, "Slice is not properly aligned!");
-            debug_assert!(slice.len() == Self::required_buffer_size(), "Slice does not have a valid size!");
+            debug_assert!(
+                slice.as_mut_ptr() as usize % std::mem::align_of::<f64>() == 0,
+                "Slice is not properly aligned!"
+            );
+            debug_assert!(
+                slice.len() == Self::required_buffer_size(),
+                "Slice does not have a valid size!"
+            );
 
             let f64_slice = slice.as_mut_ptr() as *mut f64;
             let bool_slice = f64_slice.add(4) as *mut bool;
@@ -60,7 +66,7 @@ pub mod pixel {
     //     Value::Empty.value(),
     // ];
     pub const VALUE_MAX_LEN: usize = 1;
-    pub const EMPTY: [char; VALUE_MAX_LEN] = [Value::Empty.value()];
+    pub const EMPTY: [char; VALUE_MAX_LEN] = [Char::Empty.value()];
 
     struct Value<'a> {
         value: &'a mut [char],
@@ -71,9 +77,7 @@ pub mod pixel {
             assert!(slice.len() == VALUE_MAX_LEN);
             slice.copy_from_slice(&EMPTY);
 
-            Self {
-                value: slice
-            }
+            Self { value: slice }
         }
     }
 
@@ -86,10 +90,7 @@ pub mod pixel {
 
     impl<'a> Pixel<'a> {
         pub fn new(value: Value<'a>, meta: Meta<'a>) -> Self {
-            Self {
-                meta,
-                value,
-            }
+            Self { meta, value }
         }
 
         // pub fn reset(&mut self) {
@@ -97,9 +98,9 @@ pub mod pixel {
         //     self.char.copy_from_slice(&EMPTY);
         // }
 
-        pub fn value(&self) -> char {
-            self.char[VALUE_MAX_LEN - 1]
-        }
+        // pub fn value(&self) -> char {
+        //     self.char[VALUE_MAX_LEN - 1]
+        // }
 
         // pub fn set_value(&mut self, value: Value) {
         //     self.char[VALUE_MAX_LEN - 1] = value.value();
@@ -113,7 +114,7 @@ pub mod pixel {
     }
 
     #[derive(PartialEq, Clone)]
-    pub enum Value {
+    pub enum Char {
         Upper,
         Lower,
         Full,
@@ -121,23 +122,23 @@ pub mod pixel {
         Empty,
     }
 
-    impl Value {
+    impl Char {
         pub const fn value(&self) -> char {
             match self {
-                Value::Upper => '\u{2580}', // ▀
-                Value::Lower => '\u{2584}', // ▄
-                Value::Full => '\u{2588}',  // █
-                Value::Custom(c) => *c,
-                Value::Empty => ' ',
+                Self::Upper => '\u{2580}', // ▀
+                Self::Lower => '\u{2584}', // ▄
+                Self::Full => '\u{2588}',  // █
+                Self::Custom(c) => *c,
+                Self::Empty => ' ',
             }
         }
 
-        /// Get appropriate character to use for given vertical position.
+        /// Get appropriate character to use given the vertical position (z).
         pub fn at(z: usize) -> Self {
             if z % 2 != 0 {
-                Value::Upper
+                Self::Upper
             } else {
-                Value::Lower
+                Self::Lower
             }
         }
     }
@@ -153,7 +154,7 @@ pub mod pixel {
 
 /// The main purpose of [TerminalBuffer] is to keep a continuous buffer to allow for fast IO and memory manipulation.
 /// Editing values in the buffer should only be done via the [pixel::Pixel] (via [TerminalBuffer::pixel_mut]) type.
-/// Batch memory minpulations (which is fast) can be done via the [TerminalBuffer].
+/// Batch memory manipulations (which are fast) can be done via the [TerminalBuffer].
 pub struct TerminalBuffer<'a> {
     metas: Vec<u8>,
     values: Vec<char>,
@@ -162,15 +163,16 @@ pub struct TerminalBuffer<'a> {
 }
 
 impl<'a> TerminalBuffer<'a> {
-    pub fn data_len(resolution: &(u64, u64)) -> usize {
+    pub fn pixels_required(resolution: &(u64, u64)) -> usize {
+        // "+ (resolution.1 / 2)" for all '\n'. Essentially it adds space for '\n' on every row. Required if resolution != terminal size.
         ((resolution.0) * (resolution.1 / 2)) as usize * pixel::VALUE_MAX_LEN
-            + (resolution.1 / 2) as usize // "+ (resolution.1 / 2)" for all '\n'. Essentially it adds space for '\n' on every row.
+            + (resolution.1 / 2) as usize
     }
 
     pub fn new(resolution: &(u64, u64)) -> Self {
         assert!(resolution.0 > 0 && resolution.1 > 0);
 
-        let data_len = Self::data_len(resolution);
+        let data_len = Self::pixels_required(resolution);
         let meta_dimensions = (resolution.0 as usize, (resolution.1 / 2) as usize);
         let meta_len = meta_dimensions.0 * meta_dimensions.1;
 
@@ -280,7 +282,7 @@ mod tests {
             let resolution = (10, 10);
             let buffer = TerminalBuffer::new(&resolution);
             assert!(
-                buffer.data.len() == TerminalBuffer::data_len(&resolution),
+                buffer.data.len() == TerminalBuffer::pixels_required(&resolution),
                 "Actual: {}",
                 buffer.data.len()
             );
@@ -295,7 +297,7 @@ mod tests {
             let resolution = (10, 9);
             let buffer = TerminalBuffer::new(&resolution);
             assert!(
-                buffer.data.len() == TerminalBuffer::data_len(&resolution),
+                buffer.data.len() == TerminalBuffer::pixels_required(&resolution),
                 "Actual: {}",
                 buffer.data.len()
             );
@@ -310,7 +312,7 @@ mod tests {
             let resolution = (742, 393);
             let buffer = TerminalBuffer::new(&resolution);
             assert!(
-                buffer.data.len() == TerminalBuffer::data_len(&resolution),
+                buffer.data.len() == TerminalBuffer::pixels_required(&resolution),
                 "Actual: {}",
                 buffer.data.len()
             );

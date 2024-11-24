@@ -106,7 +106,7 @@ impl Canvas {
 
     fn update(&mut self, config: &RendererConfiguration) -> Result<(), &'static str> {
         let resolution = config.camera.resolution;
-        let len = TerminalBuffer::data_len(&resolution);
+        let len = TerminalBuffer::pixels_required(&resolution);
 
         if self.buffer.data().len() != len {
             self.buffer = TerminalBuffer::new(&resolution);
