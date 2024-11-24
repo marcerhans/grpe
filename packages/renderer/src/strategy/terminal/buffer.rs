@@ -1,4 +1,41 @@
 pub mod pixel {
+    pub struct Meta<'a> {
+        /// Pixels cover both upper and lower part of a "real" pixel, so depth is represented for two pixels.
+        pub depth_flag: (&'a mut bool, &'a mut bool),
+        pub depth: (&'a mut f64, &'a mut f64),
+
+        /// Temporary storage of depth information for polygon border. Upper, lower.
+        pub polygon_border_flag: (&'a mut bool, &'a mut bool),
+        pub polygon_border: (&'a mut f64, &'a mut f64),
+    }
+
+    impl<'a> Meta<'a> {
+        pub unsafe fn from_slice(slice: &'a mut [u8]) -> Self {
+            // Ensure the slice has the correct alignment for f64 (typically 8 bytes) and that it has a valid size.
+            debug_assert!(slice.as_mut_ptr() as usize % std::mem::align_of::<f64>() == 0, "Slice is not properly aligned!");
+            debug_assert!(slice.len() == Self::required_buffer_size(), "Slice does not have a valid size!");
+
+            let f64_slice = slice.as_mut_ptr() as *mut f64;
+            let bool_slice = f64_slice.add(4) as *mut bool;
+
+            Self {
+                depth_flag: (&mut *bool_slice.add(0), &mut *bool_slice.add(1)),
+                depth: (&mut *f64_slice.add(0), &mut *f64_slice.add(1)),
+                polygon_border_flag: (&mut *bool_slice.add(2), &mut *bool_slice.add(3)),
+                polygon_border: (&mut *f64_slice.add(2), &mut *f64_slice.add(3)),
+            }
+        }
+
+        /// Calculates the minimum buffer size required for the struct to have proper references.
+        /// Assumes data is packed in a way such that no INTERNAL padding is required, i.e:
+        /// [f64, f64, f64, f64, bool, bool, bool, bool]
+        /// EXTERNAL padding (after or before) is probably still required.
+        #[inline]
+        pub const fn required_buffer_size() -> usize {
+            (4 * std::mem::size_of::<bool>()) + (4 * std::mem::size_of::<f64>())
+        }
+    }
+
     // pub const VALUE_MAX_LEN: usize = 20;
     // pub const EMPTY: [char; VALUE_MAX_LEN] = [
     //     '\x1B',
@@ -25,41 +62,48 @@ pub mod pixel {
     pub const VALUE_MAX_LEN: usize = 1;
     pub const EMPTY: [char; VALUE_MAX_LEN] = [Value::Empty.value()];
 
-    pub struct Pixel {
-        /// Pixels cover both upper and lower part of a "real" pixel, so depth is represented for two pixels.
-        pub depth: (Option<f64>, Option<f64>),
-
-        /// Temporary storage of depth information for polygon border. Upper, lower.
-        pub polygon_border: (Option<f64>, Option<f64>),
-
-        /// Slice of buffer in [super::TerminalBuffer].
-        slice: &'static mut [char],
+    struct Value<'a> {
+        value: &'a mut [char],
     }
 
-    impl Pixel {
-        pub fn new(slice: &'static mut [char]) -> Self {
+    impl<'a> Value<'a> {
+        pub fn from_slice(slice: &'a mut [char]) -> Self {
             assert!(slice.len() == VALUE_MAX_LEN);
             slice.copy_from_slice(&EMPTY);
+
             Self {
-                depth: (None, None),
-                polygon_border: (None, None),
-                slice,
+                value: slice
+            }
+        }
+    }
+
+    /// The [Pixel] type only contains references to the owned buffer types, but adds a layer
+    /// of abstraction to more easily manipulate the memory.
+    pub struct Pixel<'a> {
+        meta: Meta<'a>,
+        value: Value<'a>,
+    }
+
+    impl<'a> Pixel<'a> {
+        pub fn new(value: Value<'a>, meta: Meta<'a>) -> Self {
+            Self {
+                meta,
+                value,
             }
         }
 
-        pub fn reset(&mut self) {
-            self.depth = (None, None);
-            self.polygon_border = (None, None);
-            self.slice.copy_from_slice(&EMPTY);
-        }
+        // pub fn reset(&mut self) {
+        //     self.meta.reset();
+        //     self.char.copy_from_slice(&EMPTY);
+        // }
 
         pub fn value(&self) -> char {
-            self.slice[VALUE_MAX_LEN - 1]
+            self.char[VALUE_MAX_LEN - 1]
         }
 
-        pub fn set_value(&mut self, value: Value) {
-            self.slice[VALUE_MAX_LEN - 1] = value.value();
-        }
+        // pub fn set_value(&mut self, value: Value) {
+        //     self.char[VALUE_MAX_LEN - 1] = value.value();
+        // }
 
         // pub fn set_color(&mut self, rgb: &RGB) {
         //     self.value[7..].copy_from_slice(&rgb.0);
@@ -107,15 +151,17 @@ pub mod pixel {
     // }
 }
 
-/// The main purpose of [TerminalBuffer] is to keep a continuous buffer such that fast IO can be achieved.
-/// Editing values in the buffer should only be done via the [pixel::Pixel] (via [TerminalBuffer::pixel_mut]).
-pub struct TerminalBuffer {
-    data: Vec<char>,
-    meta: Vec<pixel::Pixel>,
+/// The main purpose of [TerminalBuffer] is to keep a continuous buffer to allow for fast IO and memory manipulation.
+/// Editing values in the buffer should only be done via the [pixel::Pixel] (via [TerminalBuffer::pixel_mut]) type.
+/// Batch memory minpulations (which is fast) can be done via the [TerminalBuffer].
+pub struct TerminalBuffer<'a> {
+    metas: Vec<u8>,
+    values: Vec<char>,
+    pixels: Vec<pixel::Pixel<'a>>,
     meta_dimensions: (usize, usize),
 }
 
-impl TerminalBuffer {
+impl<'a> TerminalBuffer<'a> {
     pub fn data_len(resolution: &(u64, u64)) -> usize {
         ((resolution.0) * (resolution.1 / 2)) as usize * pixel::VALUE_MAX_LEN
             + (resolution.1 / 2) as usize // "+ (resolution.1 / 2)" for all '\n'. Essentially it adds space for '\n' on every row.
