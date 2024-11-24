@@ -10,7 +10,7 @@ pub mod pixel {
     }
 
     impl<'a> Meta<'a> {
-        pub unsafe fn from_slice(slice: &'a mut [u8]) -> Self {
+        pub fn from_slice(slice: &'a mut [u8]) -> Self {
             // Ensure the slice has the correct alignment for f64 (typically 8 bytes) and that it has a valid size.
             debug_assert!(
                 slice.as_mut_ptr() as usize % std::mem::align_of::<f64>() == 0,
@@ -22,13 +22,15 @@ pub mod pixel {
             );
 
             let f64_slice = slice.as_mut_ptr() as *mut f64;
-            let bool_slice = f64_slice.add(4) as *mut bool;
+            let bool_slice = unsafe { f64_slice.add(4) as *mut bool };
 
-            Self {
-                depth_flag: (&mut *bool_slice.add(0), &mut *bool_slice.add(1)),
-                depth: (&mut *f64_slice.add(0), &mut *f64_slice.add(1)),
-                polygon_border_flag: (&mut *bool_slice.add(2), &mut *bool_slice.add(3)),
-                polygon_border: (&mut *f64_slice.add(2), &mut *f64_slice.add(3)),
+            unsafe {
+                Self {
+                    depth_flag: (&mut *bool_slice.add(0), &mut *bool_slice.add(1)),
+                    depth: (&mut *f64_slice.add(0), &mut *f64_slice.add(1)),
+                    polygon_border_flag: (&mut *bool_slice.add(2), &mut *bool_slice.add(3)),
+                    polygon_border: (&mut *f64_slice.add(2), &mut *f64_slice.add(3)),
+                }
             }
         }
 
@@ -42,8 +44,8 @@ pub mod pixel {
         }
     }
 
-    // pub const VALUE_MAX_LEN: usize = 20;
-    // pub const EMPTY: [char; VALUE_MAX_LEN] = [
+    // pub const VALUE_LEN: usize = 20;
+    // pub const EMPTY: [char; VALUE_LEN] = [
     //     '\x1B',
     //     '[',
     //     '3',
@@ -65,52 +67,33 @@ pub mod pixel {
     //     'm',
     //     Value::Empty.value(),
     // ];
-    pub const VALUE_MAX_LEN: usize = 1;
-    pub const EMPTY: [char; VALUE_MAX_LEN] = [Char::Empty.value()];
+    pub const VALUE_LEN: usize = 1;
+    pub const EMPTY: [char; VALUE_LEN] = [Char::Empty.value()];
 
     struct Value<'a> {
-        value: &'a mut [char],
+        value: &'a mut [char; VALUE_LEN],
     }
 
     impl<'a> Value<'a> {
-        pub fn from_slice(slice: &'a mut [char]) -> Self {
-            assert!(slice.len() == VALUE_MAX_LEN);
+        pub fn from_slice(slice: &'a mut [char; VALUE_LEN]) -> Self {
             slice.copy_from_slice(&EMPTY);
-
             Self { value: slice }
+        }
+
+        pub fn get(&self) -> char {
+            self.value[VALUE_LEN - 1]
+        }
+
+        pub fn set(&mut self, c: Char) {
+            self.value[VALUE_LEN - 1] = c.value();
         }
     }
 
     /// The [Pixel] type only contains references to the owned buffer types, but adds a layer
     /// of abstraction to more easily manipulate the memory.
     pub struct Pixel<'a> {
-        meta: Meta<'a>,
-        value: Value<'a>,
-    }
-
-    impl<'a> Pixel<'a> {
-        pub fn new(value: Value<'a>, meta: Meta<'a>) -> Self {
-            Self { meta, value }
-        }
-
-        // pub fn reset(&mut self) {
-        //     self.meta.reset();
-        //     self.char.copy_from_slice(&EMPTY);
-        // }
-
-        // pub fn value(&self) -> char {
-        //     self.char[VALUE_MAX_LEN - 1]
-        // }
-
-        // pub fn set_value(&mut self, value: Value) {
-        //     self.char[VALUE_MAX_LEN - 1] = value.value();
-        // }
-
-        // pub fn set_color(&mut self, rgb: &RGB) {
-        //     self.value[7..].copy_from_slice(&rgb.0);
-        //     self.value[11..].copy_from_slice(&rgb.1);
-        //     self.value[15..].copy_from_slice(&rgb.2);
-        // }
+        pub meta: Meta<'a>,
+        pub value: Value<'a>,
     }
 
     #[derive(PartialEq, Clone)]
@@ -133,7 +116,7 @@ pub mod pixel {
             }
         }
 
-        /// Get appropriate character to use given the vertical position (z).
+        /// Get appropriate character to use given a vertical position (z).
         pub fn at(z: usize) -> Self {
             if z % 2 != 0 {
                 Self::Upper
@@ -142,14 +125,6 @@ pub mod pixel {
             }
         }
     }
-
-    // pub struct RGB([char; 3], [char; 3], [char; 3]);
-
-    // impl Default for RGB {
-    //     fn default() -> Self {
-    //         Self(['0'; 3], ['0'; 3], ['0'; 3])
-    //     }
-    // }
 }
 
 /// The main purpose of [TerminalBuffer] is to keep a continuous buffer to allow for fast IO and memory manipulation.
@@ -165,40 +140,40 @@ pub struct TerminalBuffer<'a> {
 impl<'a> TerminalBuffer<'a> {
     pub fn pixels_required(resolution: &(u64, u64)) -> usize {
         // "+ (resolution.1 / 2)" for all '\n'. Essentially it adds space for '\n' on every row. Required if resolution != terminal size.
-        ((resolution.0) * (resolution.1 / 2)) as usize * pixel::VALUE_MAX_LEN
+        ((resolution.0) * (resolution.1 / 2)) as usize * pixel::VALUE_LEN
             + (resolution.1 / 2) as usize
     }
 
     pub fn new(resolution: &(u64, u64)) -> Self {
-        assert!(resolution.0 > 0 && resolution.1 > 0);
+        debug_assert!(resolution.0 > 0 && resolution.1 > 0);
 
-        let data_len = Self::pixels_required(resolution);
+        let pixels_len = Self::pixels_required(resolution);
         let meta_dimensions = (resolution.0 as usize, (resolution.1 / 2) as usize);
-        let meta_len = meta_dimensions.0 * meta_dimensions.1;
+        let metas_len = meta_dimensions.0 * meta_dimensions.1;
 
-        let mut data = vec![0 as char; data_len];
-        let mut meta: Vec<pixel::Pixel> = Vec::with_capacity(meta_len);
+        let mut data = vec![0 as char; pixels_len];
+        let mut meta: Vec<pixel::Pixel> = Vec::with_capacity(metas_len);
 
         let mut col = 0;
         let mut row = 0;
-        let mut index = (col + row * resolution.0 as usize) * pixel::VALUE_MAX_LEN;
+        let mut index = (col + row * resolution.0 as usize) * pixel::VALUE_LEN;
 
-        while meta.len() < meta_len {
+        while meta.len() < metas_len {
             meta.push(pixel::Pixel::new(unsafe {
-                std::slice::from_raw_parts_mut(data.as_mut_ptr().add(index), pixel::VALUE_MAX_LEN)
+                std::slice::from_raw_parts_mut(data.as_mut_ptr().add(index), pixel::VALUE_LEN)
             }));
 
             col += 1;
 
             if col == meta_dimensions.0 {
                 // Go to next row.
-                data[(col + row * resolution.0 as usize) * pixel::VALUE_MAX_LEN + row] = '\n';
+                data[(col + row * resolution.0 as usize) * pixel::VALUE_LEN + row] = '\n';
                 row += 1;
                 col = 0;
             }
 
             // "+ row" to include extra newlines ('\n').
-            index = (col + row * resolution.0 as usize) * pixel::VALUE_MAX_LEN + row;
+            index = (col + row * resolution.0 as usize) * pixel::VALUE_LEN + row;
         }
 
         Self {
@@ -234,8 +209,8 @@ mod tests {
             buffer.pixel_mut(*row, *col).set_value(value.clone());
             assert!(buffer.pixel(*row, *col).value() == value.value());
             assert!(
-                buffer.data[((col + row * buffer.meta_dimensions.0) * pixel::VALUE_MAX_LEN + row)
-                    + (pixel::VALUE_MAX_LEN - 1)]
+                buffer.data[((col + row * buffer.meta_dimensions.0) * pixel::VALUE_LEN + row)
+                    + (pixel::VALUE_LEN - 1)]
                     == value.value()
             );
         }
@@ -256,9 +231,8 @@ mod tests {
 
                 assert!(buffer.pixel(row, col).value() == value.value());
                 assert!(
-                    buffer.data[((col + row * buffer.meta_dimensions.0) * pixel::VALUE_MAX_LEN
-                        + row)
-                        + (pixel::VALUE_MAX_LEN - 1)]
+                    buffer.data[((col + row * buffer.meta_dimensions.0) * pixel::VALUE_LEN + row)
+                        + (pixel::VALUE_LEN - 1)]
                         == value.value()
                 );
             }
@@ -268,8 +242,8 @@ mod tests {
     fn newlines_are_present(buffer: &TerminalBuffer) {
         for row in 0..buffer.meta_dimensions.1 {
             assert!(
-                buffer.data[(row * buffer.meta_dimensions.0) * pixel::VALUE_MAX_LEN
-                    + pixel::VALUE_MAX_LEN * buffer.meta_dimensions.0
+                buffer.data[(row * buffer.meta_dimensions.0) * pixel::VALUE_LEN
+                    + pixel::VALUE_LEN * buffer.meta_dimensions.0
                     + row]
                     == '\n'
             );
