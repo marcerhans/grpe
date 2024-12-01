@@ -636,10 +636,11 @@ impl Terminal {
                                             *pixel.meta.depth_flag.0 = true;
                                         }
 
-                                        // if pixel.value() == pixel::Value::Empty.value() {
-                                        //     pixel.set_value(pixel::Value::Upper);
-                                        // } else if pixel.value() == pixel::Value::Lower.value() {
-                                        //     pixel.set_value(pixel::Value::Full);
+                                        // Fill pixel instead of leaving empty.
+                                        // if pixel.value.get() == pixel::Char::Empty.value() {
+                                        //     pixel.value.set(pixel::Char::Upper);
+                                        // } else if pixel.value.get() == pixel::Char::Lower.value() {
+                                        //     pixel.value.set(pixel::Char::Full);
                                         // }
 
                                         steps_taken += 1;
@@ -696,10 +697,11 @@ impl Terminal {
                                             *pixel.meta.depth_flag.1 = true;
                                         }
 
-                                        // if pixel.value() == pixel::Value::Empty.value() {
-                                        //     pixel.set_value(pixel::Value::Lower);
-                                        // } else if pixel.value() == pixel::Value::Upper.value() {
-                                        //     pixel.set_value(pixel::Value::Full);
+                                        // Fill pixel instead of leaving empty.
+                                        // if pixel.value.get() == pixel::Char::Empty.value() {
+                                        //     pixel.value.set(pixel::Char::Lower);
+                                        // } else if pixel.value.get() == pixel::Char::Upper.value() {
+                                        //     pixel.value.set(pixel::Char::Full);
                                         // }
 
                                         steps_taken += 1;
