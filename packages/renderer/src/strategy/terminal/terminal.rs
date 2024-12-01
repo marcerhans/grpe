@@ -610,7 +610,7 @@ impl Terminal {
                             );
 
                             if polygon_border_flag.0 {
-                                let depth_end = polygon_border.0.clone();
+                                let depth_end = polygon_border.0;
 
                                 if let Some(start) = start_upper.as_mut() {
                                     let depth_start = self
@@ -631,8 +631,7 @@ impl Terminal {
                                             steps_max,
                                             steps_taken as f64,
                                         );
-                                        let pixel =
-                                            &mut self.canvas.buffer.pixel_mut(z, step as usize);
+                                        let pixel = self.canvas.buffer.pixel_mut(z, step as usize);
 
                                         if *pixel.meta.depth_flag.0 {
                                             let depth_old = pixel.meta.depth.0.clone();
