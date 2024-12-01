@@ -220,6 +220,10 @@ impl<'a> TerminalBuffer<'a> {
         &self.chars
     }
 
+    // pub fn dimensions(&self) -> (u64, u64) {
+    //     (self.pixels_dimensions.0 as u64, self.pixels_dimensions.1 as u64)
+    // }
+
     pub fn clear(&mut self) {
         self.metas_bytes.fill(0);
         self.chars.fill(' ' as char);
