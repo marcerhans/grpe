@@ -146,9 +146,10 @@ impl<'a> TerminalBuffer<'a> {
 
     /// Notice:
     /// "+ (resolution.1 / 2)" is needed to add space for '\n' on every row.
+    /// "- 1" to not incude a newline for last line.
     /// Required if resolution != terminal size.
     pub fn chars_required(resolution: &(u64, u64)) -> usize {
-        Self::pixels_required(resolution) * pixel::VALUE_LEN + (resolution.1 / 2) as usize
+        Self::pixels_required(resolution) * pixel::VALUE_LEN + (resolution.1 / 2) as usize - 1
     }
 
     /// Bytes required for metadata depends on the [pixel::Meta] struct and its memory layout.
@@ -176,20 +177,10 @@ impl<'a> TerminalBuffer<'a> {
 
         let mut col = 0;
         let mut row = 0;
-        let index = |col: usize, row: usize| -> usize {
-            col + row * resolution.0 as usize
-        };
+        let index = |col: usize, row: usize| -> usize { col + row * resolution.0 as usize };
 
         while pixels.len() < pixels_len {
             let index = index(col, row);
-
-            col += 1;
-            if col > pixels_dimensions.0 {
-                // Go to next row.
-                // Has to be incremented here (before setting values) to set correct row offset.
-                row += 1;
-                col = 0;
-            }
 
             let meta_start = index * meta_step;
             let char_start = index * char_step + row; // +row because we want to skip injected newlines '\n'.
@@ -207,6 +198,15 @@ impl<'a> TerminalBuffer<'a> {
                         .unwrap()
                 }),
             });
+
+            col += 1;
+            if col == pixels_dimensions.0 {
+                // Go to next row.
+                // Has to be incremented here (before setting values) to set correct row offset.
+                row += 1;
+                col = 0;
+            }
+
         }
 
         Self {
@@ -244,7 +244,7 @@ mod tests {
             pixel.value.set(c.clone());
             assert!(pixel.value.get() == c.value());
             assert!(
-                buffer.chars[(col + row * buffer.pixels_dimensions.0) * pixel::VALUE_LEN]
+                buffer.chars[(col + row * buffer.pixels_dimensions.0) * pixel::VALUE_LEN + row]
                     == c.value()
             );
         }
@@ -265,7 +265,7 @@ mod tests {
 
                 assert!(buffer.pixel(row, col).value.get() == c.value());
                 assert!(
-                    buffer.chars[(col + row * buffer.pixels_dimensions.0) * pixel::VALUE_LEN]
+                    buffer.chars[(col + row * buffer.pixels_dimensions.0) * pixel::VALUE_LEN + row]
                         == c.value()
                 );
             }
@@ -313,10 +313,10 @@ mod tests {
     #[test]
     fn set_pixel_value() {
         {
-            let resolution = (10, 10);
+            let resolution = (10,10);
             let mut buffer = TerminalBuffer::new(&resolution);
             set_and_check(&mut buffer, pixel::Char::Full, &[(0, 0)]);
-            check_for_value_in_buffer(&buffer, pixel::Char::Full, &[(0, 0)]);
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &[(0, 0)]);
             // newlines_are_present(&buffer);
         }
         {
