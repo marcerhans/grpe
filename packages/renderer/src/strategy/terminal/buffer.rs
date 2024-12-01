@@ -220,9 +220,17 @@ impl<'a> TerminalBuffer<'a> {
         &self.chars
     }
 
-    // pub fn clear(&mut self) {
-    //     self.meta.iter_mut().for_each(|pixel| pixel.reset());
-    // }
+    pub fn clear(&mut self) {
+        self.metas_bytes.fill(0);
+        self.chars.fill(' ' as char);
+
+        // Inject newlines.
+        for row in 0..(self.pixels_dimensions.1 - 1) {
+            self.chars[(self.pixels_dimensions.0 + (row * self.pixels_dimensions.0))
+                * pixel::VALUE_LEN
+                + row] = '\n';
+        }
+    }
 
     pub fn pixel(&self, row: usize, col: usize) -> &pixel::Pixel<'a> {
         &self.pixels[col + row * self.pixels_dimensions.0]
@@ -328,87 +336,87 @@ mod tests {
         }
     }
 
-    // #[test]
-    // fn reset_pixel_values() {
-    //     {
-    //         let resolution = (10, 10);
-    //         let row_col: [(usize, usize); 2] = [(4, 3), (2, 5)];
-    //         let mut buffer = TerminalBuffer::new(&resolution);
-    //         set_and_check(&mut buffer, pixel::Value::Full, &row_col);
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &row_col);
-    //         newlines_are_present(&buffer);
-    //         buffer.pixel_mut(2, 5).reset();
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[(4, 3)]);
-    //         newlines_are_present(&buffer);
-    //         buffer.pixel_mut(4, 3).reset();
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[]);
-    //         newlines_are_present(&buffer);
-    //     }
-    // }
+    #[test]
+    fn reset_pixel_values() {
+        {
+            let resolution = (10, 10);
+            let row_col: [(usize, usize); 2] = [(4, 3), (2, 5)];
+            let mut buffer = TerminalBuffer::new(&resolution);
+            set_and_check(&mut buffer, pixel::Char::Full, &row_col);
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &row_col);
+            newlines_are_present(&buffer);
+            buffer.pixel_mut(2, 5).value.set(pixel::Char::Empty);
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &[(4, 3)]);
+            newlines_are_present(&buffer);
+            buffer.pixel_mut(4, 3).value.set(pixel::Char::Empty);
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &[]);
+            newlines_are_present(&buffer);
+        }
+    }
 
-    // #[test]
-    // fn clear_buffer() {
-    //     {
-    //         let resolution = (10, 10);
-    //         let row_col: [(usize, usize); 2] = [(4, 3), (2, 5)];
-    //         let mut buffer = TerminalBuffer::new(&resolution);
-    //         set_and_check(&mut buffer, pixel::Value::Full, &row_col);
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &row_col);
-    //         newlines_are_present(&buffer);
-    //         buffer.clear();
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[]);
-    //         newlines_are_present(&buffer);
-    //     }
-    // }
+    #[test]
+    fn clear_buffer() {
+        {
+            let resolution = (10, 10);
+            let row_col: [(usize, usize); 2] = [(4, 3), (2, 5)];
+            let mut buffer = TerminalBuffer::new(&resolution);
+            set_and_check(&mut buffer, pixel::Char::Full, &row_col);
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &row_col);
+            newlines_are_present(&buffer);
+            buffer.clear();
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &[]);
+            newlines_are_present(&buffer);
+        }
+    }
 
-    // #[test]
-    // fn newline_handling() {
-    //     {
-    //         let resolution = (2, 4);
-    //         let row_col: [(usize, usize); 2] = [(0, 0), (1, 0)];
-    //         let mut buffer = TerminalBuffer::new(&resolution);
-    //         set_and_check(&mut buffer, pixel::Value::Full, &row_col);
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &row_col);
-    //         newlines_are_present(&buffer);
-    //         buffer.clear();
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[]);
-    //         newlines_are_present(&buffer);
-    //     }
+    #[test]
+    fn newline_handling() {
+        {
+            let resolution = (2, 4);
+            let row_col: [(usize, usize); 2] = [(0, 0), (1, 0)];
+            let mut buffer = TerminalBuffer::new(&resolution);
+            set_and_check(&mut buffer, pixel::Char::Full, &row_col);
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &row_col);
+            newlines_are_present(&buffer);
+            buffer.clear();
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &[]);
+            newlines_are_present(&buffer);
+        }
 
-    //     {
-    //         let resolution = (2, 4);
-    //         let row_col: [(usize, usize); 2] = [(0, 1), (1, 1)];
-    //         let mut buffer = TerminalBuffer::new(&resolution);
-    //         set_and_check(&mut buffer, pixel::Value::Full, &row_col);
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &row_col);
-    //         newlines_are_present(&buffer);
-    //         buffer.clear();
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[]);
-    //         newlines_are_present(&buffer);
-    //     }
+        {
+            let resolution = (2, 4);
+            let row_col: [(usize, usize); 2] = [(0, 1), (1, 1)];
+            let mut buffer = TerminalBuffer::new(&resolution);
+            set_and_check(&mut buffer, pixel::Char::Full, &row_col);
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &row_col);
+            newlines_are_present(&buffer);
+            buffer.clear();
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &[]);
+            newlines_are_present(&buffer);
+        }
 
-    //     {
-    //         let resolution = (2, 4);
-    //         let row_col: [(usize, usize); 4] = [(0, 0), (0, 1), (1, 0), (1, 1)];
-    //         let mut buffer = TerminalBuffer::new(&resolution);
-    //         set_and_check(&mut buffer, pixel::Value::Full, &row_col);
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &row_col);
-    //         newlines_are_present(&buffer);
-    //         buffer.clear();
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[]);
-    //         newlines_are_present(&buffer);
-    //     }
+        {
+            let resolution = (2, 4);
+            let row_col: [(usize, usize); 4] = [(0, 0), (0, 1), (1, 0), (1, 1)];
+            let mut buffer = TerminalBuffer::new(&resolution);
+            set_and_check(&mut buffer, pixel::Char::Full, &row_col);
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &row_col);
+            newlines_are_present(&buffer);
+            buffer.clear();
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &[]);
+            newlines_are_present(&buffer);
+        }
 
-    //     {
-    //         let resolution = (131, 749);
-    //         let row_col: [(usize, usize); 5] = [(0, 0), (1, 0), (2, 0), (300, 0), (0, 130)];
-    //         let mut buffer = TerminalBuffer::new(&resolution);
-    //         set_and_check(&mut buffer, pixel::Value::Full, &row_col);
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &row_col);
-    //         newlines_are_present(&buffer);
-    //         buffer.clear();
-    //         check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[]);
-    //         newlines_are_present(&buffer);
-    //     }
-    // }
+        {
+            let resolution = (131, 749);
+            let row_col: [(usize, usize); 5] = [(0, 0), (1, 0), (2, 0), (300, 0), (0, 130)];
+            let mut buffer = TerminalBuffer::new(&resolution);
+            set_and_check(&mut buffer, pixel::Char::Full, &row_col);
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &row_col);
+            newlines_are_present(&buffer);
+            buffer.clear();
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &[]);
+            newlines_are_present(&buffer);
+        }
+    }
 }
