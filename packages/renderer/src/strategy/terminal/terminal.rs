@@ -576,38 +576,18 @@ impl Terminal {
                             let x = x + (self.config.camera.resolution.0 / 2) as isize;
                             let z = (z + (self.config.camera.resolution.1 / 2) as isize) / 2;
                             let z = self.config.camera.resolution.1 as usize / 2 - z as usize - 1;
-                            let polygon_border = (
-                                self.canvas
-                                    .buffer
-                                    .pixel(z, x as usize)
-                                    .meta
-                                    .polygon_border
-                                    .0
-                                    .clone(),
-                                self.canvas
-                                    .buffer
-                                    .pixel(z, x as usize)
-                                    .meta
-                                    .polygon_border
-                                    .1
-                                    .clone(),
-                            );
-                            let polygon_border_flag = (
-                                self.canvas
-                                    .buffer
-                                    .pixel(z, x as usize)
-                                    .meta
-                                    .polygon_border_flag
-                                    .0
-                                    .clone(),
-                                self.canvas
-                                    .buffer
-                                    .pixel(z, x as usize)
-                                    .meta
-                                    .polygon_border_flag
-                                    .1
-                                    .clone(),
-                            );
+                            let polygon_border =
+                                &self.canvas.buffer.pixel(z, x as usize).meta.polygon_border;
+                            let polygon_border_flag = &self
+                                .canvas
+                                .buffer
+                                .pixel(z, x as usize)
+                                .meta
+                                .polygon_border_flag;
+                            let polygon_border =
+                                (polygon_border.0.clone(), polygon_border.1.clone());
+                            let polygon_border_flag =
+                                (polygon_border_flag.0.clone(), polygon_border_flag.1.clone());
 
                             if polygon_border_flag.0 {
                                 let depth_end = polygon_border.0;
