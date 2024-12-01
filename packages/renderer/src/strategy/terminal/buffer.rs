@@ -168,7 +168,7 @@ impl<'a> TerminalBuffer<'a> {
         let pixels_dimensions = (resolution.0 as usize, (resolution.1 / 2) as usize);
 
         let mut metas_bytes: Vec<u8> = vec![0; metas_len];
-        let mut chars: Vec<char> = vec![0 as char; chars_len];
+        let mut chars: Vec<char> = vec!['\n' as char; chars_len]; // Might as well inject newlines here.
         let mut pixels: Vec<pixel::Pixel> = Vec::with_capacity(pixels_len);
 
         let meta_step = pixel::Meta::required_buffer_size() + 4; // +4 for alignment.
@@ -177,13 +177,22 @@ impl<'a> TerminalBuffer<'a> {
         let mut col = 0;
         let mut row = 0;
         let index = |col: usize, row: usize| -> usize {
-            (col + row * resolution.0 as usize) * pixel::VALUE_LEN
+            col + row * resolution.0 as usize
         };
 
         while pixels.len() < pixels_len {
             let index = index(col, row);
+
+            col += 1;
+            if col > pixels_dimensions.0 {
+                // Go to next row.
+                // Has to be incremented here (before setting values) to set correct row offset.
+                row += 1;
+                col = 0;
+            }
+
             let meta_start = index * meta_step;
-            let char_start = index * char_step;
+            let char_start = index * char_step + row; // +row because we want to skip injected newlines '\n'.
 
             pixels.push(pixel::Pixel {
                 meta: pixel::Meta::from_slice(unsafe {
@@ -198,15 +207,6 @@ impl<'a> TerminalBuffer<'a> {
                         .unwrap()
                 }),
             });
-
-            col += 1;
-
-            if col == pixels_dimensions.0 {
-                // Go to next row.
-                chars[index] = '\n';
-                row += 1;
-                col = 0;
-            }
         }
 
         Self {
@@ -225,11 +225,11 @@ impl<'a> TerminalBuffer<'a> {
     //     self.meta.iter_mut().for_each(|pixel| pixel.reset());
     // }
 
-    pub fn pixel(&'a self, row: usize, col: usize) -> &'a pixel::Pixel {
+    pub fn pixel(&self, row: usize, col: usize) -> &pixel::Pixel<'a> {
         &self.pixels[col + row * self.pixels_dimensions.0]
     }
 
-    pub fn pixel_mut(&'a mut self, row: usize, col: usize) -> &'a mut pixel::Pixel {
+    pub fn pixel_mut(&mut self, row: usize, col: usize) -> &mut pixel::Pixel<'a> {
         &mut self.pixels[col + row * self.pixels_dimensions.0]
     }
 }
@@ -238,44 +238,39 @@ impl<'a> TerminalBuffer<'a> {
 mod tests {
     use super::*;
 
-    fn set_and_check<'a>(buffer: &'a mut TerminalBuffer<'a>, c: pixel::Char, at: &[(usize, usize)]) {
+    fn set_and_check(buffer: &mut TerminalBuffer, c: pixel::Char, at: &[(usize, usize)]) {
         for (row, col) in at {
-            buffer.pixel(*row, *col);
-            // {
-                // let pixel = buffer.pixel_mut(*row, *col);
-            // }
-            // buffer.pixel_mut(*row, *col).value.set(c.clone());
-            assert!(buffer.pixel(*row, *col).value.get() == c.value());
+            let pixel = buffer.pixel_mut(*row, *col);
+            pixel.value.set(c.clone());
+            assert!(pixel.value.get() == c.value());
             assert!(
-                buffer.chars[((col + row * buffer.pixels_dimensions.0) * pixel::VALUE_LEN + row)
-                    + (pixel::VALUE_LEN - 1)]
+                buffer.chars[(col + row * buffer.pixels_dimensions.0) * pixel::VALUE_LEN]
                     == c.value()
             );
         }
     }
 
-    // fn check_for_value_in_buffer(
-    //     buffer: &TerminalBuffer,
-    //     value: pixel::Value,
-    //     except_values_at: &[(usize, usize)],
-    // ) {
-    //     for row in 0..buffer.meta_dimensions.1 {
-    //         'a: for col in 0..buffer.meta_dimensions.0 {
-    //             for exception in except_values_at {
-    //                 if row == exception.0 && col == exception.1 {
-    //                     continue 'a;
-    //                 }
-    //             }
+    fn check_for_value_in_buffer(
+        buffer: &TerminalBuffer,
+        c: pixel::Char,
+        except_values_at: &[(usize, usize)],
+    ) {
+        for row in 0..buffer.pixels_dimensions.1 {
+            'a: for col in 0..buffer.pixels_dimensions.0 {
+                for exception in except_values_at {
+                    if row == exception.0 && col == exception.1 {
+                        continue 'a;
+                    }
+                }
 
-    //             assert!(buffer.pixel(row, col).value() == value.value());
-    //             assert!(
-    //                 buffer.data[((col + row * buffer.meta_dimensions.0) * pixel::VALUE_LEN + row)
-    //                     + (pixel::VALUE_LEN - 1)]
-    //                     == value.value()
-    //             );
-    //         }
-    //     }
-    // }
+                assert!(buffer.pixel(row, col).value.get() == c.value());
+                assert!(
+                    buffer.chars[(col + row * buffer.pixels_dimensions.0) * pixel::VALUE_LEN]
+                        == c.value()
+                );
+            }
+        }
+    }
 
     // fn newlines_are_present(buffer: &TerminalBuffer) {
     //     for row in 0..buffer.meta_dimensions.1 {
@@ -309,8 +304,9 @@ mod tests {
                 buffer.pixels.len()
             );
         };
-        tester(10, 10);
-        tester(10, 9);
+        for (i, j) in (1..=100).zip(1..=100) {
+            tester(i, j);
+        }
         tester(742, 393);
     }
 
@@ -320,15 +316,15 @@ mod tests {
             let resolution = (10, 10);
             let mut buffer = TerminalBuffer::new(&resolution);
             set_and_check(&mut buffer, pixel::Char::Full, &[(0, 0)]);
-            // check_for_value_in_buffer(&buffer, pixel::Value::Empty, &[(0, 0)]);
+            check_for_value_in_buffer(&buffer, pixel::Char::Full, &[(0, 0)]);
             // newlines_are_present(&buffer);
         }
         {
-            let resolution = (10, 10);
-            let row_col: [(usize, usize); 2] = [(4, 3), (2, 5)];
-            let mut buffer = TerminalBuffer::new(&resolution);
-            set_and_check(&mut buffer, pixel::Char::Full, &row_col);
-            // check_for_value_in_buffer(&buffer, pixel::Value::Empty, &row_col);
+            // let resolution = (10, 10);
+            // let row_col: [(usize, usize); 2] = [(4, 3), (2, 5)];
+            // let mut buffer = TerminalBuffer::new(&resolution);
+            // set_and_check(&mut buffer, pixel::Char::Full, &row_col);
+            // check_for_value_in_buffer(&buffer, pixel::Char::Empty, &row_col);
             // newlines_are_present(&buffer);
         }
     }
