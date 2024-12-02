@@ -45,31 +45,31 @@ pub mod pixel {
     }
 
     // This can be used instead if color is wanted. Though, it takes a lot of performance.
-    pub const VALUE_LEN: usize = 20;
-    pub const EMPTY: [char; VALUE_LEN] = [
-        '\x1B',
-        '[',
-        '3',
-        '8',
-        ';',
-        '2',
-        ';',
-        '2',
-        '0',
-        '0',
-        ';',
-        '0',
-        '0',
-        '0',
-        ';',
-        '0',
-        '0',
-        '0',
-        'm',
-        Char::Empty.value(),
-    ];
-    // pub const VALUE_LEN: usize = 1;
-    // pub const EMPTY: [char; VALUE_LEN] = [Char::Empty.value()];
+    // pub const VALUE_LEN: usize = 20;
+    // pub const EMPTY: [char; VALUE_LEN] = [
+    //     '\x1B',
+    //     '[',
+    //     '3',
+    //     '8',
+    //     ';',
+    //     '2',
+    //     ';',
+    //     '2',
+    //     '0',
+    //     '0',
+    //     ';',
+    //     '0',
+    //     '0',
+    //     '0',
+    //     ';',
+    //     '0',
+    //     '0',
+    //     '0',
+    //     'm',
+    //     Char::Empty.value(),
+    // ];
+    pub const VALUE_LEN: usize = 1;
+    pub const EMPTY: [char; VALUE_LEN] = [Char::Empty.value()];
 
     pub struct Value<'a> {
         value: &'a mut [char; VALUE_LEN],
