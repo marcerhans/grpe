@@ -1,5 +1,3 @@
-use core::slice;
-
 pub mod pixel {
     pub struct Meta<'a> {
         /// Pixels cover both upper and lower part of a "real" pixel, so depth is represented for two pixels.
@@ -46,31 +44,32 @@ pub mod pixel {
         }
     }
 
-    // pub const VALUE_LEN: usize = 20;
-    // pub const EMPTY: [char; VALUE_LEN] = [
-    //     '\x1B',
-    //     '[',
-    //     '3',
-    //     '8',
-    //     ';',
-    //     '2',
-    //     ';',
-    //     '0',
-    //     '0',
-    //     '0',
-    //     ';',
-    //     '0',
-    //     '0',
-    //     '0',
-    //     ';',
-    //     '0',
-    //     '0',
-    //     '0',
-    //     'm',
-    //     Value::Empty.value(),
-    // ];
-    pub const VALUE_LEN: usize = 1;
-    pub const EMPTY: [char; VALUE_LEN] = [Char::Empty.value()];
+    // This can be used instead if color is wanted. Though, it takes a lot of performance.
+    pub const VALUE_LEN: usize = 20;
+    pub const EMPTY: [char; VALUE_LEN] = [
+        '\x1B',
+        '[',
+        '3',
+        '8',
+        ';',
+        '2',
+        ';',
+        '2',
+        '0',
+        '0',
+        ';',
+        '0',
+        '0',
+        '0',
+        ';',
+        '0',
+        '0',
+        '0',
+        'm',
+        Char::Empty.value(),
+    ];
+    // pub const VALUE_LEN: usize = 1;
+    // pub const EMPTY: [char; VALUE_LEN] = [Char::Empty.value()];
 
     pub struct Value<'a> {
         value: &'a mut [char; VALUE_LEN],
@@ -134,6 +133,7 @@ pub mod pixel {
 /// Batch memory manipulations however can be done via the [TerminalBuffer] and are faster.
 pub struct TerminalBuffer<'a> {
     metas_bytes: Vec<u8>,
+    chars_clear: Vec<char>,
     chars: Vec<char>,
     pixels: Vec<pixel::Pixel<'a>>,
     pixels_dimensions: (usize, usize),
@@ -210,30 +210,20 @@ impl<'a> TerminalBuffer<'a> {
 
         Self {
             metas_bytes,
+            chars_clear: chars.clone(),
             chars,
             pixels,
             pixels_dimensions,
         }
     }
 
-    pub fn chars(&self) -> &Vec<char> {
+    pub fn chars(&self) -> &[char] {
         &self.chars
     }
 
-    // pub fn dimensions(&self) -> (u64, u64) {
-    //     (self.pixels_dimensions.0 as u64, self.pixels_dimensions.1 as u64)
-    // }
-
     pub fn clear(&mut self) {
         self.metas_bytes.fill(0);
-        self.chars.fill(' ' as char);
-
-        // Inject newlines.
-        for row in 0..(self.pixels_dimensions.1 - 1) {
-            self.chars[(self.pixels_dimensions.0 + (row * self.pixels_dimensions.0))
-                * pixel::VALUE_LEN
-                + row] = '\n';
-        }
+        self.chars.clone_from_slice(&self.chars_clear);
     }
 
     pub fn pixel(&self, row: usize, col: usize) -> &pixel::Pixel<'a> {
@@ -255,7 +245,9 @@ mod tests {
             pixel.value.set(c.clone());
             assert!(pixel.value.get() == c.value());
             assert!(
-                buffer.chars[(col + row * buffer.pixels_dimensions.0) * pixel::VALUE_LEN + row]
+                buffer.chars[(col + row * buffer.pixels_dimensions.0) * pixel::VALUE_LEN
+                    + (pixel::VALUE_LEN - 1) // ("+ pixel::VALUE_LEN - 1" | Ignore pixel ANSI formatting data, and just look at the actual value.).
+                    + row] // ("+ row" |  Take newlines into consideration, i.e. ignore them).
                     == c.value()
             );
         }
@@ -276,7 +268,9 @@ mod tests {
 
                 assert!(buffer.pixel(row, col).value.get() == c.value());
                 assert!(
-                    buffer.chars[(col + row * buffer.pixels_dimensions.0) * pixel::VALUE_LEN + row]
+                    buffer.chars[(col + row * buffer.pixels_dimensions.0) * pixel::VALUE_LEN
+                    + (pixel::VALUE_LEN - 1) // ("+ pixel::VALUE_LEN - 1" | Ignore pixel ANSI formatting data, and just look at the actual value.).
+                    + row] // ("+ row" |  Take newlines into consideration, i.e. ignore them).
                         == c.value()
                 );
             }
@@ -315,7 +309,7 @@ mod tests {
                 buffer.pixels.len()
             );
         };
-        for (i, j) in (1..=100).zip(1..=100) {
+        for (i, j) in (1..=100).zip(2..=100) {
             tester(i, j);
         }
         tester(742, 393);
@@ -333,6 +327,14 @@ mod tests {
         {
             let resolution = (10, 10);
             let row_col: [(usize, usize); 2] = [(4, 3), (2, 5)];
+            let mut buffer = TerminalBuffer::new(&resolution);
+            set_and_check(&mut buffer, pixel::Char::Full, &row_col);
+            check_for_value_in_buffer(&buffer, pixel::Char::Empty, &row_col);
+            newlines_are_present(&buffer);
+        }
+        {
+            let resolution = (735, 92);
+            let row_col: [(usize, usize); 2] = [(45, 69), (30, 500)];
             let mut buffer = TerminalBuffer::new(&resolution);
             set_and_check(&mut buffer, pixel::Char::Full, &row_col);
             check_for_value_in_buffer(&buffer, pixel::Char::Empty, &row_col);
