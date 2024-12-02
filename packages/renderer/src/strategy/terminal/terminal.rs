@@ -1,6 +1,6 @@
 use std::io::Write;
 use std::rc::Rc;
-use std::{cell::RefCell, ptr::write};
+use std::cell::RefCell;
 
 use super::buffer::*;
 use crate::{

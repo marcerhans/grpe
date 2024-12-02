@@ -127,34 +127,6 @@ mod info {
     }
 }
 
-mod position {
-    use renderer::VectorRow;
-
-    pub struct State {
-        pub value: VectorRow<f64, 3>,
-    }
-
-    impl Default for State {
-        fn default() -> Self {
-            Self {
-                value: VectorRow::from([0.0, 0.0, 0.0]),
-            }
-        }
-    }
-}
-
-mod rotation {
-    pub struct State {
-        pub value: (f64, f64),
-    }
-
-    impl Default for State {
-        fn default() -> Self {
-            Self { value: (0.0, 0.0) }
-        }
-    }
-}
-
 /// The one thing that truly does a little bit too much.
 pub struct StateHandler {
     pub args: Args,
