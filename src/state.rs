@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc, time::Instant};
 
-use io::{platform::unix::EventHandler, Event, EventHandlerTrait};
+use io::{platform::unix::EventHandler, Event, EventHandlerTrait, Modifier};
 use linear_algebra::quaternion::{self, Quaternion};
 use renderer::{Camera, ProjectionMode, RenderOption, RendererConfiguration, VectorRow, ViewMode};
 
@@ -19,6 +19,7 @@ mod input {
             pub left: Option<Event>,
             pub right: Option<Event>,
             pub scroll: Option<i32>,
+            pub modifier: Option<io::Modifier>,
         }
     }
 
@@ -210,73 +211,78 @@ impl StateHandler {
         }
 
         match event {
-            Event::Mouse(_modifier, event) => match (_modifier, event) {
-                (io::Modifier::None, io::mouse::Event::Left(motion, x, y)) => match motion {
-                    io::mouse::Motion::Down => {
-                        if let Some(event) = self.input.mouse.left.as_ref() {
-                            match event {
-                                input::mouse::Event::Down(x_, y_) => {
-                                    self.input.mouse.left = Some(input::mouse::Event::Hold {
-                                        from: (*x_, *y_),
-                                        to: (x as f64, -(y as f64)),
-                                    });
+            Event::Mouse(modifier, event) => {
+                self.input.mouse.modifier = Some(modifier);
+
+                match event {
+                    io::mouse::Event::Left(motion, x, y) => match motion {
+                        io::mouse::Motion::Down => {
+                            if let Some(event) = self.input.mouse.left.as_ref() {
+                                match event {
+                                    input::mouse::Event::Down(x_, y_) => {
+                                        self.input.mouse.left = Some(input::mouse::Event::Hold {
+                                            from: (*x_, *y_),
+                                            to: (x as f64, -(y as f64)),
+                                        });
+                                    }
+                                    input::mouse::Event::Hold { from, to: _ } => {
+                                        self.input.mouse.left = Some(input::mouse::Event::Hold {
+                                            from: (from.0, from.1),
+                                            to: (x as f64, -(y as f64)),
+                                        });
+                                    }
+                                    input::mouse::Event::Up(_x, _y) => unreachable!(),
                                 }
-                                input::mouse::Event::Hold { from, to: _ } => {
-                                    self.input.mouse.left = Some(input::mouse::Event::Hold {
-                                        from: (from.0, from.1),
-                                        to: (x as f64, -(y as f64)),
-                                    });
-                                }
-                                input::mouse::Event::Up(_x, _y) => unreachable!(),
+                            } else {
+                                self.input.mouse.left =
+                                    Some(input::mouse::Event::Down(x as f64, -(y as f64)))
                             }
-                        } else {
-                            self.input.mouse.left =
-                                Some(input::mouse::Event::Down(x as f64, -(y as f64)))
                         }
-                    }
-                    io::mouse::Motion::Up => self.input.mouse.left = None,
-                },
-                (io::Modifier::None, io::mouse::Event::Middle(motion, x, y)) => match motion {
-                    io::mouse::Motion::Down => todo!(),
-                    io::mouse::Motion::Up => (),
-                },
-                (io::Modifier::None, io::mouse::Event::Right(motion, x, y)) => match motion {
-                    io::mouse::Motion::Down => {
-                        if let Some(event) = self.input.mouse.right.as_ref() {
-                            match event {
-                                input::mouse::Event::Down(x_, y_) => {
-                                    self.input.mouse.right = Some(input::mouse::Event::Hold {
-                                        from: (*x_, *y_),
-                                        to: (x as f64, -(y as f64)),
-                                    });
+                        io::mouse::Motion::Up => self.input.mouse.left = None,
+                    },
+
+                    io::mouse::Event::Middle(motion, x, y) => match motion {
+                        io::mouse::Motion::Down => todo!(),
+                        io::mouse::Motion::Up => (),
+                    },
+                    io::mouse::Event::Right(motion, x, y) => match motion {
+                        io::mouse::Motion::Down => {
+                            if let Some(event) = self.input.mouse.right.as_ref() {
+                                match event {
+                                    input::mouse::Event::Down(x_, y_) => {
+                                        self.input.mouse.right = Some(input::mouse::Event::Hold {
+                                            from: (*x_, *y_),
+                                            to: (x as f64, -(y as f64)),
+                                        });
+                                    }
+                                    input::mouse::Event::Hold { from, to: _ } => {
+                                        self.input.mouse.right = Some(input::mouse::Event::Hold {
+                                            from: (from.0, from.1),
+                                            to: (x as f64, -(y as f64)),
+                                        });
+                                    }
+                                    input::mouse::Event::Up(_x, _y) => unreachable!(),
                                 }
-                                input::mouse::Event::Hold { from, to: _ } => {
-                                    self.input.mouse.right = Some(input::mouse::Event::Hold {
-                                        from: (from.0, from.1),
-                                        to: (x as f64, -(y as f64)),
-                                    });
-                                }
-                                input::mouse::Event::Up(_x, _y) => unreachable!(),
+                            } else {
+                                self.input.mouse.right =
+                                    Some(input::mouse::Event::Down(x as f64, -(y as f64)))
                             }
-                        } else {
-                            self.input.mouse.right =
-                                Some(input::mouse::Event::Down(x as f64, -(y as f64)))
                         }
-                    }
-                    io::mouse::Motion::Up => self.input.mouse.right = None,
-                },
-                (io::Modifier::None, io::mouse::Event::Scroll(direction)) => match direction {
-                    io::mouse::Direction::Down => match self.input.mouse.scroll.as_mut() {
-                        Some(val) => *val -= 1,
-                        None => self.input.mouse.scroll = Some(-10),
+                        io::mouse::Motion::Up => self.input.mouse.right = None,
                     },
-                    io::mouse::Direction::Up => match self.input.mouse.scroll.as_mut() {
-                        Some(val) => *val += 1,
-                        None => self.input.mouse.scroll = Some(10),
+                    io::mouse::Event::Scroll(direction) => match direction {
+                        io::mouse::Direction::Down => match self.input.mouse.scroll.as_mut() {
+                            Some(val) => *val -= 1,
+                            None => self.input.mouse.scroll = Some(-10),
+                        },
+                        io::mouse::Direction::Up => match self.input.mouse.scroll.as_mut() {
+                            Some(val) => *val += 1,
+                            None => self.input.mouse.scroll = Some(10),
+                        },
                     },
-                },
-                _ => (),
-            },
+                    _ => (),
+                }
+            }
             Event::Character(c) => match c {
                 'a' => self.input.keyboard.a = Some(()),
                 'r' => self.input.keyboard.r = Some(()),
@@ -321,22 +327,34 @@ impl StateHandler {
                 renderer::RenderOption::WireFrame => renderer::RenderOption::WireFrameAndParticles,
                 renderer::RenderOption::WireFrameAndParticles => renderer::RenderOption::Culling,
                 renderer::RenderOption::Culling => renderer::RenderOption::CullingAndParticles,
-                renderer::RenderOption::CullingAndParticles => renderer::RenderOption::PolyfillAndCulling,
-                renderer::RenderOption::PolyfillAndCulling => renderer::RenderOption::PolyfillAndCullingAndParticles,
-                renderer::RenderOption::PolyfillAndCullingAndParticles => renderer::RenderOption::Vertices,
+                renderer::RenderOption::CullingAndParticles => {
+                    renderer::RenderOption::PolyfillAndCulling
+                }
+                renderer::RenderOption::PolyfillAndCulling => {
+                    renderer::RenderOption::PolyfillAndCullingAndParticles
+                }
+                renderer::RenderOption::PolyfillAndCullingAndParticles => {
+                    renderer::RenderOption::Vertices
+                }
             };
         }
 
         if let Some(_) = self.input.keyboard.O.take() {
             // Toggle render option
             config.option = match config.option {
-                renderer::RenderOption::Vertices => renderer::RenderOption::PolyfillAndCullingAndParticles,
+                renderer::RenderOption::Vertices => {
+                    renderer::RenderOption::PolyfillAndCullingAndParticles
+                }
                 renderer::RenderOption::WireFrame => renderer::RenderOption::Vertices,
                 renderer::RenderOption::WireFrameAndParticles => renderer::RenderOption::WireFrame,
                 renderer::RenderOption::Culling => renderer::RenderOption::WireFrameAndParticles,
                 renderer::RenderOption::CullingAndParticles => renderer::RenderOption::Culling,
-                renderer::RenderOption::PolyfillAndCulling => renderer::RenderOption::CullingAndParticles,
-                renderer::RenderOption::PolyfillAndCullingAndParticles => renderer::RenderOption::PolyfillAndCulling,
+                renderer::RenderOption::PolyfillAndCulling => {
+                    renderer::RenderOption::CullingAndParticles
+                }
+                renderer::RenderOption::PolyfillAndCullingAndParticles => {
+                    renderer::RenderOption::PolyfillAndCulling
+                }
             };
         }
 
@@ -368,7 +386,8 @@ impl StateHandler {
 
         // Calculate rotational change(s) based on input.
         let mut rot_diff = (0.0, 0.0);
-        if let Some(event) = self.input.mouse.left.as_mut() {
+
+        if let (Some(Modifier::None), Some(event)) = (self.input.mouse.modifier.as_ref(), self.input.mouse.left.as_mut()) {
             if let input::mouse::Event::Hold { from, to } = event {
                 rot_diff.0 += (to.1 - from.1) * 0.02;
                 rot_diff.1 += (to.0 - from.0) * -0.01;
@@ -394,11 +413,12 @@ impl StateHandler {
 
         // Calculate positional change(s) based on input.
         let mut pos_diff = VectorRow::from([0.0, 0.0, 0.0]);
-        if let Some(event) = self.input.mouse.right.as_mut() {
+
+        if let (Some(Modifier::Ctrl), Some(event)) = (self.input.mouse.modifier.as_ref(), self.input.mouse.left.as_mut()) {
             if let ViewMode::FirstPerson = config.camera.view_mode {
                 if let input::mouse::Event::Hold { from, to } = event {
-                    pos_diff[0] = (from.0 - to.0) * 4.0;
-                    pos_diff[2] = (from.1 - to.1) * 8.0;
+                    pos_diff[0] = (from.0 - to.0) * 10.0;
+                    pos_diff[2] = (from.1 - to.1) * 20.0;
                     *event = input::mouse::Event::Down(to.0, to.1);
                 }
             }
