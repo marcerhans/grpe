@@ -148,34 +148,35 @@ mod util {
                 meb.motion = Some(mouse::Motion::Up);
             }
 
-            if semicolon_positions[0] == 4 {
-                // Parse single character for button type.
-                meb.button = match self[3].to_u8() {
+            let button_type: usize = if let Ok(button_type) = self[3..semicolon_positions[0]].iter().collect::<String>().parse() {
+                button_type
+            } else {
+                return Err("Badly formatted sequence.");
+            };
+
+            // let modifier = Modifier::None;
+            let modifier = match button_type % 32 {
+                bt if bt < 0+3 => Modifier::None,
+                bt if bt < 8+3 => Modifier::Alt,
+                bt if bt < 16+3 => Modifier::Ctrl,
+                _ => Modifier::None,
+            };
+
+            // This is ugly :)
+            if button_type < 64 {
+                // Either MB 1,2, or 3 (probably).
+                meb.button = match button_type % 8 {
                     0 => Some(mouse::Button::Left),
                     1 => Some(mouse::Button::Middle),
                     2 => Some(mouse::Button::Right),
                     _ => return Err("Not supported."),
                 }
             } else {
-                // Parse two characters for button type.
-                meb.button = match self[3].to_u8() {
-                    3 => match self[4].to_u8() {
-                        2 => Some(mouse::Button::Left),
-                        3 => Some(mouse::Button::Middle),
-                        4 => Some(mouse::Button::Right),
-                        _ => return Err("Not supported."),
-                    },
-                    6 => match self[4].to_u8() {
-                        4 => {
-                            meb.direction = Some(mouse::Direction::Up);
-                            Some(mouse::Button::Scroll)
-                        }
-                        5 => {
-                            meb.direction = Some(mouse::Direction::Down);
-                            Some(mouse::Button::Scroll)
-                        }
-                        _ => return Err("Not supported."),
-                    },
+                // Scroll
+                meb.button = Some(mouse::Button::Scroll);
+                meb.direction = match (button_type - 64) % 8 {
+                    0 => Some(mouse::Direction::Up),
+                    1 => Some(mouse::Direction::Down),
                     _ => return Err("Not supported."),
                 }
             }
@@ -192,7 +193,8 @@ mod util {
                 meb.y = Some(val);
             }
 
-            Ok((Modifier::None, meb.build())) // (modifiers not supported yet)
+
+            Ok((modifier, meb.build())) // (modifiers not supported yet)
         }
 
         fn is_resize(&mut self) -> Result<misc::CurrentSize, &'static str> {

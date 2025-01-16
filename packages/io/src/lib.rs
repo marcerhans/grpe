@@ -4,7 +4,6 @@ pub mod platform;
 #[derive(Debug, Clone)]
 pub enum Modifier {
     None,
-    Shift,
     Ctrl,
     Alt,
 }
