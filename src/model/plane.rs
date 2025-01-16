@@ -83,6 +83,16 @@ mod body {
             VectorRow::from([8.0, 0.4, 0.5]), // 18
             VectorRow::from([8.0, 0.6, 0.3]), // 19
             VectorRow::from([8.0, 1.0, 0.1]), // 20
+            //
+            VectorRow::from([8.8, 0.0, 0.6]), // 21
+            VectorRow::from([8.8, 0.4, 0.5]), // 22
+            VectorRow::from([8.8, 0.6, 0.3]), // 23
+            VectorRow::from([8.8, 1.0, 0.1]), // 24
+                                              //
+                                              // VectorRow::from([8.8, 0.0, 0.6]), // 25
+                                              // VectorRow::from([8.8, 0.4, 0.5]), // 26
+                                              // VectorRow::from([8.8, 0.6, 0.3]), // 27
+                                              // VectorRow::from([8.8, 1.0, 0.1]), // 28
                                               // VectorRow::from([6.0, 0.0, 0.45]),   // 0
                                               // VectorRow::from([8.0, 0.0, 0.45]),   // 0
                                               // VectorRow::from([8.8, 0.0, 0.45]),   // 0
@@ -181,7 +191,27 @@ mod body {
                 start + 15,
                 start + 14,
             ],
+            vec![
+                start + 17,
+                start + 21,
+                start + 22,
+                start + 23,
+                start + 24,
+                start + 20,
+                start + 19,
+                start + 18,
+            ],
         ]);
+
+        // Duplicate and mirror.
+        let mut line_draw_order_mirrored = line_draw_order.clone()[start..].to_vec();
+        for order in &mut line_draw_order_mirrored {
+            for ele in order.iter_mut() {
+                *ele += get_vertices().len() / 2;
+            }
+            order.reverse();
+        }
+        line_draw_order.append(&mut line_draw_order_mirrored);
 
         line_draw_order
     }
@@ -403,7 +433,7 @@ mod canards {
             ],
         ]);
 
-        // // Mirror for right canard.
+        // Mirror for right canard.
         let mut line_draw_order_mirrored = line_draw_order.clone();
         for order in &mut line_draw_order_mirrored {
             for ele in order.iter_mut() {
