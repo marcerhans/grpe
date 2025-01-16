@@ -285,7 +285,6 @@ mod canards {
         vertices.append(&mut vec![
             VectorRow::from([8.68, 1.0, 0.05]),  // 0
             VectorRow::from([10.41, 1.1, 0.05]), // 1
-            VectorRow::from([10.41, 1.1, 0.05]), // 2
             VectorRow::from([8.41, 2.345, 0.3]), // 3
             VectorRow::from([7.93, 2.345, 0.3]), // 4
             VectorRow::from([8.53, 1.25, 0.1]),  // 5
