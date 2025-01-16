@@ -57,6 +57,41 @@ mod body {
             ]));
         }
 
+        // Body.
+        vertices.append(&mut vec![
+            VectorRow::from([0.6, 0.0, 0.45]), // 0
+            VectorRow::from([2.0, 0.0, 0.6]),  // 1
+            VectorRow::from([2.0, 0.4, 0.5]),  // 2
+            VectorRow::from([2.0, 0.6, 0.3]),  // 3
+            VectorRow::from([2.0, 0.75, 0.0]), // 4
+            VectorRow::from([0.6, 0.45, 0.0]), // 5
+            VectorRow::from([0.6, 0.4, 0.3]),  // 6
+            VectorRow::from([0.6, 0.2, 0.4]),  // 7
+            //
+            VectorRow::from([4.0, 0.0, 0.6]),  // 8
+            VectorRow::from([4.0, 0.4, 0.5]),  // 9
+            VectorRow::from([4.0, 0.6, 0.3]),  // 10
+            VectorRow::from([4.0, 1.0, 0.15]), // 11
+            VectorRow::from([2.5, 0.95, 0.0]), // 12
+            //
+            VectorRow::from([6.0, 0.0, 0.6]), // 13
+            VectorRow::from([6.0, 0.4, 0.5]), // 14
+            VectorRow::from([6.0, 0.6, 0.3]), // 15
+            VectorRow::from([6.0, 1.0, 0.15]), // 16
+                                              // VectorRow::from([6.0, 0.0, 0.45]),   // 0
+                                              // VectorRow::from([8.0, 0.0, 0.45]),   // 0
+                                              // VectorRow::from([8.8, 0.0, 0.45]),   // 0
+                                              // VectorRow::from([8.8, 0.2, 0.45]),   // 0
+                                              // VectorRow::from([10.0, 0.42, 0.45]), // 0
+                                              // VectorRow::from([10.9, 0.5, 0.45]),  // 0
+                                              // VectorRow::from([10.8, 0.9, 0.45]),  // 0 -
+                                              // VectorRow::from([10.0, 1.0, 0.45]),  // 0
+                                              // VectorRow::from([8.8, 1.0, 0.45]),   // 0
+                                              // VectorRow::from([8.0, 1.0, 0.45]),   // 0
+                                              // VectorRow::from([6.0, 1.0, 0.45]),   // 0
+                                              // VectorRow::from([4.0, 1.0, 0.45]),   // 0
+        ]);
+
         // Duplicate and mirror.
         vertices.append(&mut mirror_y(&vertices));
 
@@ -97,8 +132,41 @@ mod body {
             start + points + 0,
             start + 0,
         ]]);
+        let start = start + points * 2;
 
-        // line_draw_order = add_lines(start + 23, line_draw_order);
+        line_draw_order.append(&mut vec![
+            vec![
+                start + 0,
+                start + 1,
+                start + 2,
+                start + 3,
+                start + 4,
+                start + 5,
+                start + 6,
+                start + 7,
+            ],
+            vec![
+                start + 1,
+                start + 8,
+                start + 9,
+                start + 10,
+                start + 11,
+                start + 12,
+                start + 4,
+                start + 3,
+                start + 2,
+            ],
+            vec![
+                start + 8,
+                start + 13,
+                start + 14,
+                start + 15,
+                start + 16,
+                start + 11,
+                start + 10,
+                start + 9,
+            ],
+        ]);
 
         line_draw_order
     }

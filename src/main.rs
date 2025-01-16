@@ -42,9 +42,9 @@ fn main() {
     };
     let mut renderer = TerminalBuilder::default()
         .with_camera(camera_default.clone())
-        .expect("Bad camera config.")
+        // .expect("Bad camera config.")
         // .with_option(RenderOption::Vertices)
-        // .expect("Bad option config.")
+        .expect("Bad option config.")
         .build()
         .unwrap();
 
