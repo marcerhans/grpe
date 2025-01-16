@@ -283,10 +283,19 @@ mod canards {
 
         // Main part.
         vertices.append(&mut vec![
+            // VectorRow::from([10.0, 0.0, -0.05]),  // 0
+            // VectorRow::from([11.0, 2.0, -0.05]),  // 1
+            // VectorRow::from([3.82, 3.0, -0.05]),  // 2
+            // VectorRow::from([3.82, 1.01, -0.05]), // 3
+            // VectorRow::from([3.82, 1.01, -0.05]), // 4
+            // VectorRow::from([3.82, 1.01, -0.05]), // 5
+            // VectorRow::from([3.82, 1.01, -0.05]), // 6
+            // VectorRow::from([3.82, 1.01, -0.05]), // 7
+            // VectorRow::from([3.82, 1.01, -0.05]), // 8
         ]);
 
         // Duplicate and mirror.
-        vertices.append(&mut mirror_y(&vertices));
+        // vertices.append(&mut mirror_y(&vertices));
 
         vertices
     }
@@ -295,20 +304,17 @@ mod canards {
         let mut line_draw_order = vec![];
 
         // Main part.
-        line_draw_order.append(&mut vec![
-            vec![
-                ],
-        ]);
+        // line_draw_order.append(&mut vec![vec![0, 1, 2, 3, 4, 5, 6, 7, 8]]);
 
         // Mirror for right canard.
-        let mut line_draw_order_mirrored = line_draw_order.clone();
-        for order in &mut line_draw_order_mirrored {
-            for ele in order.iter_mut() {
-                *ele += get_vertices().len() / 2;
-            }
-            order.reverse();
-        }
-        line_draw_order.append(&mut line_draw_order_mirrored);
+        // let mut line_draw_order_mirrored = line_draw_order.clone();
+        // for order in &mut line_draw_order_mirrored {
+        //     for ele in order.iter_mut() {
+        //         *ele += get_vertices().len() / 2;
+        //     }
+        //     order.reverse();
+        // }
+        // line_draw_order.append(&mut line_draw_order_mirrored);
 
         line_draw_order
     }
@@ -325,11 +331,11 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     //     VectorRow::from([4.0, -WING_SPAN / 2.0, 0.0]),
     // ]);
 
-    vertices.append(&mut body::get_vertices());
+    // vertices.append(&mut body::get_vertices());
     // vertices.append(&mut fuselage::get_vertices());
     // vertices.append(&mut rudder::get_vertices());
     vertices.append(&mut wings::get_vertices());
-    // vertices.append(&mut canards::get_vertices());
+    vertices.append(&mut canards::get_vertices());
     // vertices.append(&mut intake::get_vertices());
 
     // vertices.append(&mut cockpit::get_vertices());
@@ -368,9 +374,9 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     // ]);
     // index_start += 4;
 
-    let mut body = body::get_line_draw_order(index_start);
-    index_start += body::get_vertices().len();
-    line_draw_order.append(&mut body);
+    // let mut body = body::get_line_draw_order(index_start);
+    // index_start += body::get_vertices().len();
+    // line_draw_order.append(&mut body);
 
     // let mut fuselage = fuselage::get_line_draw_order(index_start);
     // index_start += fuselage::get_vertices().len();
@@ -384,9 +390,9 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     index_start += wings::get_vertices().len();
     line_draw_order.append(&mut wings);
 
-    // let mut canards = canards::get_line_draw_order(index_start);
-    // index_start += canards::get_vertices().len();
-    // line_draw_order.append(&mut canards);
+    let mut canards = canards::get_line_draw_order(index_start);
+    index_start += canards::get_vertices().len();
+    line_draw_order.append(&mut canards);
 
     // let mut intake = intake::get_line_draw_order(index_start);
     // index_start += intake::get_vertices().len();
