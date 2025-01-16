@@ -112,12 +112,12 @@ mod wings {
 
         // Main part.
         vertices.append(&mut vec![
-            VectorRow::from([3.82, 1.01, -0.05]), // 0
-            VectorRow::from([3.82, 1.01, 0.05]),  // 1
-            VectorRow::from([5.5, 0.98, -0.05]),  // 2
-            VectorRow::from([5.5, 0.98, 0.05]),   // 3
-            VectorRow::from([7.0, 0.98, -0.05]),  // 4
-            VectorRow::from([7.0, 0.98, 0.05]),   // 5
+            VectorRow::from([3.82, 1.01, -0.1]),  // 0
+            VectorRow::from([3.82, 1.01, 0.1]),   // 1
+            VectorRow::from([5.5, 0.98, -0.15]),  // 2
+            VectorRow::from([5.5, 0.98, 0.15]),   // 3
+            VectorRow::from([7.0, 0.98, -0.1]),   // 4
+            VectorRow::from([7.0, 0.98, 0.1]),    // 5
             VectorRow::from([8.9, 0.98, 0.0]),    // 6
             VectorRow::from([8.08, 1.33, 0.0]),   // 7
             VectorRow::from([6.8, 2.25, 0.0]),    // 8
@@ -136,13 +136,13 @@ mod wings {
 
         // Thick inner flap.
         vertices.append(&mut vec![
-            VectorRow::from([2.68, 1.05, 0.0]),  // 0
-            VectorRow::from([3.8, 1.01, -0.05]), // 1
-            VectorRow::from([3.8, 1.01, 0.05]),  // 2
-            VectorRow::from([3.7, 2.75, -0.05]), // 3
-            VectorRow::from([3.7, 2.75, 0.05]),  // 4
-            VectorRow::from([3.12, 2.75, 0.0]),  // 5
-            VectorRow::from([3.07, 1.5, 0.0]),   // 6
+            VectorRow::from([2.68, 1.05, 0.0]), // 0
+            VectorRow::from([3.8, 1.01, -0.1]), // 1
+            VectorRow::from([3.8, 1.01, 0.1]),  // 2
+            VectorRow::from([3.7, 2.75, -0.1]), // 3
+            VectorRow::from([3.7, 2.75, 0.1]),  // 4
+            VectorRow::from([3.12, 2.75, 0.0]), // 5
+            VectorRow::from([3.07, 1.5, 0.0]),  // 6
         ]);
 
         // Thin outer flap.
@@ -283,19 +283,17 @@ mod canards {
 
         // Main part.
         vertices.append(&mut vec![
-            // VectorRow::from([10.0, 0.0, -0.05]),  // 0
-            // VectorRow::from([11.0, 2.0, -0.05]),  // 1
-            // VectorRow::from([3.82, 3.0, -0.05]),  // 2
-            // VectorRow::from([3.82, 1.01, -0.05]), // 3
-            // VectorRow::from([3.82, 1.01, -0.05]), // 4
-            // VectorRow::from([3.82, 1.01, -0.05]), // 5
-            // VectorRow::from([3.82, 1.01, -0.05]), // 6
-            // VectorRow::from([3.82, 1.01, -0.05]), // 7
-            // VectorRow::from([3.82, 1.01, -0.05]), // 8
+            VectorRow::from([8.68, 1.0, 0.05]),  // 0
+            VectorRow::from([10.41, 1.1, 0.05]), // 1
+            VectorRow::from([10.41, 1.1, 0.05]), // 2
+            VectorRow::from([8.41, 2.345, 0.3]), // 3
+            VectorRow::from([7.93, 2.345, 0.3]), // 4
+            VectorRow::from([8.53, 1.25, 0.1]),  // 5
+            VectorRow::from([8.53, 1.1, 0.05]),  // 6
         ]);
 
         // Duplicate and mirror.
-        // vertices.append(&mut mirror_y(&vertices));
+        vertices.append(&mut mirror_y(&vertices));
 
         vertices
     }
@@ -304,17 +302,34 @@ mod canards {
         let mut line_draw_order = vec![];
 
         // Main part.
-        // line_draw_order.append(&mut vec![vec![0, 1, 2, 3, 4, 5, 6, 7, 8]]);
+        line_draw_order.append(&mut vec![
+            vec![
+                start + 0,
+                start + 1,
+                start + 2,
+                start + 3,
+                start + 4,
+                start + 5,
+            ],
+            vec![
+                start + 5,
+                start + 4,
+                start + 3,
+                start + 2,
+                start + 1,
+                start + 0,
+            ],
+        ]);
 
-        // Mirror for right canard.
-        // let mut line_draw_order_mirrored = line_draw_order.clone();
-        // for order in &mut line_draw_order_mirrored {
-        //     for ele in order.iter_mut() {
-        //         *ele += get_vertices().len() / 2;
-        //     }
-        //     order.reverse();
-        // }
-        // line_draw_order.append(&mut line_draw_order_mirrored);
+        // // Mirror for right canard.
+        let mut line_draw_order_mirrored = line_draw_order.clone();
+        for order in &mut line_draw_order_mirrored {
+            for ele in order.iter_mut() {
+                *ele += get_vertices().len() / 2;
+            }
+            order.reverse();
+        }
+        line_draw_order.append(&mut line_draw_order_mirrored);
 
         line_draw_order
     }
@@ -331,7 +346,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     //     VectorRow::from([4.0, -WING_SPAN / 2.0, 0.0]),
     // ]);
 
-    // vertices.append(&mut body::get_vertices());
+    vertices.append(&mut body::get_vertices());
     // vertices.append(&mut fuselage::get_vertices());
     // vertices.append(&mut rudder::get_vertices());
     vertices.append(&mut wings::get_vertices());
@@ -374,9 +389,9 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     // ]);
     // index_start += 4;
 
-    // let mut body = body::get_line_draw_order(index_start);
-    // index_start += body::get_vertices().len();
-    // line_draw_order.append(&mut body);
+    let mut body = body::get_line_draw_order(index_start);
+    index_start += body::get_vertices().len();
+    line_draw_order.append(&mut body);
 
     // let mut fuselage = fuselage::get_line_draw_order(index_start);
     // index_start += fuselage::get_vertices().len();
