@@ -35,28 +35,6 @@ mod body {
     pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         let mut vertices = vec![];
 
-        // Exhaust.
-        let radius_small = 0.3;
-        let radius_large = 0.45;
-        let points = 10;
-        for point in 1..=points {
-            let radians = (std::f64::consts::PI * 2.0 / (points as f64)) * (point as f64);
-            vertices.push(VectorRow::from([
-                0.0,
-                radius_small * radians.cos(),
-                radius_small * radians.sin(),
-            ]));
-        }
-
-        for point in 1..=points {
-            let radians = (std::f64::consts::PI * 2.0 / (points as f64)) * (point as f64);
-            vertices.push(VectorRow::from([
-                0.6,
-                radius_large * radians.cos(),
-                radius_large * radians.sin(),
-            ]));
-        }
-
         // Body.
         vertices.append(&mut vec![
             VectorRow::from([0.6, 0.0, 0.45]), // 0
@@ -88,66 +66,25 @@ mod body {
             VectorRow::from([8.8, 0.4, 0.5]), // 22
             VectorRow::from([8.8, 0.6, 0.3]), // 23
             VectorRow::from([8.8, 1.0, 0.1]), // 24
-                                              //
-                                              // VectorRow::from([8.8, 0.0, 0.6]), // 25
-                                              // VectorRow::from([8.8, 0.4, 0.5]), // 26
-                                              // VectorRow::from([8.8, 0.6, 0.3]), // 27
-                                              // VectorRow::from([8.8, 1.0, 0.1]), // 28
-                                              // VectorRow::from([6.0, 0.0, 0.45]),   // 0
-                                              // VectorRow::from([8.0, 0.0, 0.45]),   // 0
-                                              // VectorRow::from([8.8, 0.0, 0.45]),   // 0
-                                              // VectorRow::from([8.8, 0.2, 0.45]),   // 0
-                                              // VectorRow::from([10.0, 0.42, 0.45]), // 0
-                                              // VectorRow::from([10.9, 0.5, 0.45]),  // 0
-                                              // VectorRow::from([10.8, 0.9, 0.45]),  // 0 -
-                                              // VectorRow::from([10.0, 1.0, 0.45]),  // 0
-                                              // VectorRow::from([8.8, 1.0, 0.45]),   // 0
-                                              // VectorRow::from([8.0, 1.0, 0.45]),   // 0
-                                              // VectorRow::from([6.0, 1.0, 0.45]),   // 0
-                                              // VectorRow::from([4.0, 1.0, 0.45]),   // 0
         ]);
 
         // Duplicate and mirror.
         vertices.append(&mut mirror_y(&vertices));
+        vertices.append(&mut mirror_z(&vertices));
+
+        // // Intake
+        // vertices.append(&mut vec![
+        //     VectorRow::from([7.8, 0.0, 0.6]), // 0
+        //     VectorRow::from([8.8, 0.4, 0.5]), // 1
+        //     VectorRow::from([8.8, 0.6, 0.3]), // 2
+        //     VectorRow::from([8.8, 1.0, 0.1]), // 3
+        // ]);
 
         vertices
     }
 
     pub fn get_line_draw_order(start: usize) -> Vec<Vec<usize>> {
         let mut line_draw_order = vec![];
-
-        // Exhaust.
-        let points = 10;
-        for point in 0..(points - 1) {
-            line_draw_order.append(&mut vec![vec![
-                start + point + 1,
-                start + points + point + 1,
-                start + points + point,
-                start + point,
-            ]]);
-        }
-        line_draw_order.append(&mut vec![vec![
-            start + 0,
-            start + points + 0,
-            start + points + (points - 1),
-            start + (points - 1),
-        ]]);
-
-        for point in 0..(points - 1) {
-            line_draw_order.append(&mut vec![vec![
-                start + point,
-                start + points + point,
-                start + points + point + 1,
-                start + point + 1,
-            ]]);
-        }
-        line_draw_order.append(&mut vec![vec![
-            start + (points - 1),
-            start + points + (points - 1),
-            start + points + 0,
-            start + 0,
-        ]]);
-        let start = start + points * 2;
 
         line_draw_order.append(&mut vec![
             vec![
@@ -204,7 +141,16 @@ mod body {
         ]);
 
         // Duplicate and mirror.
-        let mut line_draw_order_mirrored = line_draw_order.clone()[start..].to_vec();
+        let mut line_draw_order_mirrored = line_draw_order.clone().to_vec();
+        for order in &mut line_draw_order_mirrored {
+            for ele in order.iter_mut() {
+                *ele += get_vertices().len() / 4;
+            }
+            order.reverse();
+        }
+        line_draw_order.append(&mut line_draw_order_mirrored);
+
+        let mut line_draw_order_mirrored = line_draw_order.clone().to_vec();
         for order in &mut line_draw_order_mirrored {
             for ele in order.iter_mut() {
                 *ele += get_vertices().len() / 2;
@@ -212,6 +158,76 @@ mod body {
             order.reverse();
         }
         line_draw_order.append(&mut line_draw_order_mirrored);
+
+        line_draw_order
+    }
+}
+
+mod exhaust {
+    use super::*;
+
+    pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
+        let mut vertices = vec![];
+
+        // Exhaust.
+        let radius_small = 0.3;
+        let radius_large = 0.45;
+        let points = 10;
+        for point in 1..=points {
+            let radians = (std::f64::consts::PI * 2.0 / (points as f64)) * (point as f64);
+            vertices.push(VectorRow::from([
+                0.0,
+                radius_small * radians.cos(),
+                radius_small * radians.sin(),
+            ]));
+        }
+
+        for point in 1..=points {
+            let radians = (std::f64::consts::PI * 2.0 / (points as f64)) * (point as f64);
+            vertices.push(VectorRow::from([
+                0.6,
+                radius_large * radians.cos(),
+                radius_large * radians.sin(),
+            ]));
+        }
+
+        vertices
+    }
+
+    pub fn get_line_draw_order(mut start: usize) -> Vec<Vec<usize>> {
+        let mut line_draw_order = vec![];
+
+        // Exhaust.
+        let points = 10;
+        for point in 0..(points - 1) {
+            line_draw_order.append(&mut vec![vec![
+                start + point + 1,
+                start + points + point + 1,
+                start + points + point,
+                start + point,
+            ]]);
+        }
+        line_draw_order.append(&mut vec![vec![
+            start + 0,
+            start + points + 0,
+            start + points + (points - 1),
+            start + (points - 1),
+        ]]);
+
+        for point in 0..(points - 1) {
+            line_draw_order.append(&mut vec![vec![
+                start + point,
+                start + points + point,
+                start + points + point + 1,
+                start + point + 1,
+            ]]);
+        }
+        line_draw_order.append(&mut vec![vec![
+            start + (points - 1),
+            start + points + (points - 1),
+            start + points + 0,
+            start + 0,
+        ]]);
 
         line_draw_order
     }
@@ -557,7 +573,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // ]);
 
     vertices.append(&mut body::get_vertices());
-    // vertices.append(&mut fuselage::get_vertices());
+    vertices.append(&mut exhaust::get_vertices());
     vertices.append(&mut rudder::get_vertices());
     vertices.append(&mut wings::get_vertices());
     vertices.append(&mut canards::get_vertices());
@@ -603,9 +619,9 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     index_start += body::get_vertices().len();
     line_draw_order.append(&mut body);
 
-    // let mut fuselage = fuselage::get_line_draw_order(index_start);
-    // index_start += fuselage::get_vertices().len();
-    // line_draw_order.append(&mut fuselage);
+    let mut exhaust = exhaust::get_line_draw_order(index_start);
+    index_start += exhaust::get_vertices().len();
+    line_draw_order.append(&mut exhaust);
 
     let mut rudder = rudder::get_line_draw_order(index_start);
     index_start += rudder::get_vertices().len();
