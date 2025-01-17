@@ -445,11 +445,23 @@ mod rudder {
 
         // Main part.
         vertices.append(&mut vec![
-            VectorRow::from([1.0, 0.0, 0.5]), // 0
-            VectorRow::from([3.0, 0.0, 0.6]), // 1
-            VectorRow::from([3.0, 0.0, 1.0]), // 2
-            VectorRow::from([3.0, 0.0, 0.6]), // 3
-            VectorRow::from([3.0, 0.0, 0.6]), // 4
+            VectorRow::from([1.0, 0.0, 0.5]),  // 0
+            VectorRow::from([4.0, 0.0, 0.6]),  // 1
+            VectorRow::from([1.8, 0.0, 2.5]),  // 2
+            VectorRow::from([1.2, 0.0, 2.5]),  // 3
+            VectorRow::from([1.2, 0.0, 2.0]),  // 4
+            VectorRow::from([1.18, 0.0, 1.8]), // 5
+            VectorRow::from([1.55, 0.0, 1.8]), // 6
+            VectorRow::from([1.6, 0.0, 0.8]),  // 7
+            VectorRow::from([1.1, 0.0, 0.8]),  // 8
+        ]);
+
+        // Rudder
+        vertices.append(&mut vec![
+            VectorRow::from([1.1, 0.0, 0.8]),  // 0
+            VectorRow::from([1.6, 0.0, 0.8]),  // 1
+            VectorRow::from([1.55, 0.0, 1.8]), // 2
+            VectorRow::from([1.18, 0.0, 1.8]), // 3
         ]);
 
         // Duplicate and mirror.
@@ -462,13 +474,20 @@ mod rudder {
         let mut line_draw_order = vec![];
 
         // Main part.
-        line_draw_order.append(&mut vec![
-            vec![start + 0, start + 1, start + 2],
-            // vec![
-            //     start + 5,
-            //     start + 4,
-            // ],
-        ]);
+        line_draw_order.append(&mut vec![vec![
+            start + 0,
+            start + 1,
+            start + 2,
+            start + 3,
+            start + 4,
+            start + 5,
+            start + 6,
+            start + 7,
+            start + 8,
+        ]]);
+        start += 9;
+
+        line_draw_order.append(&mut vec![vec![start + 0, start + 1, start + 2, start + 3]]);
 
         // Mirror for right canard.
         let mut line_draw_order_mirrored = line_draw_order.clone();
