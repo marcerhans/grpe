@@ -464,6 +464,26 @@ mod rudder {
             VectorRow::from([1.18, 0.0, 1.8]), // 3
         ]);
 
+        // Pitot tube
+        vertices.append(&mut vec![
+            VectorRow::from([3.2, 0.01, 1.2]), // 0
+            VectorRow::from([4.0, 0.01, 1.2]), // 1
+        ]);
+
+        // EW
+        vertices.append(&mut vec![
+            VectorRow::from([1.1, -0.1, 2.0]),  // 0
+            VectorRow::from([3.0, -0.1, 2.0]),  // 1
+            VectorRow::from([3.0, -0.1, 2.2]),  // 2
+            VectorRow::from([1.1, -0.1, 2.2]),  // 3
+            VectorRow::from([1.1, 0.1, 2.0]),   // 4
+            VectorRow::from([3.0, 0.1, 2.0]),   // 5
+            VectorRow::from([3.0, 0.1, 2.2]),   // 6
+            VectorRow::from([1.1, 0.1, 2.2]),   // 7
+            VectorRow::from([3.15, 0.00, 2.1]), // 8
+            VectorRow::from([0.95, 0.00, 2.1]), // 9
+        ]);
+
         // Duplicate and mirror.
         vertices.append(&mut mirror_y(&vertices));
 
@@ -487,9 +507,15 @@ mod rudder {
         ]]);
         start += 9;
 
+        // Rudder
         line_draw_order.append(&mut vec![vec![start + 0, start + 1, start + 2, start + 3]]);
+        start += 4;
 
-        // Mirror for right canard.
+        // Pitot tube
+        line_draw_order.append(&mut vec![vec![start + 0, start + 1]]);
+        start += 2;
+
+        // Mirror.
         let mut line_draw_order_mirrored = line_draw_order.clone();
         for order in &mut line_draw_order_mirrored {
             for ele in order.iter_mut() {
@@ -498,6 +524,22 @@ mod rudder {
             order.reverse();
         }
         line_draw_order.append(&mut line_draw_order_mirrored);
+
+        // EW
+        line_draw_order.append(&mut vec![
+            vec![start + 0, start + 1, start + 2, start + 3],
+            vec![start + 7, start + 6, start + 5, start + 4],
+            vec![start + 4, start + 5, start + 1, start + 0],
+            vec![start + 3, start + 2, start + 6, start + 7],
+            vec![start + 1, start + 8, start + 2],
+            vec![start + 2, start + 8, start + 6],
+            vec![start + 6, start + 8, start + 5],
+            vec![start + 5, start + 8, start + 1],
+            vec![start + 3, start + 9, start + 0],
+            vec![start + 0, start + 9, start + 4],
+            vec![start + 4, start + 9, start + 7],
+            vec![start + 7, start + 9, start + 3],
+        ]);
 
         line_draw_order
     }
