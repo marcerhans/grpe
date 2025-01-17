@@ -430,14 +430,24 @@ mod canards {
         let mut line_draw_order = vec![];
 
         // Main part.
-        line_draw_order.append(&mut vec![vec![
-            start + 0,
-            start + 1,
-            start + 2,
-            start + 3,
-            start + 4,
-            start + 5,
-        ]]);
+        line_draw_order.append(&mut vec![
+            vec![
+                start + 0,
+                start + 1,
+                start + 2,
+                start + 3,
+                start + 4,
+                start + 5,
+            ],
+            vec![
+                start + 5,
+                start + 5,
+                start + 3,
+                start + 2,
+                start + 1,
+                start + 0,
+            ],
+        ]);
 
         // Mirror for right canard.
         let mut line_draw_order_mirrored = line_draw_order.clone();
