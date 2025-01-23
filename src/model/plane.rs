@@ -72,34 +72,6 @@ mod body {
         vertices.append(&mut mirror_y(&vertices));
         vertices.append(&mut mirror_z(&vertices));
 
-        let mut i = 0;
-
-        while i < 2 {
-            let start = i * 25;
-            let sign;
-
-            if i == 1 {
-                sign = -1.0;
-            } else {
-                sign = 1.0;
-            }
-
-            // vertices[start + 1][2] -= 0.075;
-            // vertices[start + 2][2] -= 0.075;
-
-            // vertices[start + 18][2] -= 0.03;
-            // vertices[start + 19][2] += 0.02;
-            // vertices[start + 18][1] -= sign * 0.1;
-            // vertices[start + 19][1] += sign * 0.1;
-
-            // vertices[start + 22][2] -= 0.03;
-            // vertices[start + 23][2] -= 0.02;
-            // vertices[start + 22][1] -= sign * 0.1;
-            // vertices[start + 23][1] += sign * 0.1;
-
-            i += 1;
-        }
-
         vertices
     }
 
@@ -190,6 +162,50 @@ mod body {
         }
         line_draw_order.append(&mut line_draw_order_mirrored);
 
+        let mut line_draw_order_mirrored = line_draw_order.clone().to_vec();
+        for order in &mut line_draw_order_mirrored {
+            for ele in order.iter_mut() {
+                *ele += get_vertices().len() / 2;
+            }
+            order.reverse();
+        }
+        line_draw_order.append(&mut line_draw_order_mirrored);
+
+        line_draw_order
+    }
+}
+
+mod intake {
+    use super::*;
+
+    pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
+        let mut vertices = vec![];
+
+        // Body.
+        vertices.append(&mut vec![
+            VectorRow::from([3.5, 0.0, -5.45]), // 0
+            VectorRow::from([3.7, 1.0, -5.6]),  // 1
+            VectorRow::from([3.8, 2.4, -5.5]),  // 2
+        ]);
+
+        // Duplicate and mirror.
+        vertices.append(&mut mirror_y(&vertices));
+
+        vertices
+    }
+
+    pub fn get_line_draw_order(start: usize) -> Vec<Vec<usize>> {
+        let mut line_draw_order = vec![];
+
+        line_draw_order.append(&mut vec![
+            vec![
+                start + 0,
+                start + 1,
+                start + 2,
+            ],
+        ]);
+
+        // Duplicate and mirror.
         let mut line_draw_order_mirrored = line_draw_order.clone().to_vec();
         for order in &mut line_draw_order_mirrored {
             for ele in order.iter_mut() {
@@ -623,7 +639,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // ]);
 
     vertices.append(&mut body::get_vertices());
-    // vertices.append(&mut intake::get_vertices());
+    vertices.append(&mut intake::get_vertices());
     vertices.append(&mut exhaust::get_vertices());
     vertices.append(&mut rudder::get_vertices());
     vertices.append(&mut wings::get_vertices());
@@ -669,9 +685,9 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     index_start += body::get_vertices().len();
     line_draw_order.append(&mut body);
 
-    // let mut intake = intake::get_line_draw_order(index_start);
-    // index_start += intake::get_vertices().len();
-    // line_draw_order.append(&mut intake);
+    let mut intake = intake::get_line_draw_order(index_start);
+    index_start += intake::get_vertices().len();
+    line_draw_order.append(&mut intake);
 
     let mut exhaust = exhaust::get_line_draw_order(index_start);
     index_start += exhaust::get_vertices().len();
