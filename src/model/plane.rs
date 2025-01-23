@@ -63,10 +63,11 @@ mod body {
             VectorRow::from([8.0, 1.0, 0.1]), // 20
             //
             VectorRow::from([8.8, 0.0, 0.6]),  // 21
-            VectorRow::from([8.8, 0.25, 0.55]),// 22
+            VectorRow::from([8.8, 0.28, 0.55]),// 22
             VectorRow::from([8.8, 0.4, 0.5]),  // 23
             VectorRow::from([8.8, 0.6, 0.3]),  // 24
-            VectorRow::from([8.8, 1.0, 0.1]),  // 25
+            VectorRow::from([8.8, 1.0, 0.25]), // 25
+            VectorRow::from([8.8, 1.0, 0.0]),  // 26
         ]);
 
         // Duplicate and mirror.
@@ -150,6 +151,7 @@ mod body {
                 start + 19,
                 start + 24,
                 start + 25,
+                start + 26,
                 start + 20,
             ],
         ]);
@@ -194,16 +196,16 @@ mod intake {
         // Body.
         vertices.append(&mut vec![
             // Just duplicated from body...
-            VectorRow::from([8.8, 0.0, 0.6]),  // 0 (21)
-            VectorRow::from([8.8, 0.25, 0.55]),// 1 (22)
-            VectorRow::from([8.8, 0.4, 0.5]),  // 2 (23)
-            VectorRow::from([8.8, 0.6, 0.3]),  // 3 (24)
-            VectorRow::from([8.8, 1.0, 0.1]),  // 4 (25)
+            VectorRow::from([8.8, 0.0, 0.6]),  // 1 (21)
+            VectorRow::from([8.8, 0.28, 0.55]),// 2 (22)
+            VectorRow::from([8.8, 0.4, 0.5]),  // 3 (23)
+            VectorRow::from([8.8, 0.6, 0.3]),  // 4 (24)
+            VectorRow::from([8.8, 1.0, 0.25]), // 5 (25)
+            VectorRow::from([8.8, 1.0, 0.0]),  // 6 (26)
             //
-            VectorRow::from([10.0, 0.4, 0.3]),  // 5
-            VectorRow::from([11.0, 0.45, 0.25]),// 6
-            VectorRow::from([10.75, 0.6, 0.25]),// 7
-            VectorRow::from([8.8, 1.0, 0.1]),   // 8
+            VectorRow::from([10.0, 0.31, 0.4]), // 5
+            VectorRow::from([11.0, 0.35, 0.3]), // 6
+            VectorRow::from([10.75, 1.0, 0.25]),// 7
             //
             // VectorRow::from([11.0, 0.7, 0.4]), // 2
         ]);
