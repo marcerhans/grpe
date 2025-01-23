@@ -62,10 +62,11 @@ mod body {
             VectorRow::from([8.0, 0.6, 0.35]),// 19
             VectorRow::from([8.0, 1.0, 0.1]), // 20
             //
-            VectorRow::from([8.8, 0.0, 0.6]), // 21
-            VectorRow::from([8.8, 0.4, 0.5]), // 22
-            VectorRow::from([8.8, 0.6, 0.3]), // 23
-            VectorRow::from([8.8, 1.0, 0.1]), // 24
+            VectorRow::from([8.8, 0.0, 0.6]),  // 21
+            VectorRow::from([8.8, 0.25, 0.55]),// 22
+            VectorRow::from([8.8, 0.4, 0.5]),  // 23
+            VectorRow::from([8.8, 0.6, 0.3]),  // 24
+            VectorRow::from([8.8, 1.0, 0.1]),  // 25
         ]);
 
         // Duplicate and mirror.
@@ -141,13 +142,14 @@ mod body {
                 start + 21,
                 start + 22,
                 start + 23,
+                start + 24,
                 start + 19,
                 start + 18,
             ],
             vec![
                 start + 19,
-                start + 23,
                 start + 24,
+                start + 25,
                 start + 20,
             ],
         ]);
@@ -192,14 +194,14 @@ mod intake {
         // Body.
         vertices.append(&mut vec![
             // Just duplicated from body...
-            VectorRow::from([8.8, 0.0, 0.6]), // 0 (21)
-            VectorRow::from([8.8, 0.4, 0.5]), // 1 (22)
-            VectorRow::from([8.8, 0.6, 0.3]), // 2 (23)
-            VectorRow::from([8.8, 1.0, 0.1]), // 3 (24)
+            VectorRow::from([8.8, 0.0, 0.6]),  // 0 (21)
+            VectorRow::from([8.8, 0.25, 0.55]),// 1 (22)
+            VectorRow::from([8.8, 0.4, 0.5]),  // 2 (23)
+            VectorRow::from([8.8, 0.6, 0.3]),  // 3 (24)
+            VectorRow::from([8.8, 1.0, 0.1]),  // 4 (25)
             //
-            VectorRow::from([8.8, 0.25, 0.6]),  // 4
-            VectorRow::from([10.0, 0.25, 0.3]), // 5
-            VectorRow::from([11.0, 0.3, 0.25]), // 6
+            VectorRow::from([10.0, 0.4, 0.3]),  // 5
+            VectorRow::from([11.0, 0.45, 0.25]),// 6
             VectorRow::from([10.75, 0.6, 0.25]),// 7
             VectorRow::from([8.8, 1.0, 0.1]),   // 8
             //
@@ -217,12 +219,11 @@ mod intake {
 
         line_draw_order.append(&mut vec![
             vec![
-                start + 0,
-                start + 4,
+                start + 1,
                 start + 5,
                 start + 6,
                 start + 7,
-                start + 8,
+                start + 4,
             ],
         ]);
 
