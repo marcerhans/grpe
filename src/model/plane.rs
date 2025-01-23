@@ -296,7 +296,8 @@ mod cockpit {
 
         // Cockpit.
         vertices.append(&mut vec![
-            VectorRow::from([10.8, 1.0, 0.3]), // 0
+            VectorRow::from([15.0, 0.0, 0.0]), // 0
+            VectorRow::from([15.6, 0.0, 0.0]), // 1
         ]);
 
         // Duplicate and mirror.
@@ -311,6 +312,7 @@ mod cockpit {
         line_draw_order.append(&mut vec![
             vec![
                 start + 0,
+                start + 1,
             ],
         ]);
 
