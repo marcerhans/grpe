@@ -208,9 +208,9 @@ mod intake {
             VectorRow::from([8.8, 1.0, 0.0]),  // 5 (26)
             VectorRow::from([8.8, 1.0, -0.25]),// 6 (25++)
             //
-            VectorRow::from([10.0, 0.45, 0.4]),  // 7
-            VectorRow::from([11.0, 0.5, 0.35]),// 9
-            VectorRow::from([11.0, 0.55, 0.3]),  // 9
+            VectorRow::from([10.0, 0.45, 0.4]), // 7
+            VectorRow::from([11.0, 0.5, 0.35]), // 9
+            VectorRow::from([11.0, 0.55, 0.3]), // 9
             VectorRow::from([10.75, 1.0, 0.3]), // 10
             //
             VectorRow::from([10.5, 1.0, -0.3]), // 11
