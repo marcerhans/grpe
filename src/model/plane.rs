@@ -59,7 +59,7 @@ mod body {
             //
             VectorRow::from([8.0, 0.0, 0.6]), // 17
             VectorRow::from([8.0, 0.4, 0.5]), // 18
-            VectorRow::from([8.0, 0.7, 0.2]), // 19
+            VectorRow::from([8.0, 0.65, 0.25]),// 19
             VectorRow::from([8.0, 1.0, 0.1]), // 20
             //
             VectorRow::from([8.8, 0.0, 0.6]), // 21
@@ -164,19 +164,20 @@ mod body {
                 start + 20,
                 start + 16,
             ],
-            // vec![
-            //     start + 17,
-            //     start + 21,
-            //     start + 22,
-            //     start + 23,
-            //     start + 19,
-            // ],
-            // vec![
-            //     start + 19,
-            //     start + 23,
-            //     start + 24,
-            //     start + 20,
-            // ],
+            vec![
+                start + 17,
+                start + 21,
+                start + 22,
+                start + 23,
+                start + 19,
+                start + 18,
+            ],
+            vec![
+                start + 19,
+                start + 23,
+                start + 24,
+                start + 20,
+            ],
         ]);
 
         // Duplicate and mirror.
