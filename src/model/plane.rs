@@ -452,12 +452,12 @@ mod canards {
 
         // Main part.
         vertices.append(&mut vec![
-            VectorRow::from([8.68, 1.0, 0.05]),  // 0
+            VectorRow::from([8.68, 1.0, 0.45]),  // 0
             VectorRow::from([10.41, 1.1, 0.05]), // 1
-            VectorRow::from([8.41, 2.345, 0.3]), // 3
-            VectorRow::from([7.93, 2.345, 0.3]), // 4
-            VectorRow::from([8.53, 1.25, 0.1]),  // 5
-            VectorRow::from([8.53, 1.1, 0.05]),  // 6
+            VectorRow::from([8.41, 2.345, 0.55]),// 3
+            VectorRow::from([7.93, 2.345, 0.6]), // 4
+            VectorRow::from([8.53, 1.25, 0.5]),  // 5
+            VectorRow::from([8.53, 1.1, 0.45]),  // 6
         ]);
 
         // Duplicate and mirror.
