@@ -65,7 +65,7 @@ mod body {
             VectorRow::from([8.8, 0.0, 0.6]),  // 21
             VectorRow::from([8.8, 0.28, 0.55]),// 22
             VectorRow::from([8.8, 0.4, 0.5]),  // 23
-            VectorRow::from([8.8, 0.6, 0.3]),  // 24
+            VectorRow::from([8.8, 0.6, 0.4]),  // 24
             VectorRow::from([8.8, 1.0, 0.25]), // 25
             VectorRow::from([8.8, 1.0, 0.0]),  // 26
         ]);
@@ -203,9 +203,9 @@ mod intake {
             VectorRow::from([8.8, 1.0, 0.25]), // 5 (25)
             VectorRow::from([8.8, 1.0, 0.0]),  // 6 (26)
             //
-            VectorRow::from([10.0, 0.31, 0.4]), // 5
-            VectorRow::from([11.0, 0.35, 0.3]), // 6
-            VectorRow::from([10.75, 1.0, 0.25]),// 7
+            VectorRow::from([10.0, 0.31, 0.4]), // 7
+            VectorRow::from([11.0, 0.35, 0.3]), // 8
+            VectorRow::from([10.75, 1.0, 0.25]),// 9
             //
             // VectorRow::from([11.0, 0.7, 0.4]), // 2
         ]);
@@ -222,10 +222,10 @@ mod intake {
         line_draw_order.append(&mut vec![
             vec![
                 start + 1,
-                start + 5,
-                start + 6,
                 start + 7,
-                start + 4,
+                start + 8,
+                start + 9,
+                start + 5,
             ],
         ]);
 
@@ -663,7 +663,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // ]);
 
     vertices.append(&mut body::get_vertices());
-    vertices.append(&mut intake::get_vertices());
+    // vertices.append(&mut intake::get_vertices());
     vertices.append(&mut exhaust::get_vertices());
     vertices.append(&mut rudder::get_vertices());
     vertices.append(&mut wings::get_vertices());
@@ -709,9 +709,9 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     index_start += body::get_vertices().len();
     line_draw_order.append(&mut body);
 
-    let mut intake = intake::get_line_draw_order(index_start);
-    index_start += intake::get_vertices().len();
-    line_draw_order.append(&mut intake);
+    // let mut intake = intake::get_line_draw_order(index_start);
+    // index_start += intake::get_vertices().len();
+    // line_draw_order.append(&mut intake);
 
     let mut exhaust = exhaust::get_line_draw_order(index_start);
     index_start += exhaust::get_vertices().len();
