@@ -190,14 +190,14 @@ mod intake {
         let mut vertices = vec![];
 
             // Canard
-            // VectorRow::from([8.68, 1.0, 0.45]),  // 0
-            // VectorRow::from([10.41, 1.1, 0.05]), // 1
-            // VectorRow::from([8.41, 2.345, 0.55]),// 3
-            // VectorRow::from([7.93, 2.345, 0.6]), // 4
-            // VectorRow::from([8.53, 1.25, 0.5]),  // 5
-            // VectorRow::from([8.53, 1.1, 0.45]),  // 6
+            // VectorRow::from([8.68, 1.0, 0.35]),  // 0
+            // VectorRow::from([10.41, 1.1, 0.04]), // 1
+            // VectorRow::from([8.41, 2.345, 0.45]),// 3
+            // VectorRow::from([7.93, 2.345, 0.5]), // 4
+            // VectorRow::from([8.53, 1.25, 0.4]),  // 5
+            // VectorRow::from([8.53, 1.1, 0.35]),  // 6
 
-        // Body.
+        // Intake.
         vertices.append(&mut vec![
             // Just duplicated from body...
             VectorRow::from([8.8, 0.0, 0.6]),  // 0 (21)
@@ -209,7 +209,7 @@ mod intake {
             //
             VectorRow::from([10.0, 0.31, 0.4]), // 6
             VectorRow::from([11.0, 0.35, 0.3]), // 7
-            VectorRow::from([10.75, 1.0, 0.25]),// 8
+            VectorRow::from([10.75, 1.0, 0.3]), // 8
             //
             // VectorRow::from([11.0, 0.7, 0.4]), // 2
         ]);
