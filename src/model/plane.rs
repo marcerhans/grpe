@@ -178,10 +178,6 @@ mod body {
                 start + 24,
                 start + 20,
             ],
-            // vec![
-            //     start + 21,
-            //     start + 23,
-            // ]
         ]);
 
         // Duplicate and mirror.
