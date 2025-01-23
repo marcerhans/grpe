@@ -274,11 +274,11 @@ mod intake {
                 start + 7,
             ],
             vec![
-                start + 3,
+                start + 12,
                 start + 11,
                 start + 15,
                 start + 16,
-                start + 6,
+                start + 13,
             ]
         ]);
 
