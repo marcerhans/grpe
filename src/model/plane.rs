@@ -181,11 +181,29 @@ mod intake {
     pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         let mut vertices = vec![];
 
+            // Canard
+            // VectorRow::from([8.68, 1.0, 0.45]),  // 0
+            // VectorRow::from([10.41, 1.1, 0.05]), // 1
+            // VectorRow::from([8.41, 2.345, 0.55]),// 3
+            // VectorRow::from([7.93, 2.345, 0.6]), // 4
+            // VectorRow::from([8.53, 1.25, 0.5]),  // 5
+            // VectorRow::from([8.53, 1.1, 0.45]),  // 6
+
         // Body.
         vertices.append(&mut vec![
-            VectorRow::from([3.5, 0.0, -5.45]), // 0
-            VectorRow::from([3.7, 1.0, -5.6]),  // 1
-            VectorRow::from([3.8, 2.4, -5.5]),  // 2
+            // Just duplicated from body...
+            VectorRow::from([8.8, 0.0, 0.6]), // 0 (21)
+            VectorRow::from([8.8, 0.4, 0.5]), // 1 (22)
+            VectorRow::from([8.8, 0.6, 0.3]), // 2 (23)
+            VectorRow::from([8.8, 1.0, 0.1]), // 3 (24)
+            //
+            VectorRow::from([8.8, 0.25, 0.6]),  // 4
+            VectorRow::from([10.0, 0.25, 0.3]), // 5
+            VectorRow::from([11.0, 0.3, 0.25]), // 6
+            VectorRow::from([10.75, 0.6, 0.25]),// 7
+            VectorRow::from([8.8, 1.0, 0.1]),   // 8
+            //
+            // VectorRow::from([11.0, 0.7, 0.4]), // 2
         ]);
 
         // Duplicate and mirror.
@@ -200,8 +218,11 @@ mod intake {
         line_draw_order.append(&mut vec![
             vec![
                 start + 0,
-                start + 1,
-                start + 2,
+                start + 4,
+                start + 5,
+                start + 6,
+                start + 7,
+                start + 8,
             ],
         ]);
 
