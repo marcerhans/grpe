@@ -209,7 +209,7 @@ mod intake {
             VectorRow::from([10.6, 1.1, 0.3]), // 13
             VectorRow::from([10.4, 1.05, 0.3]), // 14
             //
-            VectorRow::from([10.75, 1.0, -0.3]), // 15
+            VectorRow::from([10.6, 1.0, -0.3]), // 15
             //
             VectorRow::from([10.5, 0.0, -0.5]), // 16
             //
