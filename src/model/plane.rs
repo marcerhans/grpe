@@ -62,7 +62,7 @@ mod body {
             VectorRow::from([8.0, 0.6, 0.35]),// 19
             VectorRow::from([8.0, 1.0, 0.1]), // 20
             //
-            VectorRow::from([8.8, 0.0, 0.6]),  // 21
+            VectorRow::from([8.5, 0.0, 0.6]),  // 21
             VectorRow::from([8.8, 0.28, 0.55]),// 22
             VectorRow::from([8.8, 0.4, 0.5]),  // 23
             VectorRow::from([8.8, 0.6, 0.4]),  // 24
