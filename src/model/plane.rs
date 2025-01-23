@@ -54,12 +54,12 @@ mod body {
             //
             VectorRow::from([6.0, 0.0, 0.6]),  // 13
             VectorRow::from([6.0, 0.4, 0.5]),  // 14
-            VectorRow::from([6.0, 0.75, 0.25]),// 15
+            VectorRow::from([6.0, 0.65, 0.25]),// 15
             VectorRow::from([6.0, 1.0, 0.15]), // 16
             //
             VectorRow::from([8.0, 0.0, 0.6]), // 17
             VectorRow::from([8.0, 0.4, 0.5]), // 18
-            VectorRow::from([8.0, 0.65, 0.25]),// 19
+            VectorRow::from([8.0, 0.6, 0.35]),// 19
             VectorRow::from([8.0, 1.0, 0.1]), // 20
             //
             VectorRow::from([8.8, 0.0, 0.6]), // 21
@@ -84,18 +84,18 @@ mod body {
                 sign = 1.0;
             }
 
-            vertices[start + 1][2] -= 0.075;
-            vertices[start + 2][2] -= 0.075;
+            // vertices[start + 1][2] -= 0.075;
+            // vertices[start + 2][2] -= 0.075;
 
-            vertices[start + 18][2] -= 0.03;
-            vertices[start + 19][2] += 0.02;
-            vertices[start + 18][1] -= sign * 0.1;
-            vertices[start + 19][1] += sign * 0.1;
+            // vertices[start + 18][2] -= 0.03;
+            // vertices[start + 19][2] += 0.02;
+            // vertices[start + 18][1] -= sign * 0.1;
+            // vertices[start + 19][1] += sign * 0.1;
 
-            vertices[start + 22][2] -= 0.03;
-            vertices[start + 23][2] -= 0.02;
-            vertices[start + 22][1] -= sign * 0.1;
-            vertices[start + 23][1] += sign * 0.1;
+            // vertices[start + 22][2] -= 0.03;
+            // vertices[start + 23][2] -= 0.02;
+            // vertices[start + 22][1] -= sign * 0.1;
+            // vertices[start + 23][1] += sign * 0.1;
 
             i += 1;
         }
@@ -178,6 +178,10 @@ mod body {
                 start + 24,
                 start + 20,
             ],
+            // vec![
+            //     start + 21,
+            //     start + 23,
+            // ]
         ]);
 
         // Duplicate and mirror.
