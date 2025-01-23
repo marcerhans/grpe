@@ -189,14 +189,6 @@ mod intake {
     pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         let mut vertices = vec![];
 
-            // Canard
-            // VectorRow::from([8.68, 1.0, 0.35]),  // 0
-            // VectorRow::from([10.41, 1.1, 0.04]), // 1
-            // VectorRow::from([8.41, 2.345, 0.45]),// 3
-            // VectorRow::from([7.93, 2.345, 0.5]), // 4
-            // VectorRow::from([8.53, 1.25, 0.4]),  // 5
-            // VectorRow::from([8.53, 1.1, 0.35]),  // 6
-
         // Intake.
         vertices.append(&mut vec![
             // Just duplicated from body...
@@ -280,6 +272,46 @@ mod intake {
                 start + 16,
                 start + 13,
             ]
+        ]);
+
+        // Duplicate and mirror.
+        let mut line_draw_order_mirrored = line_draw_order.clone().to_vec();
+        for order in &mut line_draw_order_mirrored {
+            for ele in order.iter_mut() {
+                *ele += get_vertices().len() / 2;
+            }
+            order.reverse();
+        }
+        line_draw_order.append(&mut line_draw_order_mirrored);
+
+        line_draw_order
+    }
+}
+
+mod cockpit {
+    use super::*;
+
+    pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
+        let mut vertices = vec![];
+
+        // Cockpit.
+        vertices.append(&mut vec![
+            VectorRow::from([10.8, 1.0, 0.3]), // 0
+        ]);
+
+        // Duplicate and mirror.
+        vertices.append(&mut mirror_y(&vertices));
+
+        vertices
+    }
+
+    pub fn get_line_draw_order(start: usize) -> Vec<Vec<usize>> {
+        let mut line_draw_order = vec![];
+
+        line_draw_order.append(&mut vec![
+            vec![
+                start + 0,
+            ],
         ]);
 
         // Duplicate and mirror.
@@ -717,6 +749,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
 
     vertices.append(&mut body::get_vertices());
     vertices.append(&mut intake::get_vertices());
+    vertices.append(&mut cockpit::get_vertices());
     vertices.append(&mut exhaust::get_vertices());
     vertices.append(&mut rudder::get_vertices());
     vertices.append(&mut wings::get_vertices());
@@ -765,6 +798,10 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     let mut intake = intake::get_line_draw_order(index_start);
     index_start += intake::get_vertices().len();
     line_draw_order.append(&mut intake);
+
+    let mut cockpit= cockpit::get_line_draw_order(index_start);
+    index_start += cockpit::get_vertices().len();
+    line_draw_order.append(&mut cockpit);
 
     let mut exhaust = exhaust::get_line_draw_order(index_start);
     index_start += exhaust::get_vertices().len();
