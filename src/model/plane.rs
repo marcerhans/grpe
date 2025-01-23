@@ -54,12 +54,12 @@ mod body {
             //
             VectorRow::from([6.0, 0.0, 0.6]),  // 13
             VectorRow::from([6.0, 0.4, 0.5]),  // 14
-            VectorRow::from([6.0, 0.6, 0.3]),  // 15
+            VectorRow::from([6.0, 0.7, 0.2]),  // 15
             VectorRow::from([6.0, 1.0, 0.15]), // 16
             //
             VectorRow::from([8.0, 0.0, 0.6]), // 17
             VectorRow::from([8.0, 0.4, 0.5]), // 18
-            VectorRow::from([8.0, 0.6, 0.3]), // 19
+            VectorRow::from([8.0, 0.7, 0.2]), // 19
             VectorRow::from([8.0, 1.0, 0.1]), // 20
             //
             VectorRow::from([8.8, 0.0, 0.6]), // 21
