@@ -285,7 +285,7 @@ mod cockpit {
         // Cockpit.
         vertices.append(&mut vec![
             VectorRow::from([15.2, 0.0, 0.0]), // 0
-            VectorRow::from([15.9, 0.0, 0.0]), // 1
+            VectorRow::from([16.0, 0.0, 0.0]), // 1
         ]);
 
         // Duplicate and mirror.
