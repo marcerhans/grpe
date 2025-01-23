@@ -48,13 +48,13 @@ mod body {
             //
             VectorRow::from([4.0, 0.0, 0.6]),  // 8
             VectorRow::from([4.0, 0.4, 0.5]),  // 9
-            VectorRow::from([4.0, 0.6, 0.3]),  // 10
+            VectorRow::from([4.0, 0.65, 0.25]),// 10
             VectorRow::from([4.0, 1.0, 0.15]), // 11
             VectorRow::from([2.5, 0.95, 0.0]), // 12
             //
             VectorRow::from([6.0, 0.0, 0.6]),  // 13
             VectorRow::from([6.0, 0.4, 0.5]),  // 14
-            VectorRow::from([6.0, 0.7, 0.2]),  // 15
+            VectorRow::from([6.0, 0.75, 0.25]),// 15
             VectorRow::from([6.0, 1.0, 0.15]), // 16
             //
             VectorRow::from([8.0, 0.0, 0.6]), // 17
@@ -150,19 +150,20 @@ mod body {
                 start + 16,
                 start + 11,
             ],
-            // vec![
-            //     start + 13,
-            //     start + 17,
-            //     start + 18,
-            //     start + 19,
-            //     start + 15,
-            // ],
-            // vec![
-            //     start + 15,
-            //     start + 19,
-            //     start + 20,
-            //     start + 16,
-            // ],
+            vec![
+                start + 13,
+                start + 17,
+                start + 18,
+                start + 19,
+                start + 15,
+                start + 14,
+            ],
+            vec![
+                start + 15,
+                start + 19,
+                start + 20,
+                start + 16,
+            ],
             // vec![
             //     start + 17,
             //     start + 21,
