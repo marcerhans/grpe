@@ -225,7 +225,7 @@ mod intake {
                 start + 6,
                 start + 7,
                 start + 8,
-                start + 5,
+                start + 4,
             ],
         ]);
 
@@ -663,7 +663,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // ]);
 
     vertices.append(&mut body::get_vertices());
-    // vertices.append(&mut intake::get_vertices());
+    vertices.append(&mut intake::get_vertices());
     vertices.append(&mut exhaust::get_vertices());
     vertices.append(&mut rudder::get_vertices());
     vertices.append(&mut wings::get_vertices());
@@ -709,9 +709,9 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     index_start += body::get_vertices().len();
     line_draw_order.append(&mut body);
 
-    // let mut intake = intake::get_line_draw_order(index_start);
-    // index_start += intake::get_vertices().len();
-    // line_draw_order.append(&mut intake);
+    let mut intake = intake::get_line_draw_order(index_start);
+    index_start += intake::get_vertices().len();
+    line_draw_order.append(&mut intake);
 
     let mut exhaust = exhaust::get_line_draw_order(index_start);
     index_start += exhaust::get_vertices().len();
