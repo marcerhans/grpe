@@ -206,13 +206,15 @@ mod intake {
             VectorRow::from([11.0, 0.6, 0.35]), // 10
             VectorRow::from([11.0, 0.65, 0.3]), // 11
             VectorRow::from([10.8, 1.0, 0.3]), // 12
+            VectorRow::from([10.6, 1.1, 0.3]), // 13
+            VectorRow::from([10.4, 1.05, 0.3]), // 14
             //
-            VectorRow::from([10.75, 1.0, -0.3]), // 13
+            VectorRow::from([10.75, 1.0, -0.3]), // 15
             //
-            VectorRow::from([10.5, 0.0, -0.5]), // 14
+            VectorRow::from([10.5, 0.0, -0.5]), // 16
             //
-            VectorRow::from([11.1, 0.65, 0.0]), // 15
-            VectorRow::from([10.9, 0.65, -0.3]), // 16
+            VectorRow::from([11.1, 0.65, 0.0]), // 17
+            VectorRow::from([10.9, 0.65, -0.3]), // 18
         ]);
 
         // Duplicate and mirror.
@@ -231,46 +233,30 @@ mod intake {
                 start + 10,
                 start + 11,
                 start + 12,
-                start + 4,
-            ],
-            vec![
-                start + 4,
-                start + 12,
-                start + 11,
-                start + 10,
-                start + 9,
-                start + 1,
-            ],
-            vec![
-                start + 4,
-                start + 12,
-                start + 13,
-                start + 7,
-            ],
-            vec![
-                start + 7,
-                start + 13,
-                start + 12,
-                start + 4,
-            ],
-            vec![
-                start + 7,
                 start + 13,
                 start + 14,
-                start + 8,
+                start + 4,
             ],
             vec![
-                start + 8,
+                start + 4,
                 start + 14,
                 start + 13,
+                start + 12,
+                start + 15,
                 start + 7,
             ],
             vec![
-                start + 12,
-                start + 11,
+                start + 7,
                 start + 15,
                 start + 16,
-                start + 13,
+                start + 8,
+            ],
+            vec![
+                start + 12,
+                start + 11,
+                start + 17,
+                start + 18,
+                start + 15,
             ]
         ]);
 
