@@ -206,17 +206,21 @@ mod intake {
             VectorRow::from([8.8, 0.6, 0.4]),  // 3 (24)
             VectorRow::from([8.8, 1.0, 0.25]), // 4 (25)
             VectorRow::from([8.8, 1.0, 0.0]),  // 5 (26)
-            VectorRow::from([8.8, 1.0, -0.25]),// 6 (25--)
-            VectorRow::from([8.8, 0.0, -0.6]), // 7 (21--)
+            VectorRow::from([8.8, 0.6, -0.4]), // 6 (24--)
+            VectorRow::from([8.8, 1.0, -0.25]),// 7 (25--)
+            VectorRow::from([8.8, 0.0, -0.6]), // 8 (21--)
             //
-            VectorRow::from([10.0, 0.45, 0.4]), // 8
-            VectorRow::from([11.0, 0.5, 0.35]), // 9
-            VectorRow::from([11.0, 0.55, 0.3]), // 10
-            VectorRow::from([10.75, 1.0, 0.3]), // 11
+            VectorRow::from([10.0, 0.5, 0.4]), // 9
+            VectorRow::from([11.0, 0.6, 0.35]), // 10
+            VectorRow::from([11.0, 0.65, 0.3]), // 11
+            VectorRow::from([10.8, 1.0, 0.3]), // 12
             //
-            VectorRow::from([10.5, 1.0, -0.3]), // 12
+            VectorRow::from([10.75, 1.0, -0.3]), // 13
             //
-            VectorRow::from([10.5, 0.0, -0.5]), // 13
+            VectorRow::from([10.5, 0.0, -0.5]), // 14
+            //
+            VectorRow::from([11.1, 0.65, 0.0]), // 15
+            VectorRow::from([10.9, 0.65, -0.3]), // 16
         ]);
 
         // Duplicate and mirror.
@@ -231,23 +235,50 @@ mod intake {
         line_draw_order.append(&mut vec![
             vec![
                 start + 1,
-                start + 8,
                 start + 9,
                 start + 10,
                 start + 11,
-                start + 4,
-            ],
-            vec![
-                start + 4,
-                start + 11,
                 start + 12,
-                start + 6,
+                start + 4,
             ],
             vec![
-                start + 6,
+                start + 4,
+                start + 12,
+                start + 11,
+                start + 10,
+                start + 9,
+                start + 1,
+            ],
+            vec![
+                start + 4,
                 start + 12,
                 start + 13,
                 start + 7,
+            ],
+            vec![
+                start + 7,
+                start + 13,
+                start + 12,
+                start + 4,
+            ],
+            vec![
+                start + 7,
+                start + 13,
+                start + 14,
+                start + 8,
+            ],
+            vec![
+                start + 8,
+                start + 14,
+                start + 13,
+                start + 7,
+            ],
+            vec![
+                start + 3,
+                start + 11,
+                start + 15,
+                start + 16,
+                start + 6,
             ]
         ]);
 
