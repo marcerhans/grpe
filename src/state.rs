@@ -242,7 +242,7 @@ impl StateHandler {
                     },
 
                     io::mouse::Event::Middle(motion, x, y) => match motion {
-                        io::mouse::Motion::Down => todo!(),
+                        io::mouse::Motion::Down => (),
                         io::mouse::Motion::Up => (),
                     },
                     io::mouse::Event::Right(motion, x, y) => match motion {

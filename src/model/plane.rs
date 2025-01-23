@@ -72,6 +72,34 @@ mod body {
         vertices.append(&mut mirror_y(&vertices));
         vertices.append(&mut mirror_z(&vertices));
 
+        let mut i = 0;
+
+        while i < 2 {
+            let start = i * 25;
+            let sign;
+
+            if i == 1 {
+                sign = -1.0;
+            } else {
+                sign = 1.0;
+            }
+
+            vertices[start + 1][2] -= 0.075;
+            vertices[start + 2][2] -= 0.075;
+
+            vertices[start + 18][2] -= 0.03;
+            vertices[start + 19][2] += 0.02;
+            vertices[start + 18][1] -= sign * 0.1;
+            vertices[start + 19][1] += sign * 0.1;
+
+            vertices[start + 22][2] -= 0.03;
+            vertices[start + 23][2] -= 0.02;
+            vertices[start + 22][1] -= sign * 0.1;
+            vertices[start + 23][1] += sign * 0.1;
+
+            i += 1;
+        }
+
         vertices
     }
 
