@@ -207,13 +207,14 @@ mod intake {
             VectorRow::from([8.8, 1.0, 0.25]), // 4 (25)
             VectorRow::from([8.8, 1.0, 0.0]),  // 5 (26)
             VectorRow::from([8.8, 1.0, -0.25]),// 6 (25++)
+            VectorRow::from([8.8, 1.0, -0.25]),// 7 (26--)
             //
-            VectorRow::from([10.0, 0.45, 0.4]), // 7
+            VectorRow::from([10.0, 0.45, 0.4]), // 8
             VectorRow::from([11.0, 0.5, 0.35]), // 9
-            VectorRow::from([11.0, 0.55, 0.3]), // 9
-            VectorRow::from([10.75, 1.0, 0.3]), // 10
+            VectorRow::from([11.0, 0.55, 0.3]), // 10
+            VectorRow::from([10.75, 1.0, 0.3]), // 11
             //
-            VectorRow::from([10.5, 1.0, -0.3]), // 11
+            VectorRow::from([10.5, 1.0, -0.3]), // 12
             // VectorRow::from([11.0, 0.7, 0.4]), // 2
         ]);
 
@@ -229,16 +230,16 @@ mod intake {
         line_draw_order.append(&mut vec![
             vec![
                 start + 1,
-                start + 7,
                 start + 8,
                 start + 9,
                 start + 10,
+                start + 11,
                 start + 4,
             ],
             vec![
                 start + 4,
-                start + 10,
                 start + 11,
+                start + 12,
                 start + 6,
             ]
         ]);
