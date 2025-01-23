@@ -623,17 +623,17 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     // ]);
 
     vertices.append(&mut body::get_vertices());
+    // vertices.append(&mut intake::get_vertices());
     vertices.append(&mut exhaust::get_vertices());
     vertices.append(&mut rudder::get_vertices());
     vertices.append(&mut wings::get_vertices());
     vertices.append(&mut canards::get_vertices());
-    // vertices.append(&mut intake::get_vertices());
 
     // vertices.append(&mut cockpit::get_vertices());
 
-    // Backdrop
+    // // Backdrop
     // const GRID_SIZE: i32 = 200;
-    // const GRID_SPACING: i32 = 10;
+    // const GRID_SPACING: i32 = 2;
     // for i in 0..GRID_SIZE {
     //     for j in 0..GRID_SIZE {
     //         vertices.push(VectorRow::from([
@@ -669,6 +669,10 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     index_start += body::get_vertices().len();
     line_draw_order.append(&mut body);
 
+    // let mut intake = intake::get_line_draw_order(index_start);
+    // index_start += intake::get_vertices().len();
+    // line_draw_order.append(&mut intake);
+
     let mut exhaust = exhaust::get_line_draw_order(index_start);
     index_start += exhaust::get_vertices().len();
     line_draw_order.append(&mut exhaust);
@@ -685,10 +689,7 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     index_start += canards::get_vertices().len();
     line_draw_order.append(&mut canards);
 
-    // let mut intake = intake::get_line_draw_order(index_start);
-    // index_start += intake::get_vertices().len();
-    // line_draw_order.append(&mut intake);
-
+    // // Backdrop
     // for i in index_start..(index_start + 200*200) {
     //     line_draw_order.push(vec![i]);
     // }
