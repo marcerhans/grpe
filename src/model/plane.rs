@@ -72,14 +72,6 @@ mod body {
         vertices.append(&mut mirror_y(&vertices));
         vertices.append(&mut mirror_z(&vertices));
 
-        // // Intake
-        // vertices.append(&mut vec![
-        //     VectorRow::from([7.8, 0.0, 0.6]), // 0
-        //     VectorRow::from([8.8, 0.4, 0.5]), // 1
-        //     VectorRow::from([8.8, 0.6, 0.3]), // 2
-        //     VectorRow::from([8.8, 1.0, 0.1]), // 3
-        // ]);
-
         vertices
     }
 
@@ -91,52 +83,92 @@ mod body {
                 start + 0,
                 start + 1,
                 start + 2,
+                start + 7,
+            ],
+            vec![
+                start + 7,
+                start + 2,
+                start + 3,
+                start + 6,
+            ],
+            vec![
+                start + 6,
                 start + 3,
                 start + 4,
                 start + 5,
-                start + 6,
-                start + 7,
             ],
             vec![
                 start + 1,
                 start + 8,
                 start + 9,
+                start + 2,
+            ],
+            vec![
+                start + 2,
+                start + 9,
+                start + 10,
+                start + 3,
+            ],
+            vec![
+                start + 3,
                 start + 10,
                 start + 11,
                 start + 12,
                 start + 4,
-                start + 3,
-                start + 2,
             ],
             vec![
                 start + 8,
                 start + 13,
                 start + 14,
+                start + 9,
+            ],
+            vec![
+                start + 9,
+                start + 14,
+                start + 15,
+                start + 10,
+            ],
+            vec![
+                start + 10,
                 start + 15,
                 start + 16,
                 start + 11,
-                start + 10,
-                start + 9,
             ],
             vec![
                 start + 13,
                 start + 17,
                 start + 18,
+                start + 14,
+            ],
+            vec![
+                start + 14,
+                start + 18,
+                start + 19,
+                start + 15,
+            ],
+            vec![
+                start + 15,
                 start + 19,
                 start + 20,
                 start + 16,
-                start + 15,
-                start + 14,
             ],
             vec![
                 start + 17,
                 start + 21,
                 start + 22,
+                start + 18,
+            ],
+            vec![
+                start + 18,
+                start + 22,
+                start + 23,
+                start + 19,
+            ],
+            vec![
+                start + 19,
                 start + 23,
                 start + 24,
                 start + 20,
-                start + 19,
-                start + 18,
             ],
         ]);
 
