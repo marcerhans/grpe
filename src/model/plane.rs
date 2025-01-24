@@ -50,7 +50,7 @@ mod body {
             VectorRow::from([4.0, 0.4, 0.5]),  // 9
             VectorRow::from([4.0, 0.65, 0.25]),// 10
             VectorRow::from([4.0, 1.0, 0.15]), // 11
-            VectorRow::from([2.5, 0.95, 0.0]), // 12
+            VectorRow::from([2.48, 0.98, 0.0]),// 12
             //
             VectorRow::from([6.0, 0.0, 0.6]),  // 13
             VectorRow::from([6.0, 0.4, 0.5]),  // 14
