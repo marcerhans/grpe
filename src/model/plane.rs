@@ -283,27 +283,49 @@ mod cockpit {
         let mut vertices = vec![];
 
         // Cockpit.
-        vertices.append(&mut vec![
+        let mut misc = vec![
+            // Pitot
             VectorRow::from([15.2, 0.0, 0.0]), // 0
             VectorRow::from([16.0, 0.0, 0.0]), // 1
-            // // Just duplicated from body...
-            // VectorRow::from([8.5, 0.0, 0.6]),  // 0 (21)
-            // VectorRow::from([8.8, 0.28, 0.55]),// 1 (22)
-            // VectorRow::from([8.8, 0.4, 0.5]),  // 2 (23)
-            // VectorRow::from([8.8, 0.6, 0.4]),  // 3 (24)
-            // VectorRow::from([8.8, 1.0, 0.25]), // 4 (25)
-            // VectorRow::from([8.8, 1.0, 0.0]),  // 5 (26)
-            // VectorRow::from([8.5, 0.28, -0.55]),// 6 (21--)
-            // VectorRow::from([8.8, 0.28, -0.55]),// 7 (22--)
-            // VectorRow::from([8.8, 0.6, -0.4]), // 8 (24--)
-            // VectorRow::from([8.8, 1.0, -0.25]),// 9 (25--)
-            // VectorRow::from([8.8, 0.0, -0.6]), // 10 (21--)
+            // Just duplicated from body...
+            VectorRow::from([8.5, 0.0, 0.6]),  // 2/14 (21)
+            VectorRow::from([8.8, 0.28, 0.55]),// 3 (22)
+            VectorRow::from([8.8, 0.4, 0.5]),  // 4 (23)
+            VectorRow::from([8.8, 0.6, 0.4]),  // 5 (24)
+            VectorRow::from([8.8, 1.0, 0.25]), // 6 (25)
+            VectorRow::from([8.8, 1.0, 0.0]),  // 7 (26)
+            VectorRow::from([8.8, 0.28, -0.55]),// 8 (22--)
+            VectorRow::from([8.8, 0.6, -0.4]), // 9 (24--)
+            VectorRow::from([8.8, 1.0, -0.25]),// 10 (25--)
+            VectorRow::from([8.8, 0.0, -0.6]), // 11 (21--)
+        ];
+        // 12 to 23
+        misc.append(&mut mirror_y(&misc));
+
+        // Just duplicated from intake...
+        let mut duplicated_from_intake = vec![
+            VectorRow::from([10.0, 0.5, 0.4]), // 24
+            VectorRow::from([11.0, 0.6, 0.35]), // 25
+            VectorRow::from([11.0, 0.65, 0.3]), // 26
+            VectorRow::from([10.8, 1.0, 0.3]), // 27
+            VectorRow::from([10.6, 1.1, 0.3]), // 28
+            VectorRow::from([10.4, 1.05, 0.3]), // 29
             //
-            // VectorRow::from([15.2, 0.0, 0.0]), // 0
-        ]);
+            VectorRow::from([10.6, 1.0, -0.3]), // 30
+            //
+            VectorRow::from([10.5, 0.5, -0.3]), // 31
+            //
+            VectorRow::from([11.1, 0.65, 0.0]), // 32
+            VectorRow::from([10.9, 0.65, -0.3]), // 33
+        ];
+        // 34 to 43
+        duplicated_from_intake.append(&mut mirror_y(&duplicated_from_intake));
 
         // Duplicate and mirror.
-        vertices.append(&mut mirror_y(&vertices));
+        // vertices.append(&mut mirror_y(&vertices));
+
+        vertices.append(&mut misc);
+        vertices.append(&mut duplicated_from_intake);
 
         vertices
     }
@@ -316,17 +338,27 @@ mod cockpit {
                 start + 0,
                 start + 1,
             ],
+            vec![
+                start + 26,
+                start + 25,
+                start + 24,
+                start + 3,
+                start + 2,
+                start + 15,
+                start + 34,
+                start + 35,
+            ],
         ]);
 
         // Duplicate and mirror.
-        let mut line_draw_order_mirrored = line_draw_order.clone().to_vec();
-        for order in &mut line_draw_order_mirrored {
-            for ele in order.iter_mut() {
-                *ele += get_vertices().len() / 2;
-            }
-            order.reverse();
-        }
-        line_draw_order.append(&mut line_draw_order_mirrored);
+        // let mut line_draw_order_mirrored = line_draw_order.clone().to_vec();
+        // for order in &mut line_draw_order_mirrored {
+        //     for ele in order.iter_mut() {
+        //         *ele += get_vertices().len() / 2;
+        //     }
+        //     order.reverse();
+        // }
+        // line_draw_order.append(&mut line_draw_order_mirrored);
 
         line_draw_order
     }
@@ -758,8 +790,6 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     vertices.append(&mut rudder::get_vertices());
     vertices.append(&mut wings::get_vertices());
     vertices.append(&mut canards::get_vertices());
-
-    // vertices.append(&mut cockpit::get_vertices());
 
     // // Backdrop
     // const GRID_SIZE: i32 = 200;
