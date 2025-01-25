@@ -286,6 +286,20 @@ mod cockpit {
         vertices.append(&mut vec![
             VectorRow::from([15.2, 0.0, 0.0]), // 0
             VectorRow::from([16.0, 0.0, 0.0]), // 1
+            // // Just duplicated from body...
+            // VectorRow::from([8.5, 0.0, 0.6]),  // 0 (21)
+            // VectorRow::from([8.8, 0.28, 0.55]),// 1 (22)
+            // VectorRow::from([8.8, 0.4, 0.5]),  // 2 (23)
+            // VectorRow::from([8.8, 0.6, 0.4]),  // 3 (24)
+            // VectorRow::from([8.8, 1.0, 0.25]), // 4 (25)
+            // VectorRow::from([8.8, 1.0, 0.0]),  // 5 (26)
+            // VectorRow::from([8.5, 0.28, -0.55]),// 6 (21--)
+            // VectorRow::from([8.8, 0.28, -0.55]),// 7 (22--)
+            // VectorRow::from([8.8, 0.6, -0.4]), // 8 (24--)
+            // VectorRow::from([8.8, 1.0, -0.25]),// 9 (25--)
+            // VectorRow::from([8.8, 0.0, -0.6]), // 10 (21--)
+            //
+            // VectorRow::from([15.2, 0.0, 0.0]), // 0
         ]);
 
         // Duplicate and mirror.
@@ -654,14 +668,14 @@ mod rudder {
         // EW
         vertices.append(&mut vec![
             VectorRow::from([1.1, -0.1, 2.0]),  // 0
-            VectorRow::from([3.0, -0.1, 2.0]),  // 1
-            VectorRow::from([3.0, -0.1, 2.2]),  // 2
+            VectorRow::from([2.8, -0.1, 2.0]),  // 1
+            VectorRow::from([2.8, -0.1, 2.2]),  // 2
             VectorRow::from([1.1, -0.1, 2.2]),  // 3
             VectorRow::from([1.1, 0.1, 2.0]),   // 4
-            VectorRow::from([3.0, 0.1, 2.0]),   // 5
-            VectorRow::from([3.0, 0.1, 2.2]),   // 6
+            VectorRow::from([2.8, 0.1, 2.0]),   // 5
+            VectorRow::from([2.8, 0.1, 2.2]),   // 6
             VectorRow::from([1.1, 0.1, 2.2]),   // 7
-            VectorRow::from([3.15, 0.00, 2.1]), // 8
+            VectorRow::from([2.95, 0.00, 2.1]), // 8
             VectorRow::from([0.95, 0.00, 2.1]), // 9
         ]);
 
