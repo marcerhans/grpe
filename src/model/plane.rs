@@ -321,11 +321,22 @@ mod cockpit {
         // 34 to 43
         duplicated_from_intake.append(&mut mirror_y(&duplicated_from_intake));
 
+        let mut gps = vec![
+            VectorRow::from([8.8, 0.0, 0.8]), // 44
+            VectorRow::from([10.0, 0.0, 0.8]), // 45
+            VectorRow::from([10.0, 0.2, 0.76]), // 46
+            VectorRow::from([10.0, 0.45, 0.66]), // 47
+            VectorRow::from([8.8, 0.14, 0.76]), // 48
+        ];
+        // 49 to 53
+        gps.append(&mut mirror_y(&gps));
+
         // Duplicate and mirror.
         // vertices.append(&mut mirror_y(&vertices));
 
         vertices.append(&mut misc);
         vertices.append(&mut duplicated_from_intake);
+        vertices.append(&mut gps);
 
         vertices
     }
@@ -347,6 +358,38 @@ mod cockpit {
                 start + 15,
                 start + 34,
                 start + 35,
+            ],
+            // gps
+            vec![
+                start + 3,
+                start + 15,
+                start + 53,
+                start + 44,
+                start + 48,
+            ],
+            vec![
+                start + 46,
+                start + 48,
+                start + 44,
+                start + 53,
+                start + 51,
+            ],
+            vec![
+                start + 48,
+                start + 46,
+                start + 47,
+                start + 24,
+                start + 3,
+                start + 48,
+            ],
+            // gps mirrored
+            vec![
+                start + 53,
+                start + 15,
+                start + 34,
+                start + 52,
+                start + 51,
+                start + 53,
             ],
         ]);
 
