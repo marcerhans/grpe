@@ -325,15 +325,16 @@ mod cockpit {
             VectorRow::from([8.8, 0.0, 0.8]), // 44
             VectorRow::from([10.0, 0.0, 0.8]), // 45
             VectorRow::from([10.0, 0.2, 0.76]), // 46
-            VectorRow::from([10.0, 0.45, 0.66]), // 47
-            VectorRow::from([8.8, 0.14, 0.76]), // 48
+            VectorRow::from([10.0, 0.3, 0.66]), // 47
+            VectorRow::from([10.0, 0.35, 0.4]), // 48
+            VectorRow::from([8.8, 0.14, 0.76]), // 49
         ];
-        // 49 to 53
+        // 50 to 55
         gps.append(&mut mirror_y(&gps));
         gps.append(&mut vec![
-            VectorRow::from([9.1, 0.0, 0.81]), // 54
-            VectorRow::from([9.4, 0.0, 0.81]), // 55
-            VectorRow::from([9.7, 0.0, 0.81]), // 56
+            VectorRow::from([9.1, 0.0, 0.81]), // 56
+            VectorRow::from([9.4, 0.0, 0.81]), // 57
+            VectorRow::from([9.7, 0.0, 0.81]), // 58
         ]);
 
         // Duplicate and mirror.
@@ -368,42 +369,49 @@ mod cockpit {
             vec![
                 start + 3,
                 start + 15,
-                start + 53,
+                start + 55,
                 start + 44,
-                start + 48,
-            ],
-            vec![
-                start + 46,
-                start + 48,
-                start + 44,
-                start + 53,
-                start + 51,
+                start + 49,
             ],
             vec![
                 start + 48,
-                start + 46,
                 start + 47,
-                start + 24,
-                start + 3,
-                start + 48,
-            ],
-            vec![
+                start + 46,
+                start + 45,
+                start + 52,
+                start + 53,
                 start + 54,
             ],
             vec![
+                start + 46,
+                start + 49,
+                start + 44,
                 start + 55,
+                start + 52,
+                start + 51,
             ],
             vec![
                 start + 56,
             ],
-            // gps mirrored
             vec![
-                start + 53,
+                start + 57,
+            ],
+            vec![
+                start + 58,
+            ],
+            vec![
+                start + 49,
+                start + 46,
+                start + 47,
+                start + 48,
+                start + 3,
+            ],
+            vec![
                 start + 15,
-                start + 34,
-                start + 52,
-                start + 51,
+                start + 54,
                 start + 53,
+                start + 52,
+                start + 55,
             ],
         ]);
 
