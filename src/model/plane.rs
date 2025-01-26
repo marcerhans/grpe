@@ -384,11 +384,11 @@ mod cockpit {
         ]);
 
         cone.append(&mut vec![
-            VectorRow::from([13.5, 0.35, 0.05]), // 88
-            VectorRow::from([14.0, 0.2, 0.0]), // 89
+            VectorRow::from([13.5, 0.35, 0.08]), // 88
+            VectorRow::from([14.0, 0.3, 0.0]), // 89
             //
-            VectorRow::from([13.5, -0.35, 0.05]), // 90
-            VectorRow::from([14.0, -0.2, 0.0]), // 91
+            VectorRow::from([13.5, -0.35, 0.08]), // 90
+            VectorRow::from([14.0, -0.3, 0.0]), // 91
             //
             // VectorRow::from([14.5, 0.0, 0.15]), // 90
             // VectorRow::from([14.5, 0.15, 0.0]), // 91
