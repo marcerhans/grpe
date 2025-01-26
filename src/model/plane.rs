@@ -371,6 +371,18 @@ mod cockpit {
         cone[11+4][0] += 0.1;
         cone[11+5][0] += 0.0;
 
+        cone.append(&mut vec![
+            // Line on windshield.
+            VectorRow::from([10.0, 0.0, 0.8]),  // 80
+            VectorRow::from([11.3, 0.0, 0.94]), // 81
+            VectorRow::from([11.6, 0.0, 0.88]), // 82
+            VectorRow::from([11.8, 0.0, 0.77]), // 83
+            VectorRow::from([12.0, 0.0, 0.66]),  // 84
+            VectorRow::from([12.2, 0.0, 0.55]), // 85
+            VectorRow::from([12.4, 0.0, 0.44]), // 86
+            VectorRow::from([12.8, 0.0, 0.22]), // 87
+        ]);
+
         // Duplicate and mirror.
         // vertices.append(&mut mirror_y(&vertices));
 
@@ -493,6 +505,35 @@ mod cockpit {
             vec![
                 start + 79,
                 start + 78,
+            ],
+            // Line
+            vec![
+                start + 80,
+                start + 81,
+            ],
+            vec![
+                start + 81,
+                start + 82,
+            ],
+            vec![
+                start + 82,
+                start + 83,
+            ],
+            vec![
+                start + 83,
+                start + 84,
+            ],
+            vec![
+                start + 84,
+                start + 85,
+            ],
+            vec![
+                start + 85,
+                start + 86,
+            ],
+            vec![
+                start + 86,
+                start + 87,
             ],
         ]);
 
