@@ -338,8 +338,8 @@ mod cockpit {
         ]);
 
         let mut cone = vec![
-            VectorRow::from([11.0, 0.5, 0.35]), // 59
-            VectorRow::from([11.0, -0.5, 0.35]), // 60
+            VectorRow::from([11.0, 0.5, 0.32]), // 59
+            VectorRow::from([11.0, -0.5, 0.32]), // 60
             VectorRow::from([10.0, 0.35, 0.35]), // 61
             VectorRow::from([10.0, -0.35, 0.35]), // 62
             // Windshield base
