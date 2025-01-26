@@ -385,7 +385,9 @@ mod cockpit {
 
         cone.append(&mut vec![
             VectorRow::from([13.5, 0.0, 0.20]), // 88
-            VectorRow::from([13.5, 2.0, 0.20]), // 89
+            VectorRow::from([14.0, 0.0, 0.20]), // 89
+            VectorRow::from([14.5, 0.0, 0.15]), // 90
+            VectorRow::from([13.5, 2.0, 0.20]), // 91
         ]);
 
         // Duplicate and mirror.
@@ -559,6 +561,9 @@ mod cockpit {
                 start + 66,
                 start + 88,
                 start + 89,
+                start + 90,
+                start + 0,
+                start + 91,
             ],
         ];
 
