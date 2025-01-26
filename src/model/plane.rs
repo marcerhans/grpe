@@ -555,13 +555,13 @@ mod cockpit {
                 start + 86,
                 start + 87,
             ],
-            vec![
-                start + 41,
-                start + 20,
-                start + 11,
-                start + 8,
-                start + 31,
-            ],
+            // vec![
+            //     start + 41,
+            //     start + 20,
+            //     start + 11,
+            //     start + 8,
+            //     start + 31,
+            // ],
         ]);
 
         let mut nose = vec![
@@ -609,12 +609,19 @@ mod cockpit {
             ],
             // BOTTOM
             vec![
+                // start + 11,
+                // start + 101,
+                // start + 100,
+                // start + 99,
+                // start + 98,
                 start + 0,
-                start + 98,
-                start + 99,
-                start + 100,
-                start + 101,
-                start + 11,
+                start + 95,
+                start + 96,
+                start + 97,
+                start + 42,
+                start + 43,
+                // start + 41,
+                // start + 20,
             ],
         ];
 
