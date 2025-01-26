@@ -1062,19 +1062,6 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     vertices.append(&mut wings::get_vertices());
     vertices.append(&mut canards::get_vertices());
 
-    // Backdrop
-    const GRID_SIZE: i32 = 200;
-    const GRID_SPACING: i32 = 2;
-    for i in 0..GRID_SIZE {
-        for j in 0..GRID_SIZE {
-            vertices.push(VectorRow::from([
-                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
-                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
-                -10 as f64,
-            ]));
-        }
-    }
-
     // Scale and center
     for vertex in vertices.iter_mut() {
         vertex[0] = vertex[0] - LENGTH / 2.0; // Center plane
@@ -1082,6 +1069,19 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
         // vertex[1] -= 0.08; // MODELLING
         // vertex.0.scale(32.6); // MODELLING
         vertex.0.scale(22.0);
+    }
+
+    // Backdrop
+    const GRID_SIZE: i32 = 200;
+    const GRID_SPACING: i32 = 20;
+    for i in 0..GRID_SIZE {
+        for j in 0..GRID_SIZE {
+            vertices.push(VectorRow::from([
+                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
+                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
+                -100 as f64,
+            ]));
+        }
     }
 
     vertices
