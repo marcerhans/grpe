@@ -352,7 +352,7 @@ mod cockpit {
             VectorRow::from([11.5, 0.5, 0.27]), // 69
         ];
 
-        let radius_small = 0.4;
+        let radius_small = 0.5;
         let points = 10;
         for point in 1..=points {
             let radians = (std::f64::consts::PI * 2.0 / (points as f64)) * (point as f64);
