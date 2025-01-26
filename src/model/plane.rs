@@ -345,9 +345,9 @@ mod cockpit {
             // Windshield base
             VectorRow::from([11.5, -0.5, 0.27]), // 63
             VectorRow::from([12.0, -0.4, 0.25]), // 64
-            VectorRow::from([12.5, -0.25, 0.15]), // 65
-            VectorRow::from([12.8, 0.0, 0.1]), // 66
-            VectorRow::from([12.5, 0.25, 0.15]), // 67
+            VectorRow::from([12.5, -0.25, 0.22]), // 65
+            VectorRow::from([12.8, 0.0, 0.2]), // 66
+            VectorRow::from([12.5, 0.25, 0.22]), // 67
             VectorRow::from([12.0, 0.4, 0.25]), // 68
             VectorRow::from([11.5, 0.5, 0.27]), // 69
         ];
@@ -378,16 +378,16 @@ mod cockpit {
             VectorRow::from([11.6, 0.0, 0.88]), // 82
             VectorRow::from([11.8, 0.0, 0.77]), // 83
             VectorRow::from([12.0, 0.0, 0.66]), // 84
-            VectorRow::from([12.2, 0.0, 0.52]), // 85
-            VectorRow::from([12.4, 0.0, 0.39]), // 86
-            VectorRow::from([12.8, 0.0, 0.1]), // 87
+            VectorRow::from([12.2, 0.0, 0.55]), // 85
+            VectorRow::from([12.4, 0.0, 0.44]), // 86
+            VectorRow::from([12.8, 0.0, 0.22]), // 87
         ]);
 
         cone.append(&mut vec![
-            VectorRow::from([13.5, 0.35, 0.08]), // 88
+            VectorRow::from([13.5, 0.35, 0.09]), // 88
             VectorRow::from([14.0, 0.3, 0.0]), // 89
             //
-            VectorRow::from([13.5, -0.35, 0.08]), // 90
+            VectorRow::from([13.5, -0.35, 0.09]), // 90
             VectorRow::from([14.0, -0.3, 0.0]), // 91
             //
             // VectorRow::from([14.5, 0.0, 0.15]), // 90
