@@ -87,8 +87,7 @@ mod input {
                 mouse: Default::default(),
                 keyboard: Default::default(),
                 misc: Default::default(),
-                // auto: Some(auto::State::default()),
-                auto: None, // MODEL
+                auto: Some(auto::State::default()),
             }
         }
     }

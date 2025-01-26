@@ -21,29 +21,24 @@ fn main() {
     // 1. Instantiate IO handler.
     let event_handler = EventHandler::init().expect("Failed to initialize event handler.");
 
-    let rotation: (f64, f64) = (-std::f64::consts::FRAC_PI_4, 0.0);
-    let pitch = linear_algebra::quaternion::Quaternion(
-        rotation.0.cos(),
-        rotation.0.sin() * (rotation.1 * 2.0).cos(),
-        rotation.0.sin() * (rotation.1 * 2.0).sin(),
-        0.0,
-    );
-    let yaw = linear_algebra::quaternion::Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
-    let rotation = &pitch * &yaw;
-    let rotation_prim = rotation.inverse();
+    // let rotation: (f64, f64) = (-std::f64::consts::FRAC_PI_4, 0.0);
+    // let pitch = linear_algebra::quaternion::Quaternion(
+    //     rotation.0.cos(),
+    //     rotation.0.sin() * (rotation.1 * 2.0).cos(),
+    //     rotation.0.sin() * (rotation.1 * 2.0).sin(),
+    //     0.0,
+    // );
+    // let yaw = linear_algebra::quaternion::Quaternion(rotation.1.cos(), 0.0, 0.0, rotation.1.sin());
+    // let rotation = &pitch * &yaw;
+    // let rotation_prim = rotation.inverse();
 
     // 2. Instantiate renderer.
     let camera_default = Camera {
         resolution: args.resolution.unwrap_or((64, 64)),
-        position: VectorRow::from([4.0, 0.0, 600.0]),
-        rotation: (rotation, rotation_prim),
-        projection_mode: ProjectionMode::Perspective { fov: 15 },
         ..Default::default()
     };
     let mut renderer = TerminalBuilder::default()
         .with_camera(camera_default.clone())
-        // .expect("Bad camera config.")
-        // .with_option(RenderOption::Vertices)
         .expect("Bad option config.")
         .build()
         .unwrap();
