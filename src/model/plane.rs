@@ -384,14 +384,15 @@ mod cockpit {
         ]);
 
         cone.append(&mut vec![
+            // TOP
             VectorRow::from([13.5, 0.35, 0.09]), // 88
             VectorRow::from([14.0, 0.3, 0.0]), // 89
-            //
             VectorRow::from([13.5, -0.35, 0.09]), // 90
             VectorRow::from([14.0, -0.3, 0.0]), // 91
-            //
-            // VectorRow::from([14.5, 0.0, 0.15]), // 90
-            // VectorRow::from([14.5, 0.15, 0.0]), // 91
+            // SIDES
+            VectorRow::from([14.0, 0.4, -0.2]), // 92
+            VectorRow::from([13.5, 0.5, -0.1]), // 93
+            VectorRow::from([12.0, 0.65, 0.0]), // 94
         ]);
 
         // Duplicate and mirror.
@@ -556,10 +557,8 @@ mod cockpit {
         ]);
 
         let mut nose = vec![
+            // TOP
             vec![
-                // start + 25,
-                // start + 59,
-                // start + 69,
                 start + 89,
                 start + 88,
                 start + 69,
@@ -571,11 +570,15 @@ mod cockpit {
                 start + 63,
                 start + 90,
                 start + 91,
-                // start + 88,
-                // start + 89,
-                // start + 90,
                 start + 0,
-                // start + 91,
+            ],
+            // SIDES
+            vec![
+                start + 0,
+                start + 92,
+                start + 93,
+                start + 94,
+                start + 32,
             ],
         ];
 
