@@ -297,7 +297,7 @@ mod cockpit {
             VectorRow::from([8.8, 0.28, -0.55]),// 8 (22--)
             VectorRow::from([8.8, 0.6, -0.4]), // 9 (24--)
             VectorRow::from([8.8, 1.0, -0.25]),// 10 (25--)
-            VectorRow::from([8.8, 0.0, -0.6]), // 11 (21--)
+            VectorRow::from([8.5, 0.0, -0.6]), // 11 (21--)
         ];
         // 12 to 23
         misc.append(&mut mirror_y(&misc));
@@ -534,6 +534,14 @@ mod cockpit {
             vec![
                 start + 86,
                 start + 87,
+            ],
+            // Nose
+            vec![
+                start + 41,
+                start + 20,
+                start + 11,
+                start + 8,
+                start + 31,
             ],
         ]);
 
