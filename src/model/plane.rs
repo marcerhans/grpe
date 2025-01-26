@@ -337,12 +337,18 @@ mod cockpit {
             VectorRow::from([9.7, 0.0, 0.81]), // 58
         ]);
 
+        let mut more_misc = vec![
+            VectorRow::from([13.0, 0.0, 0.7]), // 59
+            VectorRow::from([12.0, 0.0, 0.7]), // 60
+        ];
+
         // Duplicate and mirror.
         // vertices.append(&mut mirror_y(&vertices));
 
         vertices.append(&mut misc);
         vertices.append(&mut duplicated_from_intake);
         vertices.append(&mut gps);
+        vertices.append(&mut more_misc);
 
         vertices
     }
