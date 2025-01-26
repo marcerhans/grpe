@@ -1,6 +1,5 @@
 /// Modelled with image of brazillian plane. Top down image. FOV: 15.
-use std::f64::consts;
-
+/// It is veeery messy in here!
 use renderer::VectorRow;
 
 const LENGTH: f64 = 15.2;
@@ -192,30 +191,30 @@ mod intake {
         // Intake.
         vertices.append(&mut vec![
             // Just duplicated from body...
-            VectorRow::from([8.8, 0.0, 0.6]),  // 0 (21)
-            VectorRow::from([8.8, 0.28, 0.55]),// 1 (22)
-            VectorRow::from([8.8, 0.4, 0.5]),  // 2 (23)
-            VectorRow::from([8.8, 0.6, 0.4]),  // 3 (24)
-            VectorRow::from([8.8, 1.0, 0.25]), // 4 (25)
-            VectorRow::from([8.8, 1.0, 0.0]),  // 5 (26)
+            VectorRow::from([8.8, 0.0, 0.6]),   // 0 (21)
+            VectorRow::from([8.8, 0.28, 0.55]), // 1 (22)
+            VectorRow::from([8.8, 0.4, 0.5]),   // 2 (23)
+            VectorRow::from([8.8, 0.6, 0.4]),   // 3 (24)
+            VectorRow::from([8.8, 1.0, 0.25]),  // 4 (25)
+            VectorRow::from([8.8, 1.0, 0.0]),   // 5 (26)
             VectorRow::from([8.8, 0.28, -0.55]),// 6 (22--)
-            VectorRow::from([8.8, 0.6, -0.4]), // 7 (24--)
-            VectorRow::from([8.8, 1.0, -0.25]),// 8 (25--)
-            VectorRow::from([8.8, 0.0, -0.6]), // 9 (21--)
+            VectorRow::from([8.8, 0.6, -0.4]),  // 7 (24--)
+            VectorRow::from([8.8, 1.0, -0.25]), // 8 (25--)
+            VectorRow::from([8.8, 0.0, -0.6]),  // 9 (21--)
             //
             VectorRow::from([10.0, 0.5, 0.4]), // 10
-            VectorRow::from([11.0, 0.6, 0.35]), // 11
-            VectorRow::from([11.0, 0.65, 0.3]), // 12
+            VectorRow::from([11.0, 0.6, 0.35]),// 11
+            VectorRow::from([11.0, 0.65, 0.3]),// 12
             VectorRow::from([10.8, 1.0, 0.3]), // 13
             VectorRow::from([10.6, 1.1, 0.3]), // 14
-            VectorRow::from([10.4, 1.05, 0.3]), // 15
+            VectorRow::from([10.4, 1.05, 0.3]),// 15
             //
-            VectorRow::from([10.6, 1.0, -0.3]), // 16
+            VectorRow::from([10.6, 1.0, -0.3]),// 16
             //
-            VectorRow::from([10.5, 0.5, -0.3]), // 17
+            VectorRow::from([10.5, 0.5, -0.3]),// 17
             //
             VectorRow::from([11.1, 0.65, 0.0]), // 18
-            VectorRow::from([10.9, 0.65, -0.3]), // 19
+            VectorRow::from([10.9, 0.65, -0.3]),// 19
         ]);
 
         // Duplicate and mirror.
@@ -288,16 +287,16 @@ mod cockpit {
             VectorRow::from([15.2, 0.0, -0.2]), // 0
             VectorRow::from([16.0, 0.0, -0.2]), // 1
             // Just duplicated from body...
-            VectorRow::from([8.5, 0.0, 0.6]),  // 2/14 (21)
-            VectorRow::from([8.8, 0.28, 0.55]),// 3 (22)
-            VectorRow::from([8.8, 0.4, 0.5]),  // 4 (23)
-            VectorRow::from([8.8, 0.6, 0.4]),  // 5 (24)
-            VectorRow::from([8.8, 1.0, 0.25]), // 6 (25)
-            VectorRow::from([8.8, 1.0, 0.0]),  // 7 (26)
+            VectorRow::from([8.5, 0.0, 0.6]),   // 2/14 (21)
+            VectorRow::from([8.8, 0.28, 0.55]), // 3 (22)
+            VectorRow::from([8.8, 0.4, 0.5]),   // 4 (23)
+            VectorRow::from([8.8, 0.6, 0.4]),   // 5 (24)
+            VectorRow::from([8.8, 1.0, 0.25]),  // 6 (25)
+            VectorRow::from([8.8, 1.0, 0.0]),   // 7 (26)
             VectorRow::from([8.8, 0.28, -0.55]),// 8 (22--)
-            VectorRow::from([8.8, 0.6, -0.4]), // 9 (24--)
-            VectorRow::from([8.8, 1.0, -0.25]),// 10 (25--)
-            VectorRow::from([8.5, 0.0, -0.6]), // 11 (21--)
+            VectorRow::from([8.8, 0.6, -0.4]),  // 9 (24--)
+            VectorRow::from([8.8, 1.0, -0.25]), // 10 (25--)
+            VectorRow::from([8.5, 0.0, -0.6]),  // 11 (21--)
         ];
         // 12 to 23
         misc.append(&mut mirror_y(&misc));
@@ -305,51 +304,51 @@ mod cockpit {
         // Just duplicated from intake...
         let mut duplicated_from_intake = vec![
             VectorRow::from([10.0, 0.5, 0.4]), // 24
-            VectorRow::from([11.0, 0.6, 0.35]), // 25
-            VectorRow::from([11.0, 0.65, 0.3]), // 26
+            VectorRow::from([11.0, 0.6, 0.35]),// 25
+            VectorRow::from([11.0, 0.65, 0.3]),// 26
             VectorRow::from([10.8, 1.0, 0.3]), // 27
             VectorRow::from([10.6, 1.1, 0.3]), // 28
-            VectorRow::from([10.4, 1.05, 0.3]), // 29
+            VectorRow::from([10.4, 1.05, 0.3]),// 29
             //
-            VectorRow::from([10.6, 1.0, -0.3]), // 30
+            VectorRow::from([10.6, 1.0, -0.3]),// 30
             //
-            VectorRow::from([10.5, 0.5, -0.3]), // 31
+            VectorRow::from([10.5, 0.5, -0.3]),// 31
             //
             VectorRow::from([11.1, 0.65, 0.0]), // 32
-            VectorRow::from([10.9, 0.65, -0.3]), // 33
+            VectorRow::from([10.9, 0.65, -0.3]),// 33
         ];
         // 34 to 43
         duplicated_from_intake.append(&mut mirror_y(&duplicated_from_intake));
 
         let mut gps = vec![
-            VectorRow::from([8.8, 0.0, 0.8]), // 44
+            VectorRow::from([8.8, 0.0, 0.8]),  // 44
             VectorRow::from([10.0, 0.0, 0.8]), // 45
-            VectorRow::from([10.0, 0.2, 0.76]), // 46
-            VectorRow::from([10.0, 0.3, 0.66]), // 47
-            VectorRow::from([10.0, 0.35, 0.4]), // 48
-            VectorRow::from([8.8, 0.14, 0.76]), // 49
+            VectorRow::from([10.0, 0.2, 0.76]),// 46
+            VectorRow::from([10.0, 0.3, 0.66]),// 47
+            VectorRow::from([10.0, 0.35, 0.4]),// 48
+            VectorRow::from([8.8, 0.14, 0.76]),// 49
         ];
         // 50 to 55
         gps.append(&mut mirror_y(&gps));
         gps.append(&mut vec![
-            VectorRow::from([9.1, 0.0, 0.81]), // 56
-            VectorRow::from([9.4, 0.0, 0.81]), // 57
-            VectorRow::from([9.7, 0.0, 0.81]), // 58
+            VectorRow::from([9.1, 0.0, 0.81]),// 56
+            VectorRow::from([9.4, 0.0, 0.81]),// 57
+            VectorRow::from([9.7, 0.0, 0.81]),// 58
         ]);
 
         let mut cone = vec![
-            VectorRow::from([11.0, 0.5, 0.32]), // 59
+            VectorRow::from([11.0, 0.5, 0.32]),  // 59
             VectorRow::from([11.0, -0.5, 0.32]), // 60
             VectorRow::from([10.0, 0.35, 0.35]), // 61
-            VectorRow::from([10.0, -0.35, 0.35]), // 62
+            VectorRow::from([10.0, -0.35, 0.35]),// 62
             // Windshield base
             VectorRow::from([11.5, -0.5, 0.27]), // 63
             VectorRow::from([12.0, -0.4, 0.25]), // 64
-            VectorRow::from([12.5, -0.25, 0.22]), // 65
-            VectorRow::from([12.8, 0.0, 0.2]), // 66
+            VectorRow::from([12.5, -0.25, 0.22]),// 65
+            VectorRow::from([12.8, 0.0, 0.2]),   // 66
             VectorRow::from([12.5, 0.25, 0.22]), // 67
-            VectorRow::from([12.0, 0.4, 0.25]), // 68
-            VectorRow::from([11.5, 0.5, 0.27]), // 69
+            VectorRow::from([12.0, 0.4, 0.25]),  // 68
+            VectorRow::from([11.5, 0.5, 0.27]),  // 69
         ];
 
         let radius_small = 0.5;
@@ -373,38 +372,35 @@ mod cockpit {
 
         cone.append(&mut vec![
             // Line on windshield.
-            VectorRow::from([10.0, 0.0, 0.8]),  // 80
-            VectorRow::from([11.3, 0.0, 0.94]), // 81
-            VectorRow::from([11.6, 0.0, 0.88]), // 82
-            VectorRow::from([11.8, 0.0, 0.77]), // 83
-            VectorRow::from([12.0, 0.0, 0.66]), // 84
-            VectorRow::from([12.2, 0.0, 0.55]), // 85
-            VectorRow::from([12.4, 0.0, 0.44]), // 86
-            VectorRow::from([12.8, 0.0, 0.22]), // 87
+            VectorRow::from([10.0, 0.0, 0.8]), // 80
+            VectorRow::from([11.3, 0.0, 0.94]),// 81
+            VectorRow::from([11.6, 0.0, 0.88]),// 82
+            VectorRow::from([11.8, 0.0, 0.77]),// 83
+            VectorRow::from([12.0, 0.0, 0.66]),// 84
+            VectorRow::from([12.2, 0.0, 0.55]),// 85
+            VectorRow::from([12.4, 0.0, 0.44]),// 86
+            VectorRow::from([12.8, 0.0, 0.22]),// 87
         ]);
 
         cone.append(&mut vec![
             // TOP
             VectorRow::from([13.5, 0.35, 0.09]), // 88
-            VectorRow::from([14.0, 0.3, 0.0]), // 89
-            VectorRow::from([13.5, -0.35, 0.09]), // 90
-            VectorRow::from([14.0, -0.3, 0.0]), // 91
+            VectorRow::from([14.0, 0.3, 0.0]),   // 89
+            VectorRow::from([13.5, -0.35, 0.09]),// 90
+            VectorRow::from([14.0, -0.3, 0.0]),  // 91
             // SIDES
-            VectorRow::from([14.0, 0.4, -0.2]), // 92
-            VectorRow::from([13.5, 0.5, -0.2]), // 93
+            VectorRow::from([14.0, 0.4, -0.2]),  // 92
+            VectorRow::from([13.5, 0.5, -0.2]),  // 93
             VectorRow::from([12.0, 0.65, -0.2]), // 94
             VectorRow::from([14.0, -0.4, -0.2]), // 95
             VectorRow::from([13.5, -0.5, -0.2]), // 96
-            VectorRow::from([12.0, -0.65, -0.2]), // 97
+            VectorRow::from([12.0, -0.65, -0.2]),// 97
             // BOTTOM
-            VectorRow::from([14.0, 0.0, -0.45]), // 98
+            VectorRow::from([14.0, 0.0, -0.45]),// 98
             VectorRow::from([13.5, 0.0, -0.5]), // 99
-            VectorRow::from([12.0, 0.0, -0.55]), // 100
+            VectorRow::from([12.0, 0.0, -0.55]),// 100
             VectorRow::from([10.0, 0.0, -0.6]), // 101
         ]);
-
-        // Duplicate and mirror.
-        // vertices.append(&mut mirror_y(&vertices));
 
         vertices.append(&mut misc);
         vertices.append(&mut duplicated_from_intake);
@@ -555,13 +551,6 @@ mod cockpit {
                 start + 86,
                 start + 87,
             ],
-            // vec![
-            //     start + 41,
-            //     start + 20,
-            //     start + 11,
-            //     start + 8,
-            //     start + 31,
-            // ],
         ]);
 
         let mut nose = vec![
@@ -639,16 +628,6 @@ mod cockpit {
                 start + 0,
             ],
         ];
-
-        // Duplicate and mirror.
-        // let mut line_draw_order_mirrored = line_draw_order.clone().to_vec();
-        // for order in &mut line_draw_order_mirrored {
-        //     for ele in order.iter_mut() {
-        //         *ele += get_vertices().len() / 2;
-        //     }
-        //     order.reverse();
-        // }
-        // line_draw_order.append(&mut line_draw_order_mirrored);
 
         line_draw_order.append(&mut nose);
 
@@ -1083,18 +1062,18 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
     vertices.append(&mut wings::get_vertices());
     vertices.append(&mut canards::get_vertices());
 
-    // // Backdrop
-    // const GRID_SIZE: i32 = 200;
-    // const GRID_SPACING: i32 = 2;
-    // for i in 0..GRID_SIZE {
-    //     for j in 0..GRID_SIZE {
-    //         vertices.push(VectorRow::from([
-    //             (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
-    //             (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
-    //             -10 as f64,
-    //         ]));
-    //     }
-    // }
+    // Backdrop
+    const GRID_SIZE: i32 = 200;
+    const GRID_SPACING: i32 = 1;
+    for i in 0..GRID_SIZE {
+        for j in 0..GRID_SIZE {
+            vertices.push(VectorRow::from([
+                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (i * GRID_SPACING) as f64,
+                (-GRID_SIZE / 2 * GRID_SPACING) as f64 + (j * GRID_SPACING) as f64,
+                -10 as f64,
+            ]));
+        }
+    }
 
     // Scale and center
     for vertex in vertices.iter_mut() {
@@ -1145,10 +1124,10 @@ pub fn get_line_draw_order() -> Vec<Vec<usize>> {
     index_start += canards::get_vertices().len();
     line_draw_order.append(&mut canards);
 
-    // // Backdrop
-    // for i in index_start..(index_start + 200*200) {
-    //     line_draw_order.push(vec![i]);
-    // }
+    // Backdrop
+    for i in index_start..(index_start + 200*200) {
+        line_draw_order.push(vec![i]);
+    }
 
     line_draw_order
 }
