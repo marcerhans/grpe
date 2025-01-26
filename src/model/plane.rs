@@ -387,7 +387,7 @@ mod cockpit {
             VectorRow::from([13.5, 0.0, 0.20]), // 88
             VectorRow::from([14.0, 0.0, 0.20]), // 89
             VectorRow::from([14.5, 0.0, 0.15]), // 90
-            VectorRow::from([13.5, 2.0, 0.20]), // 91
+            VectorRow::from([14.5, 0.15, 0.0]), // 91
         ]);
 
         // Duplicate and mirror.
