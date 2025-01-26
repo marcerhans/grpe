@@ -553,12 +553,14 @@ mod cockpit {
 
         let mut nose = vec![
             vec![
-                start + 25,
-                start + 59,
-                start + 69,
+                // start + 25,
+                // start + 59,
+                // start + 69,
                 start + 68,
                 start + 67,
                 start + 66,
+                start + 65,
+                start + 64,
                 start + 88,
                 start + 89,
                 start + 90,
