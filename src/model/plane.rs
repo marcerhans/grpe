@@ -342,16 +342,14 @@ mod cockpit {
             VectorRow::from([11.0, -0.5, 0.35]), // 60
             VectorRow::from([10.0, 0.35, 0.35]), // 61
             VectorRow::from([10.0, -0.35, 0.35]), // 62
-            //
-            // VectorRow::from([11.5, 0.5, 0.33]), // 63
-            // VectorRow::from([11.60, 0.51, 0.36]), // 64
-            // VectorRow::from([11.61, 0.52, 0.38]), // 65
-            // VectorRow::from([11.62, 0.51, 0.4]), // 66
-            // VectorRow::from([11.63, 0.50, 0.5]), // 67
-            // VectorRow::from([11.65, 0.49, 0.6]), // 68
-            // VectorRow::from([11.68, 0.48, 0.7]), // 69
-            // VectorRow::from([11.7, 0.0, 0.78]), // 70
-            // VectorRow::from([12.8, 0.0, 0.7]), // 60
+            // Windshield base
+            VectorRow::from([11.5, -0.5, 0.375]), // 63
+            VectorRow::from([12.0, -0.4, 0.35]), // 64
+            VectorRow::from([12.5, -0.25, 0.33]), // 65
+            VectorRow::from([12.8, 0.0, 0.3]), // 66
+            VectorRow::from([12.5, 0.25, 0.33]), // 67
+            VectorRow::from([12.0, 0.4, 0.35]), // 68
+            VectorRow::from([11.5, 0.5, 0.375]), // 69
         ];
 
         let radius_small = 0.4;
@@ -364,14 +362,14 @@ mod cockpit {
                 0.375 + radius_small * radians.sin(),
             ]));
         }
-        cone[4+8][0] += 0.0;
-        cone[4+9][0] += 0.1;
-        cone[4+0][0] += 0.15;
-        cone[4+1][0] += 0.19;
-        cone[4+2][0] += 0.19;
-        cone[4+3][0] += 0.15;
-        cone[4+4][0] += 0.1;
-        cone[4+5][0] += 0.0;
+        cone[11+8][0] += 0.0;
+        cone[11+9][0] += 0.1;
+        cone[11+0][0] += 0.15;
+        cone[11+1][0] += 0.19;
+        cone[11+2][0] += 0.19;
+        cone[11+3][0] += 0.15;
+        cone[11+4][0] += 0.1;
+        cone[11+5][0] += 0.0;
 
         // Duplicate and mirror.
         // vertices.append(&mut mirror_y(&vertices));
@@ -453,33 +451,48 @@ mod cockpit {
                 start + 52,
                 start + 55,
             ],
+            // Windshield base
             vec![
+                start + 62,
+                start + 60,
                 start + 63,
                 start + 64,
-            ],
-            vec![
-                start + 64,
-                start + 65,
-            ],
-            vec![
                 start + 65,
                 start + 66,
-            ],
-            vec![
-                start + 66,
-                start + 67,
-            ],
-            vec![
                 start + 67,
                 start + 68,
+                start + 69,
+                start + 59,
+                start + 61,
             ],
+            // bar
             vec![
-                start + 63,
-                start + 72,
-            ],
-            vec![
-                start + 72,
+                start + 70,
                 start + 71,
+            ],
+            vec![
+                start + 71,
+                start + 72,
+            ],
+            vec![
+                start + 72,
+                start + 73,
+            ],
+            vec![
+                start + 73,
+                start + 74,
+            ],
+            vec![
+                start + 74,
+                start + 75,
+            ],
+            vec![
+                start + 70,
+                start + 79,
+            ],
+            vec![
+                start + 79,
+                start + 78,
             ],
         ]);
 
