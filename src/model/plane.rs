@@ -623,6 +623,21 @@ mod cockpit {
                 start + 99,
                 start + 98,
             ],
+            vec![
+                start + 98,
+                start + 99,
+                start + 100,
+                start + 101,
+                start + 11,
+                start + 8,
+                start + 31,
+                start + 33,
+                start + 32,
+                start + 94,
+                start + 93,
+                start + 92,
+                start + 0,
+            ],
         ];
 
         // Duplicate and mirror.
