@@ -338,8 +338,10 @@ mod cockpit {
         ]);
 
         let mut more_misc = vec![
-            VectorRow::from([13.0, 0.0, 0.7]), // 59
-            VectorRow::from([12.0, 0.0, 0.7]), // 60
+            // VectorRow::from([12.8, 0.0, 0.7]), // 60
+            // VectorRow::from([10.0, 0.0, 0.8]), // 59
+            // VectorRow::from([11.0, 0.0, 0.8]), // 59
+            // VectorRow::from([12.8, 0.0, 0.7]), // 60
         ];
 
         // Duplicate and mirror.
@@ -362,7 +364,6 @@ mod cockpit {
                 start + 1,
             ],
             vec![
-                start + 26,
                 start + 25,
                 start + 24,
                 start + 3,
@@ -419,6 +420,10 @@ mod cockpit {
                 start + 52,
                 start + 55,
             ],
+            vec![
+                start + 59,
+                start + 60,
+            ]
         ]);
 
         // Duplicate and mirror.
