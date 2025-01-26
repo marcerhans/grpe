@@ -322,19 +322,19 @@ mod cockpit {
         duplicated_from_intake.append(&mut mirror_y(&duplicated_from_intake));
 
         let mut gps = vec![
-            VectorRow::from([8.8, 0.0, 0.9]), // 44
-            VectorRow::from([10.0, 0.0, 0.9]), // 45
-            VectorRow::from([10.0, 0.2, 0.86]), // 46
-            VectorRow::from([10.0, 0.3, 0.76]), // 47
-            VectorRow::from([10.0, 0.35, 0.5]), // 48
-            VectorRow::from([8.8, 0.14, 0.86]), // 49
+            VectorRow::from([8.8, 0.0, 0.8]), // 44
+            VectorRow::from([10.0, 0.0, 0.8]), // 45
+            VectorRow::from([10.0, 0.2, 0.76]), // 46
+            VectorRow::from([10.0, 0.3, 0.66]), // 47
+            VectorRow::from([10.0, 0.35, 0.4]), // 48
+            VectorRow::from([8.8, 0.14, 0.76]), // 49
         ];
         // 50 to 55
         gps.append(&mut mirror_y(&gps));
         gps.append(&mut vec![
-            VectorRow::from([9.1, 0.0, 0.91]), // 56
-            VectorRow::from([9.4, 0.0, 0.91]), // 57
-            VectorRow::from([9.7, 0.0, 0.91]), // 58
+            VectorRow::from([9.1, 0.0, 0.81]), // 56
+            VectorRow::from([9.4, 0.0, 0.81]), // 57
+            VectorRow::from([9.7, 0.0, 0.81]), // 58
         ]);
 
         let mut cone = vec![
