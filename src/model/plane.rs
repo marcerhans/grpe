@@ -377,10 +377,15 @@ mod cockpit {
             VectorRow::from([11.3, 0.0, 0.94]), // 81
             VectorRow::from([11.6, 0.0, 0.88]), // 82
             VectorRow::from([11.8, 0.0, 0.77]), // 83
-            VectorRow::from([12.0, 0.0, 0.66]),  // 84
+            VectorRow::from([12.0, 0.0, 0.66]), // 84
             VectorRow::from([12.2, 0.0, 0.55]), // 85
             VectorRow::from([12.4, 0.0, 0.44]), // 86
             VectorRow::from([12.8, 0.0, 0.22]), // 87
+        ]);
+
+        cone.append(&mut vec![
+            VectorRow::from([13.0, 2.0, 0.20]), // 88
+            VectorRow::from([13.0, 0.0, 0.20]), // 89
         ]);
 
         // Duplicate and mirror.
@@ -535,7 +540,6 @@ mod cockpit {
                 start + 86,
                 start + 87,
             ],
-            // Nose
             vec![
                 start + 41,
                 start + 20,
@@ -544,6 +548,17 @@ mod cockpit {
                 start + 31,
             ],
         ]);
+
+        let mut nose = vec![
+            vec![
+                start + 59,
+                start + 69,
+                start + 68,
+                start + 67,
+                start + 66,
+                start + 88,
+            ],
+        ];
 
         // Duplicate and mirror.
         // let mut line_draw_order_mirrored = line_draw_order.clone().to_vec();
@@ -554,6 +569,8 @@ mod cockpit {
         //     order.reverse();
         // }
         // line_draw_order.append(&mut line_draw_order_mirrored);
+
+        line_draw_order.append(&mut nose);
 
         line_draw_order
     }
