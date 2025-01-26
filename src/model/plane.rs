@@ -343,13 +343,13 @@ mod cockpit {
             VectorRow::from([10.0, 0.35, 0.35]), // 61
             VectorRow::from([10.0, -0.35, 0.35]), // 62
             // Windshield base
-            VectorRow::from([11.5, -0.5, 0.375]), // 63
-            VectorRow::from([12.0, -0.4, 0.35]), // 64
-            VectorRow::from([12.5, -0.25, 0.33]), // 65
-            VectorRow::from([12.8, 0.0, 0.3]), // 66
-            VectorRow::from([12.5, 0.25, 0.33]), // 67
-            VectorRow::from([12.0, 0.4, 0.35]), // 68
-            VectorRow::from([11.5, 0.5, 0.375]), // 69
+            VectorRow::from([11.5, -0.5, 0.27]), // 63
+            VectorRow::from([12.0, -0.4, 0.25]), // 64
+            VectorRow::from([12.5, -0.25, 0.22]), // 65
+            VectorRow::from([12.8, 0.0, 0.2]), // 66
+            VectorRow::from([12.5, 0.25, 0.22]), // 67
+            VectorRow::from([12.0, 0.4, 0.25]), // 68
+            VectorRow::from([11.5, 0.5, 0.27]), // 69
         ];
 
         let radius_small = 0.4;
