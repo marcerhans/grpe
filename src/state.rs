@@ -205,6 +205,10 @@ impl StateHandler {
                     'o' | 'v' | 'f' | 'c' => (),
                     _ => self.input.auto = None,
                 },
+                Event::Mouse(ref _modifier, ref event) => match event {
+                    io::mouse::Event::Scroll(_) => (),
+                    _ => self.input.auto = None,
+                },
                 _ => self.input.auto = None,
             }
         }

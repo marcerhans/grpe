@@ -1064,7 +1064,7 @@ pub fn get_vertices() -> Vec<VectorRow<f64, 3>> {
 
     // Backdrop
     const GRID_SIZE: i32 = 200;
-    const GRID_SPACING: i32 = 1;
+    const GRID_SPACING: i32 = 2;
     for i in 0..GRID_SIZE {
         for j in 0..GRID_SIZE {
             vertices.push(VectorRow::from([
