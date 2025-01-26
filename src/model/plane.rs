@@ -561,11 +561,11 @@ mod cockpit {
                 start + 66,
                 start + 65,
                 start + 64,
-                start + 88,
-                start + 89,
-                start + 90,
+                // start + 88,
+                // start + 89,
+                // start + 90,
                 start + 0,
-                start + 91,
+                // start + 91,
             ],
         ];
 
