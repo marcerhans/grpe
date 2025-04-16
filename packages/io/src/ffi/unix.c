@@ -118,7 +118,7 @@ bool running() {
 
 void initialize() {
   if (!atomic_load(&initialized)) {
-    signal(SIGINT, int signalsignalHandler);
+    signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&cond, NULL);
