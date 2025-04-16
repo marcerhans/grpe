@@ -31,8 +31,8 @@ static pthread_t writer;
 static pthread_mutex_t mutex;
 static pthread_cond_t cond;
 
-static void errorHandler();
-static void signalHandler();
+static void errorHandler(const char* s);
+static void signalHandler(int signal);
 static bool isOkToRead(const uint64_t index_read, const uint64_t index_write, const bool index_flip);
 static bool isOkToWrite(const uint64_t index_read, const uint64_t index_write, const bool index_flip);
 static void* writerFn(void*);
@@ -118,7 +118,7 @@ bool running() {
 
 void initialize() {
   if (!atomic_load(&initialized)) {
-    signal(SIGINT, signalHandler);
+    signal(SIGINT, int signalsignalHandler);
     signal(SIGTERM, signalHandler);
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&cond, NULL);
@@ -152,7 +152,7 @@ void errorHandler(const char* s) {
   // perror(s); // Caused issues with Rusts locked buffers.
 }
 
-void signalHandler() {
+void signalHandler(int signal) {
   if (atomic_load(&initialized)) {
     disablePartialRawMode();
     errorHandler("Signal received");
